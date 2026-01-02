@@ -91,7 +91,7 @@ bool CCaptchaGenerator::WriteCaptchaImage(CFileDataIO &file)
 	if (m_pimgCaptcha == NULL)
 		return false;
 	BYTE *pbyBuffer = NULL;
-	int32_t ulSize = 0;
+	long ulSize = 0;
 	if (m_pimgCaptcha->Encode(pbyBuffer, ulSize, CXIMAGE_FORMAT_BMP)) {
 		file.Write(pbyBuffer, ulSize);
 		ASSERT(ulSize > 100 && ulSize < 1000);

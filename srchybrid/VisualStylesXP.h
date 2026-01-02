@@ -2,7 +2,7 @@
 
 #if _MFC_VER<0x0B00
 #include <uxtheme.h>
-#include <tmschema.h>
+#include <vssym32.h>
 #endif
 
 #pragma warning(push)

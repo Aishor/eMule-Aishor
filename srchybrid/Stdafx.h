@@ -36,11 +36,11 @@
 #if defined(HAVE_VISTA_SDK)
 
 #ifndef WINVER
-#define WINVER 0x0502			// 0x0502 == Windows Server 2003, Windows XP (same as VS2005-MFC)
+#define WINVER 0x0A00			// 0x0A00 == Windows 10
 #endif
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT WINVER		// same as VS2005-MFC
+#define _WIN32_WINNT WINVER		// same as VS2026-MFC
 #endif
 
 #ifndef _WIN32_WINDOWS
@@ -190,7 +190,7 @@
 #include <afxdlgs.h>		// MFC Standard dialogs
 #include <atlcoll.h>
 #include <afxcoll.h>
-#include <afximpl.h>
+//#include <afximpl.h>
 
 
 #ifndef EWX_FORCEIFHUNG
