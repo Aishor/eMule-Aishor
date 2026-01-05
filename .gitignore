@@ -128,3 +128,7 @@ miniupnpc/*
 !miniupnpc/msvc/Release/
 !miniupnpc/msvc/Release/*.lib
 
+
+# Carpetas de compilación antiguas (VC9/VS2008)
+Debug_vc9/
+Release_vc9/
