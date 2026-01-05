@@ -92,13 +92,15 @@
 ### v0.70b-Build26-R1.0 (2026-01-05)
 
 **Cambios principales:**
-- Migración completa a Visual Studio 2022
+- Migración completa a Visual Studio 2022 (PlatformToolset v145)
 - Corrección de orden de includes en `OtherFunctions.cpp` (PCH)
 - Implementación de stubs para mbedTLS (PSA_CRYPTO deshabilitado)
 - Soporte completo para CxImage PNG
 - Unificación de Runtime Library a `/MD`
 
-Ver [CHANGELOG_COMPILACION.md](docs/CHANGELOG_COMPILACION.md) para más detalles.
+**⚠️ Nota importante:** Esta versión requiere recompilación de todas las dependencias con Visual Studio 2022.
+
+Ver [RELEASE_v0.70b-Build26-R1.0.md](docs/RELEASE_v0.70b-Build26-R1.0.md) para detalles completos y [CHANGELOG_COMPILACION.md](docs/CHANGELOG_COMPILACION.md) para historial técnico.
 
 ---
 
