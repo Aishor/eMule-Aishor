@@ -215,7 +215,7 @@ CHttpDownloadDlg::CHttpDownloadDlg(CWnd *pParent /*=NULL*/)
 	//{{AFX_DATA_INIT(CHttpDownloadDlg)
 	//}}AFX_DATA_INIT
 	if (sm_ullWinInetVer == 0)
-		sm_ullWinInetVer = GetModuleVersion(GetModuleHandle(_T("wininet")));
+		sm_ullWinInetVer = GetModuleVersion(::GetModuleHandle(_T("wininet")));
 }
 
 void CHttpDownloadDlg::DoDataExchange(CDataExchange *pDX)
@@ -608,8 +608,8 @@ resend:
 			//Increment the total number of bytes read
 			dwTotalBytesRead += dwBytesRead;
 
-			UpdateControlsDuringTransfer(dwStartTicks, dwCurrentTicks, dwTotalBytesRead, dwLastTotalBytes,
-				dwLastPercentage, bGotFileSize, dwFileSize);
+			UpdateControlsDuringTransfer(dwStartTicks, dwCurrentTicks, dwTotalBytesRead
+						, dwLastTotalBytes, dwLastPercentage, bGotFileSize, dwFileSize);
 		}
 	} while (dwBytesRead && !m_bAbort);
 

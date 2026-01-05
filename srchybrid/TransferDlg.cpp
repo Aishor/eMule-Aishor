@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ BOOL CTransferDlg::CreateWnd(CWnd *pParent)
 	// *) The dialog resource template's window size (of the search results window) must not
 	//	  exceed the minimum client area of the frame window.
 	// Otherwise we may get scrollbars in the search results window
-	static const RECT rc = { 0, 0, 50, 50 };
+	static const RECT rc{0, 0, 50, 50};
 	return CFrameWnd::Create(NULL, _T("Transfer"), WS_CHILD | WS_CLIPCHILDREN, rc, pParent, NULL, 0, NULL);
 }
 

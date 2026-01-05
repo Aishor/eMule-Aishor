@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 
 #include "id3/tag.h"
 #include "id3/misc_support.h"
-#include <locale.h>
 
 // MediaInfoDLL
 /** @brief Kinds of Stream */
@@ -86,7 +85,7 @@ public:
 	~CMediaInfoDLL()
 	{
 		if (m_hLib)
-			FreeLibrary(m_hLib);
+			::FreeLibrary(m_hLib);
 	}
 
 	bool Initialize()
@@ -97,7 +96,7 @@ public:
 			CString strPath(theApp.GetProfileString(_T("eMule"), _T("MediaInfo_MediaInfoDllPath"), _T("MEDIAINFO.DLL")));
 			if (strPath == _T("<noload>"))
 				return false;
-			m_hLib = LoadLibrary(strPath);
+			m_hLib = ::LoadLibrary(strPath);
 			if (m_hLib == NULL) {
 				CRegKey key;
 				if (key.Open(HKEY_CURRENT_USER, _T("Software\\MediaInfo"), KEY_READ) == ERROR_SUCCESS) {
@@ -107,23 +106,23 @@ public:
 						LPTSTR pszResult = ::PathCombine(strPath.GetBuffer(MAX_PATH), szPath, _T("MEDIAINFO.DLL"));
 						strPath.ReleaseBuffer();
 						if (pszResult)
-							m_hLib = LoadLibrary(strPath);
+							m_hLib = ::LoadLibrary(strPath);
 					}
 				}
 			}
 			if (m_hLib == NULL) {
-				CString strProgramFiles = ShellGetFolderPath(CSIDL_PROGRAM_FILES);
+				const CString &strProgramFiles(ShellGetFolderPath(CSIDL_PROGRAM_FILES));
 				if (!strProgramFiles.IsEmpty()) {
 					LPTSTR pszResult = ::PathCombine(strPath.GetBuffer(MAX_PATH), strProgramFiles, _T("MediaInfo\\MEDIAINFO.DLL"));
 					strPath.ReleaseBuffer();
 					if (pszResult)
-						m_hLib = LoadLibrary(strPath);
+						m_hLib = ::LoadLibrary(strPath);
 				}
 			}
 
 			// Support of very old versions at some point becomes difficult, and even unreasonable.
 			// For example, in 2020 it was hard to find MediaInfo v0.4.* and v0.5.* in the net.
-			// Currently the oldest allowed version would be v0.7.13 (released in April, 2009).
+			// Currently, the earliest allowed version would be v0.7.13 (released in April, 2009).
 			if (m_hLib != NULL) {
 				// Note from MediaInfo developer
 				// -----------------------------
@@ -131,18 +130,19 @@ public:
 				// - if one of 2 first numbers change, there is no guaranty that the DLL is compatible with old one
 				// - if one of 2 last numbers change, there is a guaranty that the DLL is compatible with old one.
 				// So you should test the version of the DLL, and if one of the 2 first numbers change, not load it.
-				// ---
+				// -----------------------------
+				// But then MediaInfo adopted YY.MM (year, month) versioning scheme...
 				ULONGLONG ullVersion = GetModuleVersion(m_hLib);
 				if (ullVersion >= MAKEDLLVERULL(0, 7, 13, 0)
-					&& (thePrefs.GetWindowsVersion() >= _WINVER_VISTA_ && ullVersion < MAKEDLLVERULL(24, 7, 0, 0)
-					 || ullVersion < MAKEDLLVERULL(21, 4, 0, 0))) //21.03 for Windows XP
+					&& (thePrefs.GetWindowsVersion() >= _WINVER_VISTA_ && ullVersion < MAKEDLLVERULL(25, 11, 0, 0)
+						|| ullVersion < MAKEDLLVERULL(21, 4, 0, 0))) //21.03 for Windows XP
 				{
-					(FARPROC &)m_pfnMediaInfo_New = GetProcAddress(m_hLib, "MediaInfo_New");
-					(FARPROC &)m_pfnMediaInfo_Delete = GetProcAddress(m_hLib, "MediaInfo_Delete");
-					(FARPROC &)m_pfnMediaInfo_Open = GetProcAddress(m_hLib, "MediaInfo_Open");
-					(FARPROC &)m_pfnMediaInfo_Close = GetProcAddress(m_hLib, "MediaInfo_Close");
-					(FARPROC &)m_pfnMediaInfo_Get = GetProcAddress(m_hLib, "MediaInfo_Get");
-					(FARPROC &)m_pfnMediaInfo_GetI = GetProcAddress(m_hLib, "MediaInfo_GetI");
+					(FARPROC &)m_pfnMediaInfo_New = ::GetProcAddress(m_hLib, "MediaInfo_New");
+					(FARPROC &)m_pfnMediaInfo_Delete = ::GetProcAddress(m_hLib, "MediaInfo_Delete");
+					(FARPROC &)m_pfnMediaInfo_Open = ::GetProcAddress(m_hLib, "MediaInfo_Open");
+					(FARPROC &)m_pfnMediaInfo_Close = ::GetProcAddress(m_hLib, "MediaInfo_Close");
+					(FARPROC &)m_pfnMediaInfo_Get = ::GetProcAddress(m_hLib, "MediaInfo_Get");
+					(FARPROC &)m_pfnMediaInfo_GetI = ::GetProcAddress(m_hLib, "MediaInfo_GetI");
 					if (m_pfnMediaInfo_New && m_pfnMediaInfo_Delete && m_pfnMediaInfo_Open && m_pfnMediaInfo_Close && m_pfnMediaInfo_Get)
 						m_ullVersion = ullVersion;
 				}
@@ -153,7 +153,7 @@ public:
 					m_pfnMediaInfo_Close = NULL;
 					m_pfnMediaInfo_Get = NULL;
 					m_pfnMediaInfo_GetI = NULL;
-					FreeLibrary(m_hLib);
+					::FreeLibrary(m_hLib);
 					m_hLib = NULL;
 				}
 			}
@@ -295,7 +295,6 @@ CFileInfoDialog::CFileInfoDialog()
 BOOL CFileInfoDialog::OnInitDialog()
 {
 	CWaitCursor curWait; // we may get quite busy here.
-	ReplaceRichEditCtrl(GetDlgItem(IDC_FULL_FILE_INFO), this, GetDlgItem(IDC_FD_XI1)->GetFont());
 	CResizablePage::OnInitDialog();
 	InitWindowStyles(this);
 
@@ -419,9 +418,9 @@ BOOL CGetMediaInfoThread::InitInstance()
 
 int CGetMediaInfoThread::Run()
 {
-	(void)CoInitialize(NULL);
+	(void)::CoInitialize(NULL);
 
-	HWND hwndRE = ::CreateWindow(RICHEDIT_CLASS, NULL, ES_MULTILINE | ES_READONLY | WS_DISABLED, 0, 0, 200, 200, NULL, NULL, NULL, NULL);
+	HWND hwndRE = ::CreateWindow(MSFTEDIT_CLASS, NULL, ES_MULTILINE | ES_READONLY | WS_DISABLED, 0, 0, 200, 200, NULL, NULL, NULL, NULL);
 	ASSERT(hwndRE);
 	if (hwndRE && m_hFont)
 		::SendMessage(hwndRE, WM_SETFONT, (WPARAM)m_hFont, 0);
@@ -494,7 +493,7 @@ int CGetMediaInfoThread::Run()
 	if (!::IsWindow(m_hWndOwner) || !::SendMessage(m_hWndOwner, UM_MEDIA_INFO_RESULT, 0, (LPARAM)pThreadRes))
 		delete pThreadRes;
 
-	CoUninitialize();
+	::CoUninitialize();
 	return 0;
 }
 
@@ -802,7 +801,8 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 			return bFoundHeader || !mi->strMimeType.IsEmpty();
 	}
 
-	CString szExt(::PathFindExtension(pFile->GetFileName()));
+	LPCTSTR const pDot = ::PathFindExtension(pFile->GetFileName());
+	CString szExt(&pDot[static_cast<int>(*pDot != _T('\0'))]); //skip the dot
 	szExt.MakeLower();
 
 	////////////////////////////////////////////////////////////////////////////
@@ -812,7 +812,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 	if (theApp.GetProfileInt(_T("eMule"), _T("MediaInfo_RIFF"), 1)) {
 		try {
 			if (GetRIFFHeaders(pFile->GetFilePath(), mi, bIsAVI, true)) {
-				if (bIsAVI && szExt != _T(".avi"))
+				if (bIsAVI && szExt != _T("avi"))
 					WarnAboutWrongFileExtension(mi, pFile->GetFileName(), _T("avi"));
 				return true;
 			}
@@ -831,7 +831,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 		try {
 			bool bIsRM = false;
 			if (GetRMHeaders(pFile->GetFilePath(), mi, bIsRM, true)) {
-				if (bIsRM && szExt != _T(".rm") && szExt != _T(".rmvb") && szExt != _T(".ra"))
+				if (bIsRM && szExt != _T("rm") && szExt != _T("rmvb") && szExt != _T("ra"))
 					WarnAboutWrongFileExtension(mi, pFile->GetFileName(), _T("rm rmvb ra"));
 				return true;
 			}
@@ -852,11 +852,11 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 			bool bIsWM = false;
 			if (GetWMHeaders(pFile->GetFilePath(), mi, bIsWM, true)) {
 				if (bIsWM
-					&& szExt != _T(".asf")
-					&& szExt != _T(".wm")
-					&& szExt != _T(".wma")
-					&& szExt != _T(".wmv")
-					&& szExt != _T(".dvr-ms"))
+					&& szExt != _T("asf")
+					&& szExt != _T("wm")
+					&& szExt != _T("wma")
+					&& szExt != _T("wmv")
+					&& szExt != _T("dvr-ms"))
 				{
 					WarnAboutWrongFileExtension(mi, pFile->GetFileName(), _T("asf wm wma wmv dvr-ms"));
 				}
@@ -875,7 +875,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 	// Check for MPEG Audio file
 	//
 	if (theApp.GetProfileInt(_T("eMule"), _T("MediaInfo_ID3LIB"), 1)
-		&& (szExt == _T(".mp3") || szExt == _T(".mp2") || szExt == _T(".mp1") || szExt == _T(".mpa")))
+		&& (szExt == _T("mp3") || szExt == _T("mp2") || szExt == _T("mp1") || szExt == _T("mpa")))
 	{
 		try {
 			// ID3LIB BUG: If there are ID3v2 _and_ ID3v1 tags available, id3lib
@@ -1210,9 +1210,8 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 				case ID3FID_GROUPINGREG:
 					{
 						wchar_t *sOwner = ID3_GetStringW(frame, ID3FN_OWNER);
-						size_t
-							nSymbol = frame->GetField(ID3FN_ID)->Get(),
-							nDataSize = frame->GetField(ID3FN_DATA)->Size();
+						size_t nSymbol = frame->GetField(ID3FN_ID)->Get();
+						size_t nDataSize = frame->GetField(ID3FN_DATA)->Size();
 						strFidInfo << _T("(") << static_cast<UINT>(nSymbol) << _T("): ") << sOwner << _T(", ") << static_cast<UINT>(nDataSize) << _T(" bytes");
 					}
 					break;
@@ -1220,9 +1219,8 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 					{
 						wchar_t *sDesc = ID3_GetStringW(frame, ID3FN_DESCRIPTION);
 						wchar_t *sLang = ID3_GetStringW(frame, ID3FN_LANGUAGE);
-						size_t
-							//nTimestamp = frame->GetField(ID3FN_TIMESTAMPFORMAT)->Get(),
-							nRating = frame->GetField(ID3FN_CONTENTTYPE)->Get();
+						//size_t nTimestamp = frame->GetField(ID3FN_TIMESTAMPFORMAT)->Get();
+						size_t nRating = frame->GetField(ID3FN_CONTENTTYPE)->Get();
 						//const char *format = (2 == nTimestamp) ? "ms" : "frames";
 						strFidInfo << _T("(") << sDesc << _T(")[") << sLang << _T("]: ");
 						switch (nRating) {
@@ -1343,7 +1341,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 						if (!str.IsEmpty() && str != mi->strFileFormat)
 							mi->strFileFormat.AppendFormat(_T(" (%s)"), (LPCTSTR)str);
 
-						if (szExt[0] == _T('.') && szExt[1] != _T('\0')) {
+						if (!szExt.IsEmpty()) {
 							str = InfoGet(MediaInfo_Stream_General, 0, _T("Format/Extensions"));
 							if (!str.IsEmpty()) {
 								// minor bug in MediaInfo lib: some file extension lists have a ')' character in there.
@@ -1354,7 +1352,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 								bool bFoundExt = false;
 								for (int iPos = 0; iPos >= 0;) {
 									const CString &strFmtExt(str.Tokenize(_T(" "), iPos));
-									if (!strFmtExt.IsEmpty() && strFmtExt == CPTR(szExt, 1)) {
+									if (!strFmtExt.IsEmpty() && strFmtExt == szExt) {
 										bFoundExt = true;
 										break;
 									}
@@ -1734,7 +1732,7 @@ bool CGetMediaInfoThread::GetMediaInfo(HWND hWndOwner, const CShareableFile *pFi
 #ifdef HAVE_QEDIT_H
 		if (theApp.GetProfileInt(_T("eMule"), _T("MediaInfo_MediaDet"), 1)
 			&& (thePrefs.GetInspectAllFileTypes()
-				|| (szExt != _T(".ogm") && szExt != _T(".ogg") && szExt != _T(".mkv"))))
+				|| (szExt != _T("ogm") && szExt != _T("ogg") && szExt != _T("mkv"))))
 		{
 			try {
 				CComPtr<IMediaDet> pMediaDet;

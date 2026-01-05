@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -20,7 +20,6 @@
 #include "IrcWnd.h"
 #include "IrcMain.h"
 #include "otherfunctions.h"
-#include "MenuCmds.h"
 #include "HTRichEditCtrl.h"
 #include "ClosableTabCtrl.h"
 #include "HelpIDs.h"
@@ -334,8 +333,8 @@ LRESULT CIrcWnd::DefWindowProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 			RECT rcWnd;
 			GetWindowRect(&rcWnd);
 			ScreenToClient(&rcWnd);
-			m_wndSplitterHorz.SetRange(rcWnd.left + SPLITTER_HORZ_RANGE_MIN + SPLITTER_HORZ_WIDTH / 2,
-				rcWnd.left + SPLITTER_HORZ_RANGE_MAX - SPLITTER_HORZ_WIDTH / 2);
+			m_wndSplitterHorz.SetRange(rcWnd.left + SPLITTER_HORZ_RANGE_MIN + SPLITTER_HORZ_WIDTH / 2
+									, rcWnd.left + SPLITTER_HORZ_RANGE_MAX - SPLITTER_HORZ_WIDTH / 2);
 		}
 	}
 	return CResizableDialog::DefWindowProc(uMessage, wParam, lParam);
@@ -812,7 +811,7 @@ void CIrcWnd::AddColorLine(const CString &line, CHTRichEditCtrl &wnd, COLORREF c
 					iColour = (int)(line[index] - _T('0'));
 				}
 
-				if (iColour >= 0 && iColour < _countof(s_aColors)) {
+				if (iColour >= 0 && iColour < (int)_countof(s_aColors)) {
 					// If the first colour is not valid, don't look for a second background colour!
 					cr = s_aColors[iColour]; //if the number is a valid colour index, set new foreground colour
 					++index;
@@ -829,7 +828,7 @@ void CIrcWnd::AddColorLine(const CString &line, CHTRichEditCtrl &wnd, COLORREF c
 							iColour = (int)(line[index] - _T('0'));
 						}
 						++index;
-						if (iColour >= 0 && iColour < _countof(s_aColors))
+						if (iColour >= 0 && iColour < (int)_countof(s_aColors))
 							bgcr = s_aColors[iColour]; //if the number is a valid colour index, set new foreground colour
 					}
 				}

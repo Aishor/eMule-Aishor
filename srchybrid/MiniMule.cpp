@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,9 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <io.h>
 #include <wininet.h>
-#include <atlutil.h>
 #include "emule.h"
 #include "emuledlg.h"
 #include "TransferDlg.h"
@@ -26,7 +24,6 @@
 #include "Preferences.h"
 #include "MenuCmds.h"
 #include "IESecurity.h"
-#include "UserMsgs.h"
 #include "opcodes.h"
 
 #if (WINVER < 0x0500)
@@ -190,13 +187,11 @@ void CMiniMule::DoDataExchange(CDataExchange *pDX)
 BOOL CMiniMule::CreateControlSite(COleControlContainer *pContainer, COleControlSite **ppSite, UINT /*nID*/, REFCLSID /*clsid*/)
 {
 	ASSERT(GetCurrentThreadId() == g_uMainThreadId);
-	CMuleBrowserControlSite *pBrowserSite;
 	try {
-		pBrowserSite = new CMuleBrowserControlSite(pContainer, this);
+		*ppSite = new CMuleBrowserControlSite(pContainer, this);
 	} catch (...) {
 		return FALSE;
 	}
-	*ppSite = pBrowserSite;
 	return TRUE;
 }
 
@@ -634,17 +629,17 @@ void CMiniMule::AutoSizeAndPosition(CSize sizClient)
 	POINT ptWnd;
 	switch (uTaskbarPos) {
 	case ABE_TOP:
-		ptWnd = POINT{ sizDesktop.cx - 8 - rcWnd.Width(), rcTaskbar.Height() + 8 };
+		ptWnd = POINT{sizDesktop.cx - 8 - rcWnd.Width(), rcTaskbar.Height() + 8};
 		break;
 	case ABE_LEFT:
-		ptWnd = POINT{ rcTaskbar.Width() + 8, sizDesktop.cy - 8 - rcWnd.Height() };
+		ptWnd = POINT{rcTaskbar.Width() + 8, sizDesktop.cy - 8 - rcWnd.Height()};
 		break;
 	case ABE_RIGHT:
-		ptWnd = POINT{ sizDesktop.cx - rcTaskbar.Width() - 8 - rcWnd.Width(), sizDesktop.cy - 8 - rcWnd.Height() };
+		ptWnd = POINT{sizDesktop.cx - rcTaskbar.Width() - 8 - rcWnd.Width(), sizDesktop.cy - 8 - rcWnd.Height()};
 		break;
 	default:
 		ASSERT(uTaskbarPos == ABE_BOTTOM);
-		ptWnd = POINT{ sizDesktop.cx - 8 - rcWnd.Width(), sizDesktop.cy - rcTaskbar.Height() - 8 - rcWnd.Height() };
+		ptWnd = POINT{sizDesktop.cx - 8 - rcWnd.Width(), sizDesktop.cy - rcTaskbar.Height() - 8 - rcWnd.Height()};
 	}
 
 	SetWindowPos(NULL, ptWnd.x, ptWnd.y, rcWnd.Width(), rcWnd.Height(), SWP_NOZORDER | SWP_SHOWWINDOW);
@@ -689,7 +684,7 @@ void CMiniMule::RestoreMainWindow()
 {
 	ASSERT(GetCurrentThreadId() == g_uMainThreadId);
 	ASSERT(m_iInInitDialog == 0);
-	if (!theApp.IsClosing() && !theApp.emuledlg->IsWindowVisible())
+	if (!theApp.emuledlg->IsWindowVisible() && !theApp.IsClosing())
 		if (!theApp.emuledlg->IsPreferencesDlgOpen()) {
 			KillAutoCloseTimer();
 			m_bRestoreMainWnd = true;

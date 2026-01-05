@@ -83,7 +83,7 @@ namespace Kademlia
 
 		friend bool operator==(const CKadTagNameString &str1, LPCSTR const psz2) noexcept
 		{
-			return (str1.Compare(psz2) == 0);
+			return str1.Compare(psz2) == 0;
 		}
 
 		CKadTagNameString& operator=(LPCSTR pszSrc)
@@ -162,6 +162,7 @@ namespace Kademlia
 			KadTagStrMakeLower(*this);
 			return *this;
 		}
+
 		CKadTagValueString& MakeUpper()
 		{
 			// One *MUST NOT* call this function (see comments in 'KadTagStrMakeLower')
@@ -175,26 +176,28 @@ namespace Kademlia
 	class CKadTag
 	{
 	public:
-		byte	m_type;
 		CKadTagNameString m_name;
+		byte	m_type;
 
 		CKadTag(byte type, LPCSTR name)
-			: m_type(type)
-			, m_name(name)
+			: m_name(name)
+			, m_type(type)
 		{
 		}
-		virtual	~CKadTag() = default;
 
+		virtual	~CKadTag() = default;
 		virtual CKadTag* Copy() const = 0;
 
 		bool IsStr() const
 		{
 			return m_type == TAGTYPE_STRING;
 		}
+
 		bool IsBool() const
 		{
 			return m_type == TAGTYPE_BOOL;
 		}
+
 		bool IsNum() const
 		{
 			switch (m_type) {
@@ -209,6 +212,7 @@ namespace Kademlia
 			}
 			return false;
 		}
+
 		bool IsInt() const
 		{
 			switch (m_type) {
@@ -221,14 +225,17 @@ namespace Kademlia
 			}
 			return false;
 		}
+
 		bool IsFloat() const
 		{
 			return m_type == TAGTYPE_FLOAT32;
 		}
+
 		bool IsBsob() const
 		{
 			return m_type == TAGTYPE_BSOB;
 		}
+
 		bool IsHash() const
 		{
 			return m_type == TAGTYPE_HASH;
@@ -239,31 +246,37 @@ namespace Kademlia
 			ASSERT(0); //requires implementation
 			return CKadTagValueString();
 		}
+
 		virtual uint64 GetInt() const
 		{
 			ASSERT(0); //requires implementation
 			return 0;
 		}
+
 		virtual float GetFloat() const
 		{
 			ASSERT(0); //requires implementation
 			return 0.0F;
 		}
+
 		virtual const BYTE* GetBsob() const
 		{
 			ASSERT(0); //requires implementation
 			return NULL;
 		}
+
 		virtual uint8 GetBsobSize() const
 		{
 			ASSERT(0); //requires implementation
 			return 0;
 		}
+
 		virtual bool GetBool() const
 		{
 			ASSERT(0); //requires implementation
 			return false;
 		}
+
 		virtual const BYTE* GetHash() const
 		{
 			ASSERT(0); //requires implementation
@@ -272,7 +285,7 @@ namespace Kademlia
 
 	protected:
 		CKadTag()
-			: m_type(0)
+			: m_type()
 		{
 		}
 	};
@@ -286,6 +299,12 @@ namespace Kademlia
 		{
 		}
 
+		CKadTagStr(LPCSTR name, LPCWSTR value)
+			: CKadTag(TAGTYPE_STRING, name)
+			, m_value(value)
+		{
+		}
+
 		CKadTagStr(LPCSTR name, const CStringW &rstr)
 			: CKadTag(TAGTYPE_STRING, name)
 			, m_value(rstr)
@@ -296,6 +315,7 @@ namespace Kademlia
 		{
 			return new CKadTagStr(m_name, m_value);
 		}
+
 		virtual CKadTagValueString GetStr() const
 		{
 			return m_value;
@@ -318,6 +338,7 @@ namespace Kademlia
 		{
 			return new CKadTagUInt(m_name, m_value);
 		}
+
 		virtual uint64 GetInt() const
 		{
 			return m_value;
@@ -363,6 +384,7 @@ namespace Kademlia
 		{
 			return new CKadTagUInt32(m_name, m_value);
 		}
+
 		virtual uint64 GetInt() const
 		{
 			return m_value;
@@ -386,6 +408,7 @@ namespace Kademlia
 		{
 			return new CKadTagFloat(m_name, m_value);
 		}
+
 		virtual float GetFloat() const
 		{
 			return m_value;
@@ -496,6 +519,7 @@ namespace Kademlia
 		{
 			return m_value;
 		}
+
 		virtual uint8 GetBsobSize() const
 		{
 			return m_size;

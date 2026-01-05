@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2020-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -18,9 +18,6 @@
 #include "emule.h"
 #include "PreferencesDlg.h"
 #include "SMTPdialog.h"
-#include "emuledlg.h"
-#include "StatisticsDlg.h"
-#include "opcodes.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -145,12 +142,12 @@ void CSMTPserverDlg::Localize()
 	SetWindowText(GetResString(IDS_SMTPSERVER));
 
 	SetDlgItemText(IDC_SMTPCONN_GROUP, GetResString(IDS_CONNECTION));
-	SetDlgItemText(IDC_SMTPSEC_LBL, GetResString(IDS_SECURITY) + _T(":"));
-	SetDlgItemText(IDC_SMTPSERVER_LBL, GetResString(IDS_SERVER) + _T(":"));
-	SetDlgItemText(IDC_SMTPPORT_LBL, GetResString(IDS_PORT) + _T(":"));
+	SetDlgItemText(IDC_SMTPSEC_LBL, GetResString(IDS_SECURITY) + _T(':'));
+	SetDlgItemText(IDC_SMTPSERVER_LBL, GetResString(IDS_SERVER) + _T(':'));
+	SetDlgItemText(IDC_SMTPPORT_LBL, GetResString(IDS_PORT) + _T(':'));
 
 	SetDlgItemText(IDC_SMTPAUTH_GROUP, GetResString(IDS_AUTH));
-	SetDlgItemText(IDC_SMTPAUTH_LBL, GetResString(IDS_AUTHMETHOD) + _T(":"));
-	SetDlgItemText(IDC_SMTPUSER_LBL, GetResString(IDS_QL_USERNAME) + _T(":"));
-	SetDlgItemText(IDC_SMTPPASS_LBL, GetResString(IDS_WS_PASS) + _T(":"));
+	SetDlgItemText(IDC_SMTPAUTH_LBL, GetResString(IDS_AUTHMETHOD) + _T(':'));
+	SetDlgItemText(IDC_SMTPUSER_LBL, GetResString(IDS_QL_USERNAME) + _T(':'));
+	SetDlgItemText(IDC_SMTPPASS_LBL, GetResString(IDS_WS_PASS) + _T(':'));
 }

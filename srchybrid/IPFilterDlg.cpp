@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -319,13 +319,14 @@ void CIPFilterDlg::OnBnClickedAppend()
 		CWaitCursor curWait;
 
 		const CString &sConfDir(thePrefs.GetMuleDirectory(EMULE_CONFIGDIR));
-		CString szExt(::PathFindExtension(strFilePath));
+		LPCTSTR pDot = ::PathFindExtension(strFilePath);
+		CString szExt(&pDot[static_cast<int>(*pDot != _T('\0'))]); //skip the dot
 		szExt.MakeLower();
-		bool bIsArchiveFile = (szExt == _T(".zip") || szExt == _T(".rar") || szExt == _T(".gz"));
+		bool bIsArchiveFile = (szExt == _T("zip") || szExt == _T("rar") || szExt == _T("gz"));
 		bool bExtractedArchive = false;
 
 		CString strTempUnzipFilePath;
-		if (szExt == _T(".zip")) {
+		if (szExt == _T("zip")) {
 			CZIPFile zip;
 			if (zip.Open(strFilePath)) {
 				CZIPFile::File *zfile = zip.GetFile(_T("ipfilter.dat"));
@@ -355,7 +356,7 @@ void CIPFilterDlg::OnBnClickedAppend()
 				strError.Format(_T("Failed to open file \"%s\".\r\n\r\nInvalid file format?"), (LPCTSTR)strFilePath);
 				AfxMessageBox(strError, MB_ICONERROR);
 			}
-		} else if (szExt == _T(".rar")) {
+		} else if (szExt == _T("rar")) {
 			CRARFile rar;
 			if (rar.Open(strFilePath)) {
 				CString strFile;
@@ -385,7 +386,7 @@ void CIPFilterDlg::OnBnClickedAppend()
 				strError.Format(_T("Failed to open file \"%s\".\r\n\r\nInvalid file format?\r\n\r\n%s"), (LPCTSTR)strFilePath, CRARFile::sUnrar_download);
 				AfxMessageBox(strError, MB_ICONERROR);
 			}
-		} else if (szExt == _T(".gz")) {
+		} else if (szExt == _T("gz")) {
 			CGZIPFile gz;
 			if (gz.Open(strFilePath)) {
 				_tmakepathlimit(strTempUnzipFilePath.GetBuffer(MAX_PATH), NULL, sConfDir, DFLT_IPFILTER_FILENAME, _T(".unzip.tmp"));
@@ -533,7 +534,7 @@ bool CIPFilterDlg::FindItem(const CListCtrlX &lv, int iItem, DWORD_PTR lParam)
 	ASSERT_VALID(dlg);
 	u_long ip = htonl(inet_addr((CStringA)lv.GetFindText()));
 	const SIPFilter *filter = dlg->m_ppIPFilterItems[iItem];
-	return (ip >= filter->start && ip <= filter->end);
+	return ip >= filter->start && ip <= filter->end;
 }
 
 void CIPFilterDlg::OnFind()

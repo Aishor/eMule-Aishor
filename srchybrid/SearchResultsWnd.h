@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -80,15 +80,15 @@ public:
 
 	bool	DoNewEd2kSearch(SSearchParams *pParams);
 	void	CancelEd2kSearch();
-	bool	IsLocalEd2kSearchRunning() const	{ return (m_uTimerLocalServer != 0); }
-	bool	IsGlobalEd2kSearchRunning() const	{ return (global_search_timer != 0); }
+	bool	IsLocalEd2kSearchRunning() const	{ return m_uTimerLocalServer != 0; }
+	bool	IsGlobalEd2kSearchRunning() const	{ return global_search_timer != 0; }
 	void	LocalEd2kSearchEnd(UINT count, bool bMoreResultsAvailable);
 	void	AddEd2kSearchResults(UINT count);
 	void	SetNextSearchID(uint32 uNextID)		{ m_nEd2kSearchID = uNextID; }
 	uint32	GetNextSearchID()					{ return ++m_nEd2kSearchID; }
 
 	bool	DoNewKadSearch(SSearchParams *pParams);
-	void	CancelKadSearch(uint32 uSearchID);
+	void	CancelKadSearch(uint32 uSearchID)	{ SearchCancelled(uSearchID); }
 
 	bool	CanSearchRelatedFiles() const;
 	void	SearchRelatedFiles(CPtrList &listFiles);
@@ -96,14 +96,14 @@ public:
 	void	DownloadSelected();
 	void	DownloadSelected(bool bPaused);
 
-	bool	CanDeleteSearches() const			{ return (searchselect.GetItemCount() > 0); };
+	bool	CanDeleteSearches() const			{ return searchselect.GetItemCount() > 0; }
 	void	DeleteSearch(uint32 uSearchID);
 	void	DeleteAllSearches();
 	void	DeleteSelectedSearch();
 
 	bool	CreateNewTab(SSearchParams *pParams, bool bActiveIcon = true);
 	void	ShowSearchSelector(bool visible);
-	int		GetSelectedCat()					{ return m_cattabs.GetCurSel(); }
+	int		GetSelectedCat() const				{ return m_cattabs.GetCurSel(); }
 	void	UpdateCatTabs();
 
 	SSearchParams* GetSearchResultsParams(uint32 uSearchID) const;

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -24,7 +24,6 @@
 #include "DownloadListCtrl.h"
 #include "TransferDlg.h"
 #include "Preferences.h"
-#include "Otherfunctions.h"
 
 
 #ifdef _DEBUG
@@ -184,13 +183,17 @@ void CToolbarWnd::FillToolbar()
 
 LRESULT CToolbarWnd::OnInitDialog(WPARAM, LPARAM)
 {
+	static LPCTSTR const sIconNames[15] = {
+			  _T("FILEPRIORITY"), _T("PAUSE"), _T("STOP"), _T("RESUME"), _T("DELETE")
+			, _T("OPENFILE"), _T("OPENFOLDER"), _T("PREVIEW"), _T("FILEINFO"), _T("FILECOMMENTS")
+			, _T("ED2KLINK"), _T("CATEGORY"), _T("CLEARCOMPLETE"), _T("KadFileSearch"), _T("Search") };
+
 	Default();
 	InitWindowStyles(this);
 
-	//(void)m_sizeDefault; // not yet set
 	CRect sizeDefault;
 	GetWindowRect(&sizeDefault);
-	static const RECT rcBorders = { 4, 4, 4, 4 };
+	static const RECT rcBorders{4, 4, 4, 4};
 	SetBorders(&rcBorders);
 	m_szFloat.cx = sizeDefault.Width() + rcBorders.left + rcBorders.right + ::GetSystemMetrics(SM_CXEDGE) * 2;
 	m_szFloat.cy = sizeDefault.Height() + rcBorders.top + rcBorders.bottom + ::GetSystemMetrics(SM_CYEDGE) * 2;
@@ -198,47 +201,21 @@ LRESULT CToolbarWnd::OnInitDialog(WPARAM, LPARAM)
 	UpdateData(FALSE);
 
 	// Initialize the toolbar
-	CImageList iml;
-	int nFlags = theApp.m_iDfltImageListColorFlags;
-	// older Windows versions image lists cannot create monochrome (disabled) icons which have alpha support
-	// so we have to take care of this ourself
-	bool bNeedMonoIcons = thePrefs.GetWindowsVersion() < _WINVER_VISTA_ && nFlags != ILC_COLOR4;
-	nFlags |= ILC_MASK;
-	iml.Create(16, 16, nFlags, 1, 1);
-	iml.Add(CTempIconLoader(_T("FILEPRIORITY")));
-	iml.Add(CTempIconLoader(_T("PAUSE")));
-	iml.Add(CTempIconLoader(_T("STOP")));
-	iml.Add(CTempIconLoader(_T("RESUME")));
-	iml.Add(CTempIconLoader(_T("DELETE")));
-	iml.Add(CTempIconLoader(_T("OPENFILE")));
-	iml.Add(CTempIconLoader(_T("OPENFOLDER")));
-	iml.Add(CTempIconLoader(_T("PREVIEW")));
-	iml.Add(CTempIconLoader(_T("FILEINFO")));
-	iml.Add(CTempIconLoader(_T("FILECOMMENTS")));
-	iml.Add(CTempIconLoader(_T("ED2KLINK")));
-	iml.Add(CTempIconLoader(_T("CATEGORY")));
-	iml.Add(CTempIconLoader(_T("CLEARCOMPLETE")));
-	iml.Add(CTempIconLoader(_T("KadFileSearch")));
-	iml.Add(CTempIconLoader(_T("Search")));
+	int nFlags = theApp.m_iDfltImageListColorFlags | ILC_MASK;
 
-	if (bNeedMonoIcons) {
+	CImageList iml;
+	iml.Create(16, 16, nFlags, 1, 1);
+	for (unsigned i = 0; i < _countof(sIconNames); ++i)
+		iml.Add(CTempIconLoader(sIconNames[i]));
+
+	// older Windows versions image lists cannot create monochrome (disabled) icons with alpha support
+	// so we have to take care of this ourself
+	if (thePrefs.GetWindowsVersion() < _WINVER_VISTA_ && nFlags != ILC_COLOR4) {
 		CImageList iml2;
 		iml2.Create(16, 16, nFlags, 1, 1);
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("FILEPRIORITY"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("PAUSE"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("STOP"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("RESUME"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("DELETE"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("OPENFILE"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("OPENFOLDER"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("PREVIEW"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("FILEINFO"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("FILECOMMENTS"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("ED2KLINK"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("CATEGORY"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("CLEARCOMPLETE"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("KadFileSearch"))));
-		VERIFY(AddIconGrayscaledToImageList(iml2, CTempIconLoader(_T("Search"))));
+		for (unsigned i = 0; i < _countof(sIconNames); ++i)
+			VERIFY(AddIconGreyedToImageList(iml2, CTempIconLoader(sIconNames[i])) >= 0);
+
 		CImageList *pImlOld = m_btnBar.SetDisabledImageList(&iml2);
 		iml2.Detach();
 		if (pImlOld)
@@ -272,26 +249,19 @@ CSize CToolbarWnd::CalcDynamicLayout(int nLength, DWORD dwMode)
 	pFrm->GetClientRect(&rcFrmClnt);
 	CRect rcInside(rcFrmClnt);
 	CalcInsideRect(rcInside, dwMode & LM_HORZDOCK);
-	RECT rcBorders =
-	{
-		rcInside.left - rcFrmClnt.left,
-		rcInside.top - rcFrmClnt.top,
-		rcFrmClnt.right - rcInside.right,
-		rcFrmClnt.bottom - rcInside.bottom
-	};
+	RECT rcBorders{rcInside.left - rcFrmClnt.left, rcInside.top - rcFrmClnt.top
+				 , rcFrmClnt.right - rcInside.right, rcFrmClnt.bottom - rcInside.bottom};
 
 	if (dwMode & (LM_HORZDOCK | LM_VERTDOCK)) {
 		if (dwMode & LM_VERTDOCK) {
-			CSize szFloat;
-			szFloat.cx = MIN_VERT_WIDTH;
-			szFloat.cy = rcFrmClnt.Height() + ::GetSystemMetrics(SM_CYEDGE) * 2;
+			CSize szFloat(MIN_VERT_WIDTH
+						, rcFrmClnt.Height() + ::GetSystemMetrics(SM_CYEDGE) * 2);
 			m_szFloat = szFloat;
 			return szFloat;
 		}
 		if (dwMode & LM_HORZDOCK) {
-			CSize szFloat;
-			szFloat.cx = rcFrmClnt.Width() + ::GetSystemMetrics(SM_CXEDGE) * 2;
-			szFloat.cy = m_sizeDefault.cy + rcBorders.top + rcBorders.bottom;
+			CSize szFloat(rcFrmClnt.Width() + ::GetSystemMetrics(SM_CXEDGE) * 2
+						, m_sizeDefault.cy + rcBorders.top + rcBorders.bottom);
 			m_szFloat = szFloat;
 			return szFloat;
 		}
@@ -351,9 +321,9 @@ void CToolbarWnd::OnSize(UINT nType, int cx, int cy)
 	if (m_btnBar.m_hWnd == 0)
 		return;
 
+	CRect rcClient;
+	GetClientRect(&rcClient);
 	if (cx >= MIN_HORZ_WIDTH) {
-		CRect rcClient;
-		GetClientRect(&rcClient);
 		CalcInsideRect(rcClient, TRUE);
 		m_btnBar.MoveWindow(rcClient.left + 1, rcClient.top, rcClient.Width() - 8, 22);
 		//int iWidthOpts = rcClient.right - (rcClient.left + m_rcOpts.left);
@@ -363,9 +333,7 @@ void CToolbarWnd::OnSize(UINT nType, int cx, int cy)
 			//hdwp = DeferWindowPos(hdwp, *GetDlgItem(IDC_MSTATIC3), NULL, rcClient.left + m_rcNameLbl.left, rcClient.top + m_rcNameLbl.top, m_rcNameLbl.Width(), m_rcNameLbl.Height(), uFlags);
 			VERIFY( EndDeferWindowPos(hdwp) );
 		}*/
-	} else if (cx < MIN_HORZ_WIDTH) {
-		CRect rcClient;
-		GetClientRect(&rcClient);
+	} else { //cx < MIN_HORZ_WIDTH
 		CalcInsideRect(rcClient, FALSE);
 		m_btnBar.MoveWindow(rcClient.left, rcClient.top + 1, 24, rcClient.Height() - 1);
 	}

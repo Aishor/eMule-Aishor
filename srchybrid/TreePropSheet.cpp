@@ -706,16 +706,16 @@ BOOL CTreePropSheet::OnInitDialog()
 	// for the tree view control when running under WinXP. Look at CTreeCtrl::CreateEx and CWnd::CreateEx to
 	// see the (minor) difference. However, this could create problems in future MFC versions.
 	m_pwndPageTree->CWnd::CreateEx(
-		WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY,
-		WC_TREEVIEW, _T("PageTree"),
-		WS_TABSTOP | WS_CHILD | WS_VISIBLE | dwTreeStyle,
-		rectTree, this, s_unPageTreeId);
+			WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY
+			, WC_TREEVIEW, _T("PageTree")
+			, WS_TABSTOP | WS_CHILD | WS_VISIBLE | dwTreeStyle
+			, rectTree, this, s_unPageTreeId);
 #else
 	m_pwndPageTree->CreateEx(
-		WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY,
-		_T("SysTreeView32"), _T("PageTree"),
-		WS_TABSTOP | WS_CHILD | WS_VISIBLE | dwTreeStyle,
-		rectTree, this, s_unPageTreeId);
+			WS_EX_CLIENTEDGE | WS_EX_NOPARENTNOTIFY
+			, _T("SysTreeView32"), _T("PageTree")
+			, WS_TABSTOP | WS_CHILD | WS_VISIBLE | dwTreeStyle
+			, rectTree, this, s_unPageTreeId);
 
 #endif
 

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,6 +16,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
 #include <list>
+#include "ring.h"
 
 // CStatistics
 #define AVG_SESSION 0
@@ -155,12 +156,10 @@ public:
 	static DWORD	starttime;
 
 private:
-	typedef struct {
-		uint64	datalen;
-		DWORD	timestamp;
-	} TransferredData;
-	std::list<TransferredData> uprateHistory;
-	std::list<TransferredData> downrateHistory;
+	CRing<TransferredData> downrate_hist;
+	CRing<TransferredData> uprate_hist;
+	CRing<TransferredData> m_AverageDDRO_hist;
+	CRing<TransferredData> m_AverageUDRO_hist;
 
 	static uint64	m_nDownDatarateOverhead;
 	static uint64	m_nDownDataRateMSOverhead;
@@ -190,8 +189,6 @@ private:
 
 	static uint64	m_sumavgDDRO;
 	static uint64	m_sumavgUDRO;
-	std::list<TransferredData> m_AverageDDRO_list;
-	std::list<TransferredData> m_AverageUDRO_list;
 };
 
 extern CStatistics theStats;

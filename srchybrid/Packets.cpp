@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -186,14 +186,14 @@ char* Packet::DetachPacket()
 char* Packet::GetHeader()
 {
 	ASSERT(!m_bSplitted);
-	*reinterpret_cast<Header_Struct*>(head) = Header_Struct{ prot, size + 1, opcode };
+	*reinterpret_cast<Header_Struct*>(head) = Header_Struct{prot, size + 1, opcode};
 	return head;
 }
 
 char* Packet::GetUDPHeader()
 {
 	ASSERT(!m_bSplitted);
-	*reinterpret_cast<UDP_Header_Struct*>(head) = UDP_Header_Struct{ prot, opcode };
+	*reinterpret_cast<UDP_Header_Struct*>(head) = UDP_Header_Struct{prot, opcode};
 	return head;
 }
 
@@ -435,7 +435,7 @@ CTag::CTag(CFileDataIO &data, bool bOptUTF8)
 {
 	m_uType = data.ReadUInt8();
 	if (m_uType & 0x80) {
-		m_uType &= 0x7F;
+		m_uType &= ~0x80;
 		m_uName = data.ReadUInt8();
 	} else {
 		UINT length = data.ReadUInt16();
@@ -458,39 +458,49 @@ CTag::CTag(CFileDataIO &data, bool bOptUTF8)
 	// NOTE: It's very important that we read the *entire* packet data, even if we do
 	// not use each tag. Otherwise we will get troubles when the packets are returned in
 	// a list - like the search results from a server.
-	if (m_uType == TAGTYPE_STRING)
+	switch (m_uType) {
+	case TAGTYPE_STRING:
 		m_pstrVal = new CString(data.ReadString(bOptUTF8));
-	else if (m_uType == TAGTYPE_UINT32)
+		break;
+	case TAGTYPE_UINT32:
 		m_uVal = data.ReadUInt32();
-	else if (m_uType == TAGTYPE_UINT64)
+		break;
+	case TAGTYPE_UINT64:
 		m_uVal = data.ReadUInt64();
-	else if (m_uType == TAGTYPE_UINT16) {
+		break;
+	case TAGTYPE_UINT16:
 		m_uVal = data.ReadUInt16();
 		m_uType = TAGTYPE_UINT32;
-	} else if (m_uType == TAGTYPE_UINT8) {
+		break;
+	case TAGTYPE_UINT8:
 		m_uVal = data.ReadUInt8();
 		m_uType = TAGTYPE_UINT32;
-	} else if (m_uType == TAGTYPE_FLOAT32)
+		break;
+	case TAGTYPE_FLOAT32:
 		data.Read(&m_fVal, 4);
-	else if (m_uType >= TAGTYPE_STR1 && m_uType <= TAGTYPE_STR16) {
-		UINT length = m_uType - TAGTYPE_STR1 + 1;
-		m_pstrVal = new CString(data.ReadString(bOptUTF8, length));
-		m_uType = TAGTYPE_STRING;
-	} else if (m_uType == TAGTYPE_HASH) {
-		BYTE bHash[MDX_DIGEST_SIZE];
-		data.Read(bHash, MDX_DIGEST_SIZE);
-		m_pData = new BYTE[MDX_DIGEST_SIZE];
-		md4cpy(m_pData, bHash);
-	} else if (m_uType == TAGTYPE_BOOL) {
+		break;
+	case TAGTYPE_HASH:
+		{
+			BYTE bHash[MDX_DIGEST_SIZE];
+			data.Read(bHash, MDX_DIGEST_SIZE);
+			m_pData = new BYTE[MDX_DIGEST_SIZE];
+			md4cpy(m_pData, bHash);
+		}
+		break;
+	case TAGTYPE_BOOL:
 		TRACE("***NOTE: %s; Reading BOOL tag\n", __FUNCTION__);
 		data.Seek(1, CFile::current);
-	} else if (m_uType == TAGTYPE_BOOLARRAY) {
-		TRACE("***NOTE: %s; Reading BOOL Array tag\n", __FUNCTION__);
-		uint16 len;
-		data.Read(&len, 2);
-		// 07-Apr-2004: eMule versions prior to 0.42e.29 used the formula "(len+7)/8"!
-		data.Seek((len / 8) + 1ll, CFile::current);
-	} else if (m_uType == TAGTYPE_BLOB) {
+		break;
+	case TAGTYPE_BOOLARRAY:
+		{
+			TRACE("***NOTE: %s; Reading BOOL Array tag\n", __FUNCTION__);
+			uint16 len;
+			data.Read(&len, 2);
+			// 07-Apr-2004: eMule versions prior to 0.42e.29 used the formula "(len+7)/8"!
+			data.Seek((len / 8) + 1ll, CFile::current);
+		}
+		break;
+	case TAGTYPE_BLOB:
 		// 07-Apr-2004: eMule versions prior to 0.42e.29 handled the "len" as int16!
 		m_nBlobSize = data.ReadUInt32();
 		if (m_nBlobSize <= data.GetLength() - data.GetPosition()) {
@@ -501,14 +511,21 @@ CTag::CTag(CFileDataIO &data, bool bOptUTF8)
 			m_nBlobSize = 0;
 			m_pData = NULL;
 		}
-	} else {
+		break;
+	default:
+	//case TAGTYPE_STR1..TAGTYPE_STR16:
+		if (m_uType >= TAGTYPE_STR1 && m_uType <= TAGTYPE_STR16) {
+			UINT length = m_uType - TAGTYPE_STR1 + 1;
+			m_pstrVal = new CString(data.ReadString(bOptUTF8, length));
+			m_uType = TAGTYPE_STRING;
+			break;
+		}
 		if (m_uName != 0)
 			TRACE("%s; Unknown tag: type=0x%02X  specialtag=%u\n", __FUNCTION__, m_uType, m_uName);
 		else
 			TRACE("%s; Unknown tag: type=0x%02X  name=\"%s\"\n", __FUNCTION__, m_uType, (LPCSTR)m_sName);
 		m_uVal = 0;
 	}
-	ASSERT_VALID(this);
 }
 
 CTag::~CTag()

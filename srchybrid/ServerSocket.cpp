@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -258,37 +258,38 @@ bool CServerSocket::ProcessPacket(const BYTE *packet, uint32 size, uint8 opcode)
 
 				const LoginAnswer_Struct *la = reinterpret_cast<const LoginAnswer_Struct*>(packet);
 
-				// save TCP flags in 'cur_server'
-				uint32 dwFlags = 0;
 				if (cur_server) {
-					if (size >= sizeof(LoginAnswer_Struct) + 4) {
-						dwFlags = PeekUInt32(packet + sizeof(LoginAnswer_Struct));
+					uint32 uFlags; //TCP flags in 'cur_server'
+					if (size < sizeof(LoginAnswer_Struct) + 4)
+						uFlags = 0;
+					else {
+						uFlags = PeekUInt32(packet + sizeof(LoginAnswer_Struct));
 						if (thePrefs.GetDebugServerTCPLevel() > 0) {
 							CString strInfo;
-							strInfo.Format(_T("  TCP Flags=0x%08x"), dwFlags);
+							strInfo.Format(_T("  TCP Flags=0x%08x"), uFlags);
 							const uint32 dwKnownBits = SRV_TCPFLG_COMPRESSION | SRV_TCPFLG_NEWTAGS | SRV_TCPFLG_UNICODE | SRV_TCPFLG_RELATEDSEARCH | SRV_TCPFLG_TYPETAGINTEGER | SRV_TCPFLG_LARGEFILES | SRV_TCPFLG_TCPOBFUSCATION;
-							if (dwFlags & ~dwKnownBits)
-								strInfo.AppendFormat(_T("  ***UnkBits=0x%08x"), dwFlags & ~dwKnownBits);
-							if (dwFlags & SRV_TCPFLG_COMPRESSION)
+							if (uFlags & ~dwKnownBits)
+								strInfo.AppendFormat(_T("  ***UnkBits=0x%08x"), uFlags & ~dwKnownBits);
+							if (uFlags & SRV_TCPFLG_COMPRESSION)
 								strInfo.AppendFormat(_T("  Compression=1"));
-							if (dwFlags & SRV_TCPFLG_NEWTAGS)
+							if (uFlags & SRV_TCPFLG_NEWTAGS)
 								strInfo.AppendFormat(_T("  NewTags=1"));
-							if (dwFlags & SRV_TCPFLG_UNICODE)
+							if (uFlags & SRV_TCPFLG_UNICODE)
 								strInfo.AppendFormat(_T("  Unicode=1"));
-							if (dwFlags & SRV_TCPFLG_RELATEDSEARCH)
+							if (uFlags & SRV_TCPFLG_RELATEDSEARCH)
 								strInfo.AppendFormat(_T("  RelatedSearch=1"));
-							if (dwFlags & SRV_TCPFLG_TYPETAGINTEGER)
+							if (uFlags & SRV_TCPFLG_TYPETAGINTEGER)
 								strInfo.AppendFormat(_T("  IntTypeTags=1"));
-							if (dwFlags & SRV_TCPFLG_LARGEFILES)
+							if (uFlags & SRV_TCPFLG_LARGEFILES)
 								strInfo.AppendFormat(_T("  LargeFiles=1"));
-							if (dwFlags & SRV_TCPFLG_TCPOBFUSCATION)
+							if (uFlags & SRV_TCPFLG_TCPOBFUSCATION)
 								strInfo.AppendFormat(_T("  TCP_Obfscation=1"));
 							Debug(_T("%s\n"), (LPCTSTR)strInfo);
 						}
 					}
 					if (IsObfusicating())
-						dwFlags |= SRV_TCPFLG_TCPOBFUSCATION;
-					cur_server->SetTCPFlags(dwFlags);
+						uFlags |= SRV_TCPFLG_TCPOBFUSCATION;
+					cur_server->SetTCPFlags(uFlags);
 
 					// copy TCP flags into the entry in the server list
 					CServer *pServer = theApp.serverlist->GetServerByAddress(cur_server->GetAddress(), cur_server->GetPort());
@@ -298,7 +299,7 @@ bool CServerSocket::ProcessPacket(const BYTE *packet, uint32 size, uint8 opcode)
 							if (!pServer->GetObfuscationPortTCP()) //obfuscated connection with the default port
 								pServer->SetObfuscationPortTCP(pServer->GetPort());
 						}
-						pServer->SetTCPFlags(dwFlags);
+						pServer->SetTCPFlags(uFlags);
 					}
 				} else
 					ASSERT(0);
@@ -547,7 +548,7 @@ bool CServerSocket::ProcessPacket(const BYTE *packet, uint32 size, uint8 opcode)
 							client->SetConnectOptions(byCryptOptions, true, false);
 							client->SetDirectUDPCallbackSupport(false);
 						} else {
-							DebugLogError(_T("Reported Userhash from OP_CALLBACKREQUESTED differs with our stored hash"));
+							DebugLogError(_T("Reported user hash from OP_CALLBACKREQUESTED differs with our stored hash"));
 							// disable crypt support since we don't know which hash is true
 							client->SetCryptLayerRequest(false);
 							client->SetCryptLayerSupport(false);

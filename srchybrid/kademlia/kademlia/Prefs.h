@@ -39,50 +39,50 @@ namespace Kademlia
 		CPrefs();
 		~CPrefs();
 
-		void	GetKadID(CUInt128 &uID) const;
-		void	GetKadID(CString &sID) const;
-		void	SetKadID(const CUInt128 &puID);
-		CUInt128 GetKadID() const;
-		void	GetClientHash(CUInt128 &uID) const;
-		void	GetClientHash(CString &sID) const;
-		void	SetClientHash(const CUInt128 &puID);
-		CUInt128 GetClientHash() const;
-		uint32	GetIPAddress() const;
+		void	GetKadID(CUInt128 &uID) const		{ uID.SetValue(m_uClientID); }
+		void	GetKadID(CString &sID) const		{ m_uClientID.ToHexString(sID); }
+		void	SetKadID(const CUInt128 &puID)		{ m_uClientID = puID; }
+		const CUInt128& GetKadID() const			{ return m_uClientID; }
+		void	GetClientHash(CUInt128 &uID) const	{ uID.SetValue(m_uClientHash); }
+		void	GetClientHash(CString &sID) const	{ m_uClientHash.ToHexString(sID); }
+		//void	SetClientHash(const CUInt128 &uID)	{ m_uClientHash = uID; }
+		const CUInt128& GetClientHash() const		{ return m_uClientHash; }
+		uint32	GetIPAddress() const				{ return m_uIP; }
 		void	SetIPAddress(uint32 uVal);
 		bool	GetRecheckIP() const;
 		void	SetRecheckIP();
-		void	IncRecheckIP();
+		void	IncRecheckIP()						{ ++m_uRecheckip; }
 		bool	HasHadContact() const;
-		void	SetLastContact();
+		void	SetLastContact()					{ m_tLastContact = time(NULL); }
 		bool	HasLostConnection() const;
-		time_t	GetLastContact() const;
+		time_t	GetLastContact() const				{ return m_tLastContact; }
 		bool	GetFirewalled() const;
 		void	SetFirewalled();
 		void	IncFirewalled();
 
-		uint8	GetTotalFile() const;
-		void	SetTotalFile(uint8 uVal);
-		uint8	GetTotalStoreSrc() const;
-		void	SetTotalStoreSrc(uint8 uVal);
-		uint8	GetTotalStoreKey() const;
-		void	SetTotalStoreKey(uint8 uVal);
-		uint8	GetTotalSource() const;
-		void	SetTotalSource(uint8 uVal);
-		uint8	GetTotalNotes() const;
-		void	SetTotalNotes(uint8 uVal);
-		uint8	GetTotalStoreNotes() const;
-		void	SetTotalStoreNotes(uint8 uVal);
-		uint32	GetKademliaUsers() const;
-		void	SetKademliaUsers(uint32 uVal);
-		uint32	GetKademliaFiles() const;
+		uint8	GetTotalFile() const				{ return m_uTotalFile; }
+		void	SetTotalFile(uint8 uVal)			{ m_uTotalFile = uVal; }
+		uint8	GetTotalStoreSrc() const			{ return m_uTotalStoreSrc; }
+		void	SetTotalStoreSrc(uint8 uVal)		{ m_uTotalStoreSrc = uVal; }
+		uint8	GetTotalStoreKey() const			{ return m_uTotalStoreKey; }
+		void	SetTotalStoreKey(uint8 uVal)		{ m_uTotalStoreKey = uVal; }
+		uint8	GetTotalSource() const				{ return m_uTotalSource; }
+		void	SetTotalSource(uint8 uVal)			{ m_uTotalSource = uVal; }
+		uint8	GetTotalNotes() const				{ return m_uTotalNotes; }
+		void	SetTotalNotes(uint8 uVal)			{ m_uTotalNotes = uVal; }
+		uint8	GetTotalStoreNotes() const			{ return m_uTotalStoreNotes; }
+		void	SetTotalStoreNotes(uint8 uVal)		{ m_uTotalStoreNotes = uVal; }
+		uint32	GetKademliaUsers() const			{ return m_uKademliaUsers; }
+		void	SetKademliaUsers(uint32 uVal)		{ m_uKademliaUsers = uVal; }
+		uint32	GetKademliaFiles() const			{ return m_uKademliaFiles; }
 		void	SetKademliaFiles();
-		bool	GetPublish() const;
-		void	SetPublish(bool bVal);
+		bool	GetPublish() const					{ return m_bPublish; }
+		void	SetPublish(bool bVal)				{ m_bPublish = bVal; }
 		bool	GetFindBuddy();
-		void	SetFindBuddy(bool bVal = true);
+		void	SetFindBuddy(bool bVal = true)		{ m_bFindBuddy = bVal; }
 		bool	GetUseExternKadPort() const;
-		void	SetUseExternKadPort(bool bVal);
-		uint16	GetExternalKadPort() const;
+		void	SetUseExternKadPort(bool bVal)		{ m_bUseExternKadPort = bVal; }
+		uint16	GetExternalKadPort() const			{ return m_nExternKadPort; }
 		void	SetExternKadPort(uint16 uVal, uint32 uFromIP);
 		bool	FindExternKadPort(bool bReset = false);
 		static uint16 GetInternKadPort();

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -262,9 +262,9 @@ void CCreditsThread::CreateCredits()
 				if (nColor != nLastColor)
 					m_dcCredits.SetTextColor(m_arColors[nColor]);
 
-				RECT rect = { 0, (LONG)y, m_rectScreen.Width(), (LONG)y + nTextHeight };
+				RECT rect{0, (LONG)y, m_rectScreen.Width(), (LONG)y + nTextHeight};
 
-				m_dcCredits.DrawText(CPTR(cs, 6), &rect, DT_CENTER);
+				m_dcCredits.DrawText(CPTR(cs, 6), -1, &rect, DT_CENTER);
 
 				y += nTextHeight;
 			}
@@ -276,7 +276,7 @@ void CCreditsThread::CreateCredits()
 
 	// create the mask bitmap
 	m_dcMask.CreateCompatibleDC(&m_dcScreen);
-	m_bmpMask.CreateBitmap(m_nCreditsBmpWidth, m_nCreditsBmpHeight, 1, 1, NULL);
+	m_bmpMask.CreateCompatibleBitmap(&m_dcScreen, m_nCreditsBmpWidth, m_nCreditsBmpHeight);
 
 	// select the mask bitmap into the appropriate dc
 	m_pbmpOldMask = m_dcMask.SelectObject(&m_bmpMask);
@@ -390,7 +390,7 @@ void CCreditsThread::InitText()
 
 	m_arCredits.Add(_T("03:00:eMule"));
 	m_arCredits.Add(_T("02:01:Version ") + theApp.m_strCurVersionLong);
-	m_arCredits.Add(_T("01:06:Copyright (C) 2002-2024 Merkur"));
+	m_arCredits.Add(_T("01:06:Copyright (C) 2002-2026 Merkur"));
 	m_arCredits.Add(_T("S:50"));
 	m_arCredits.Add(_T("02:04:Developers"));
 	m_arCredits.Add(_T("S:5"));

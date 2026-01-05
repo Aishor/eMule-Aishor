@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 #pragma once
 #include <map>
 #include "MuleListCtrl.h"
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 #include "ListCtrlItemWalk.h"
 #include "ToolTipCtrlX.h"
 
@@ -49,12 +49,12 @@ class CtrlItem_Struct : public CObject
 public:
 	~CtrlItem_Struct()							{ status.DeleteObject(); }
 
-	ItemType		type;
 	CPartFile		*owner;
 	void			*value; // could be either CPartFile or CUpDownClient
 	CtrlItem_Struct	*parent;
-	DWORD			dwUpdated;
 	CBitmap			status;
+	DWORD			dwUpdated;
+	ItemType		type;
 };
 
 
@@ -91,7 +91,7 @@ public:
 	CDownloadListCtrl(const CDownloadListCtrl&) = delete;
 	CDownloadListCtrl& operator=(const CDownloadListCtrl&) = delete;
 
-	UINT	curTab;
+	UINT	m_curTab;
 
 	void	UpdateItem(void *toupdate);
 	void	Init();
@@ -108,8 +108,6 @@ public:
 	void	ChangeCategory(int newsel);
 	CString getTextList();
 	void	ShowSelectedFileDetails();
-	void	HideFile(CPartFile *tohide);
-	void	ShowFile(CPartFile *toshow);
 	void	ExpandCollapseItem(int iItem, int iAction, bool bCollapseSource = false);
 	void	HideSources(CPartFile *toCollapse);
 	void	GetDisplayedFiles(CArray<CPartFile*, CPartFile*> *list);
@@ -119,17 +117,16 @@ public:
 	void	UpdateCurrentCategoryView(CPartFile *thisfile);
 	CImageList* CreateDragImage(int iItem, LPPOINT lpPoint);
 	void	FillCatsMenu(CMenu &rCatsMenu, int iFilesInCats = -1);
-	CTitleMenu* GetPrioMenu();
+	CTitledMenu* GetPrioMenu();
 	float	GetFinishedSize();
 	bool	ReportAvailableCommands(CList<int> &liAvailableCommands);
 
 protected:
 	CImageList  m_ImageList;
-	CTitleMenu	m_PrioMenu;
-	CTitleMenu	m_FileMenu;
-	CTitleMenu	m_PreviewMenu;
+	CTitledMenu	m_PrioMenu;
+	CTitledMenu	m_FileMenu;
+	CTitledMenu	m_PreviewMenu;
 	CMenu		m_SourcesMenu;
-	bool		m_bRemainSort;
 	typedef std::pair<void*, CtrlItem_Struct*> ListItemsPair;
 	typedef std::multimap<void*, CtrlItem_Struct*> ListItems;
 	ListItems	m_ListItems;
@@ -137,13 +134,16 @@ protected:
 	CFont		*m_pFontBold;// points to the bold font which is to be used (may be the locally created or the default bold font)
 	CToolTipCtrlX m_tooltip;
 	DWORD		m_dwLastAvailableCommandsCheck;
+	bool		m_bRemainSort;
 	bool		m_availableCommandsDirty;
 
+	void HideFile(ListItems::const_iterator ihide);
+	void ShowFile(ListItems::const_iterator ishow);
 	void ShowFileDialog(UINT uInvokePage);
 	void ShowClientDialog(CUpDownClient *pClient);
 	void SetAllIcons();
-	void DrawFileItem(CDC *dc, int nColumn, LPCRECT lpRect, UINT uDrawTextAlignment, CtrlItem_Struct *pCtrlItem);
-	void DrawSourceItem(CDC *dc, int nColumn, LPCRECT lpRect, UINT uDrawTextAlignment, CtrlItem_Struct *pCtrlItem);
+	void DrawFileItem(CDC &dc, int nColumn, LPCRECT lpRect, UINT uDrawTextAlignment, CtrlItem_Struct *pCtrlItem);
+	void DrawSourceItem(CDC &dc, int nColumn, LPCRECT lpRect, UINT uDrawTextAlignment, CtrlItem_Struct *pCtrlItem);
 	int GetFilesCountInCurCat();
 	CString GetFileItemDisplayText(const CPartFile *lpPartFile, int iSubItem);
 	CString GetSourceItemDisplayText(const CtrlItem_Struct *pCtrlItem, int iSubItem);

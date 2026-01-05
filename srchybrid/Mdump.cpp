@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -51,8 +51,8 @@ void CMiniDumper::Enable(LPCTSTR pszAppName, bool bShowErrors, LPCTSTR pszDumpDi
 	HMODULE hDbgHelpDll = GetDebugHelperDll((FARPROC*)&pfnMiniDumpWriteDump, bShowErrors);
 	if (hDbgHelpDll) {
 		if (pfnMiniDumpWriteDump)
-			SetUnhandledExceptionFilter(TopLevelFilter);
-		FreeLibrary(hDbgHelpDll);
+			::SetUnhandledExceptionFilter(TopLevelFilter);
+		::FreeLibrary(hDbgHelpDll);
 	}
 }
 
@@ -63,13 +63,13 @@ void CMiniDumper::Enable(LPCTSTR pszAppName, bool bShowErrors, LPCTSTR pszDumpDi
 HMODULE CMiniDumper::GetDebugHelperDll(FARPROC *ppfnMiniDumpWriteDump, bool bShowErrors)
 {
 	*ppfnMiniDumpWriteDump = NULL;
-	HMODULE hDll = LoadLibrary(_T("DBGHELP.DLL"));
+	HMODULE hDll = ::LoadLibrary(_T("DBGHELP.DLL"));
 	if (hDll == NULL) {
 		if (bShowErrors)
 			// Do *NOT* localize that string (in fact, do not use MFC to load it)!
 			MessageBox(NULL, _T("DBGHELP.DLL not found. Please install a DBGHELP.DLL.\r\n\r\n") DBGHELP_HINT, m_szAppName, MB_ICONSTOP | MB_OK);
 	} else {
-		*ppfnMiniDumpWriteDump = GetProcAddress(hDll, "MiniDumpWriteDump");
+		*ppfnMiniDumpWriteDump = ::GetProcAddress(hDll, "MiniDumpWriteDump");
 		if (*ppfnMiniDumpWriteDump == NULL && bShowErrors)
 			// Do *NOT* localize that string (in fact, do not use MFC to load it)!
 			MessageBox(NULL, _T("DBGHELP.DLL found is too old. Please upgrade to the current version of DBGHELP.DLL.\r\n\r\n") DBGHELP_HINT, m_szAppName, MB_ICONSTOP | MB_OK);
@@ -92,7 +92,7 @@ LONG WINAPI CMiniDumper::TopLevelFilter(struct _EXCEPTION_POINTERS *pExceptionIn
 	if (hDll) {
 		if (pfnMiniDumpWriteDump) {
 			SYSTEMTIME t;
-			GetLocalTime(&t); //time of this crash
+			::GetLocalTime(&t); //time of this crash
 			// Ask user to confirm writing a dump file
 			// Do *NOT* localize that string (in fact, do not use MFC to load it)!
 			if (theCrashDumper.uCreateCrashDump == 2 || MessageBox(NULL, CRASHTEXT, m_szAppName, MB_ICONSTOP | MB_YESNO) == IDYES) {
@@ -116,7 +116,7 @@ LONG WINAPI CMiniDumper::TopLevelFilter(struct _EXCEPTION_POINTERS *pExceptionIn
 				*szResult = _T('\0');
 				HANDLE hFile = ::CreateFile(szDumpPath, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				if (hFile != INVALID_HANDLE_VALUE) {
-					_MINIDUMP_EXCEPTION_INFORMATION ExInfo = { GetCurrentThreadId(), pExceptionInfo, FALSE };
+					_MINIDUMP_EXCEPTION_INFORMATION ExInfo = _MINIDUMP_EXCEPTION_INFORMATION{GetCurrentThreadId(), pExceptionInfo, FALSE};
 					BOOL bOK = (*pfnMiniDumpWriteDump)(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &ExInfo, NULL, NULL);
 					if (bOK) {
 						// Do *NOT* localize this string (in fact, do not use MFC to load it)!
@@ -143,10 +143,10 @@ LONG WINAPI CMiniDumper::TopLevelFilter(struct _EXCEPTION_POINTERS *pExceptionIn
 					szResult[_countof(szResult) - 1] = _T('\0');
 				}
 				if (*szResult != _T('\0'))
-					MessageBox(NULL, szResult, m_szAppName, MB_ICONINFORMATION | MB_OK);
+					::MessageBox(NULL, szResult, m_szAppName, MB_ICONINFORMATION | MB_OK);
 			}
 		}
-		FreeLibrary(hDll);
+		::FreeLibrary(hDll);
 	}
 
 #ifndef _DEBUG

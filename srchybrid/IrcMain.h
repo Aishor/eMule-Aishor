@@ -27,12 +27,12 @@ public:
 	void Connect();
 	void Disconnect(bool bIsShuttingDown = false);
 	void SetConnectStatus(bool bConnected);
-	void SetIRCWnd(CIrcWnd *pwndIRC);
+	void SetIRCWnd(CIrcWnd *pwndIRC)				{ m_pwndIRC = pwndIRC; }
 	int SendString(const CString &sSend);
 	void ParsePerform();
 	static void ProcessLink(const CString &sED2KLink);
 	uint32 SetVerify();
-	CString GetNick() const;
+	const CString& GetNick() const					{ return m_sNick; }
 
 protected:
 	void PerformString(const CString &sPerform);

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,11 +15,11 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "ToolTipCtrlX.h"
 #include "OtherFunctions.h"
 #include "emule.h"
-#include "log.h"
-#include "VisualStylesXP.h"
+//#include "log.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -141,7 +141,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 	bool bUseEmbeddedThemeFonts = false;
 	HTHEME hTheme = NULL;
 	if (theApp.IsVistaThemeActive()) {
-		hTheme = g_xpStyle.OpenThemeData(*pwnd, L"TOOLTIP");
+		hTheme = ::OpenThemeData(*pwnd, L"TOOLTIP");
 		// Using the theme's fonts works only under Vista without SP1. When SP1
 		// is installed the fonts which are used for TTP_STANDARDTITLE and TTP_STANDARD
 		// do no longer match (should not get displayed within the same text line).
@@ -181,18 +181,18 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 			// system font. At least this would explain why the TTP_STANDARD and TTP_STANDARDTITLE
 			// fonts are *different* on that particular Windows Vista system.
 			LOGFONT lf = {};
-			if (g_xpStyle.GetThemeFont(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, TMT_FONT, &lf) == S_OK) {
+			if (::GetThemeFont(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, TMT_FONT, &lf) == S_OK) {
 				VERIFY(m_fontNormal.CreateFontIndirect(&lf));
 
 				if (m_bCol1Bold && m_fontBold.m_hObject == NULL) {
 					memset(&lf, 0, sizeof lf);
-					if (g_xpStyle.GetThemeFont(hTheme, pdc->m_hDC, TTP_STANDARDTITLE, TTSS_NORMAL, TMT_FONT, &lf) == S_OK)
+					if (::GetThemeFont(hTheme, pdc->m_hDC, TTP_STANDARDTITLE, TTSS_NORMAL, TMT_FONT, &lf) == S_OK)
 						VERIFY(m_fontBold.CreateFontIndirect(&lf));
 				}
 
 				// Get the tooltip font color
 				COLORREF crText;
-				if (g_xpStyle.GetThemeColor(hTheme, TTP_STANDARD, TTSS_NORMAL, TMT_TEXTCOLOR, &crText) == S_OK)
+				if (::GetThemeColor(hTheme, TTP_STANDARD, TTSS_NORMAL, TMT_TEXTCOLOR, &crText) == S_OK)
 					m_crTooltipTextColor = crText;
 			}
 		}
@@ -250,13 +250,13 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 	const int iIconDrawingWidth = bShowFileIcon ? (iIconWidth + 9) : 0;
 	CSize siz, sizText;
 	CRect rcExtent;
-	static const RECT rcBounding = { 0, 0, 32767, 32767 };
+	static const RECT rcBounding{0, 0, 32767, 32767};
 	for (int iPos = 0; iPos >= 0;) {
 		const CString &strLine(GetNextString(strText, _T('\n'), iPos));
 		int iColon = bAutoFormatText ? strLine.Find(_T(':')) : -1;
 		if (iColon >= 0) {
 			if (hTheme && bUseEmbeddedThemeFonts) {
-				g_xpStyle.GetThemeTextExtent(hTheme, *pdc, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, iColon + 1, m_dwCol1DrawTextFlags, &rcBounding, &rcExtent);
+				::GetThemeTextExtent(hTheme, *pdc, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, iColon + 1, m_dwCol1DrawTextFlags, &rcBounding, &rcExtent);
 				siz.cx = rcExtent.Width();
 				siz.cy = rcExtent.Height();
 			} else {
@@ -277,7 +277,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 				++pszCol2;
 			if (*pszCol2 != _T('\0')) {
 				if (hTheme && bUseEmbeddedThemeFonts) {
-					g_xpStyle.GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, pszCol2, (int)(((LPCTSTR)strLine + strLine.GetLength()) - pszCol2), m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
+					::GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, pszCol2, (int)(((LPCTSTR)strLine + strLine.GetLength()) - pszCol2), m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
 					siz.cx = rcExtent.Width();
 					siz.cy = rcExtent.Height();
 				} else
@@ -288,7 +288,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 		} else if (bShowFileIcon && iPos <= iCaptionEnd && iPos == strLine.GetLength() + 1) {
 			// file name, printed bold on top without any tabbing or desc
 			if (hTheme && bUseEmbeddedThemeFonts) {
-				g_xpStyle.GetThemeTextExtent(hTheme, *pdc, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol1DrawTextFlags, &rcBounding, &rcExtent);
+				::GetThemeTextExtent(hTheme, *pdc, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol1DrawTextFlags, &rcBounding, &rcExtent);
 				siz.cx = rcExtent.Width();
 				siz.cy = rcExtent.Height();
 			} else {
@@ -301,7 +301,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 			iCaptionHeight += siz.cy + iLineHeightOff;
 		} else if (!strLine.IsEmpty() && strLine.Compare(_T("<br>")) != 0 && strLine.Compare(_T("<br_head>")) != 0) {
 			if (hTheme && bUseEmbeddedThemeFonts) {
-				g_xpStyle.GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
+				::GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
 				siz.cx = rcExtent.Width();
 				siz.cy = rcExtent.Height();
 			} else
@@ -314,7 +314,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 				sizText.cy += siz.cy + iLineHeightOff;
 		} else {
 			if (hTheme && bUseEmbeddedThemeFonts) {
-				g_xpStyle.GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, _T(" "), 1, m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
+				::GetThemeTextExtent(hTheme, *pdc, TTP_STANDARD, TTSS_NORMAL, _T(" "), 1, m_dwCol2DrawTextFlags, &rcBounding, &rcExtent);
 				siz.cx = rcExtent.Width();
 				siz.cy = rcExtent.Height();
 			} else {
@@ -348,11 +348,9 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 
 		int iOldBkColor = -1;
 		if (hTheme) {
-			int iPartId = TTP_STANDARD;
-			int iStateId = TTSS_NORMAL;
-			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
-				g_xpStyle.DrawThemeParentBackground(m_hWnd, pdc->m_hDC, &rcWnd);
-			g_xpStyle.DrawThemeBackground(hTheme, pdc->m_hDC, iPartId, iStateId, &rcWnd, NULL);
+			if (::IsThemeBackgroundPartiallyTransparent(hTheme, TTP_STANDARD, TTSS_NORMAL))
+				::DrawThemeParentBackground(m_hWnd, pdc->m_hDC, &rcWnd);
+			::DrawThemeBackground(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, &rcWnd, NULL);
 		} else {
 			::FillRect(*pdc, &rcWnd, ::GetSysColorBrush(COLOR_INFOBK));
 			iOldBkColor = pdc->SetBkColor(m_crTooltipBkColor);
@@ -389,7 +387,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 				// don't draw empty <col1> strings (they are still handy to use for skipping the <col1> space)
 				if (iColon > 0)
 					if (hTheme && bUseEmbeddedThemeFonts)
-						g_xpStyle.DrawThemeText(hTheme, pdc->m_hDC, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, iColon + 1, m_dwCol1DrawTextFlags, 0, &rcDT);
+						::DrawThemeText(hTheme, pdc->m_hDC, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, iColon + 1, m_dwCol1DrawTextFlags, 0, &rcDT);
 					else {
 						CFont *pOldFont = m_bCol1Bold ? pdc->SelectObject(&m_fontBold) : NULL;
 						pdc->DrawText(strLine, iColon + 1, &rcDT, m_dwCol1DrawTextFlags);
@@ -404,7 +402,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 					rcDT.left = ptText.x + iMaxCol1Width + iMiddleMargin;
 					rcDT.right = rcDT.left + iMaxCol2Width;
 					if (hTheme && bUseEmbeddedThemeFonts)
-						g_xpStyle.DrawThemeText(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, pszCol2, (int)(((LPCTSTR)strLine + strLine.GetLength()) - pszCol2), m_dwCol2DrawTextFlags, 0, &rcDT);
+						::DrawThemeText(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, pszCol2, (int)(((LPCTSTR)strLine + strLine.GetLength()) - pszCol2), m_dwCol2DrawTextFlags, 0, &rcDT);
 					else
 						pdc->DrawText(pszCol2, (int)(((LPCTSTR)strLine + strLine.GetLength()) - pszCol2), &rcDT, m_dwCol2DrawTextFlags);
 				}
@@ -414,7 +412,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 				const CRect rect(ptText.x + iIconDrawingWidth, ptText.y, ptText.x + iMaxSingleLineWidth, ptText.y + iTextHeight);
 				// first line on special file icon tab - draw icon and bold filename
 				if (hTheme && bUseEmbeddedThemeFonts)
-					g_xpStyle.DrawThemeText(hTheme, pdc->m_hDC, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol1DrawTextFlags, 0, rect);
+					::DrawThemeText(hTheme, pdc->m_hDC, m_bCol1Bold ? TTP_STANDARDTITLE : TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), m_dwCol1DrawTextFlags, 0, rect);
 				else {
 					CFont *pOldFont = m_bCol1Bold ? pdc->SelectObject(&m_fontBold) : NULL;
 					pdc->DrawText(strLine, const_cast<CRect&>(rect), m_dwCol1DrawTextFlags);
@@ -445,8 +443,8 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 					pen.DeleteObject();
 				} else {
 					if (hTheme && bUseEmbeddedThemeFonts) {
-						const RECT rcLine = { ptText.x, ptText.y, 32767, 32767 };
-						g_xpStyle.DrawThemeText(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), DT_EXPANDTABS | m_dwCol2DrawTextFlags, 0, &rcLine);
+						const RECT rcLine{ptText.x, ptText.y, 32767, 32767};
+						::DrawThemeText(hTheme, pdc->m_hDC, TTP_STANDARD, TTSS_NORMAL, strLine, strLine.GetLength(), DT_EXPANDTABS | m_dwCol2DrawTextFlags, 0, &rcLine);
 						ptText.y += iTextHeight;
 					} else {
 						// Text is written in the currently selected font. If 'nTabPositions' is 0 and 'lpnTabStopPositions' is NULL,
@@ -468,7 +466,7 @@ void CToolTipCtrlX::CustomPaint(LPNMTTCUSTOMDRAW pNMCD)
 	if (pOldDCFont)
 		pdc->SelectObject(pOldDCFont);
 	if (hTheme)
-		g_xpStyle.CloseThemeData(hTheme);
+		::CloseThemeData(hTheme);
 }
 
 void EnsureWindowVisible(const RECT &rcScreen, RECT &rc)
@@ -522,15 +520,15 @@ BOOL CToolTipCtrlX::OnTTShow(LPNMHDR pNMHDR, LRESULT *pResult)
 		// Win98/Win2000: Must *not* specify 'SWP_NOZORDER' - some of the tooltip windows may get drawn behind(!) the application window!
 		::SetWindowPos(pNMHDR->hwndFrom, NULL, rcWnd.left, rcWnd.top, rcWnd.Width(), rcWnd.Height(), SWP_NOACTIVATE /*| SWP_NOZORDER*/);
 
-		*pResult = TRUE; // Windows API: Suppress default positioning
-		return TRUE;	 // MFC API:     Suppress further routing of this message
+		return (BOOL)(*pResult = 1); // Windows API: Suppress default positioning
+									 // MFC API:     Suppress further routing of this message
 	}
 
 	// If the TTN_SHOW notification is not sent to the subclassed tooltip control, we would lose the
 	// exact positioning of in-place tooltips which is performed by the tooltip control by default.
 	// Thus it is important that we tell MFC (not the Windows API in that case) to further route this message.
-	*pResult = FALSE;	// Windows API: Perform default positioning
-	return FALSE;		// MFC API.     Perform further routing of this message (to the subclassed tooltip control)
+	return (BOOL)(*pResult = 0);	// Windows API: Perform default positioning
+									// MFC API.     Perform further routing of this message (to the subclassed tooltip control)
 }
 
 void CToolTipCtrlX::OnNmCustomDraw(LPNMHDR pNMHDR, LRESULT *pResult)

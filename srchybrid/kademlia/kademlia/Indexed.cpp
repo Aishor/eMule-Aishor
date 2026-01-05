@@ -37,7 +37,6 @@ their client on the eMule forum.
 #include "kademlia/io/IOException.h"
 #include "kademlia/net/KademliaUDPListener.h"
 #include "kademlia/utils/KadUDPKey.h"
-#include "kademlia/utils/MiscUtils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -594,7 +593,7 @@ bool CIndexed::AddLoad(const CUInt128 &uKeyID, time_t uTime, bool bIgnoreThreadL
 	if (m_mapLoad.PLookup(CCKey(uKeyID.GetData())))
 		return false;
 
-	Load *pLoad = new Load{ uKeyID, uTime };
+	Load *pLoad = new Load{uKeyID, uTime};
 	m_mapLoad[CCKey(pLoad->uKeyID.GetData())] = pLoad;
 	++m_uTotalIndexLoad;
 	return true;
@@ -890,8 +889,8 @@ typedef CIndexed::CLoadDataThread CLoadDataThread;
 IMPLEMENT_DYNCREATE(CLoadDataThread, CWinThread)
 
 CIndexed::CLoadDataThread::CLoadDataThread()
+	: m_pOwner()
 {
-	m_pOwner = NULL;
 }
 
 BOOL CIndexed::CLoadDataThread::InitInstance()
@@ -957,27 +956,32 @@ int CIndexed::CLoadDataThread::Run()
 										pToAdd->m_tLifetime = fileKey.ReadUInt32();
 										if (uVersion >= 3)
 											pToAdd->ReadPublishTrackingDataFromFile(&fileKey, uVersion >= 4);
-										for (uint32 uTotalTags = fileKey.ReadByte(); uTotalTags; --uTotalTags) {
+										for (uint32 uTotalTags = fileKey.ReadByte(); uTotalTags > 0; --uTotalTags) {
 											CKadTag *pTag = fileKey.ReadTag();
-											if (pTag) {
-												if (!pTag->m_name.Compare(TAG_FILENAME)) {
+											if (!pTag)
+												continue;
+											if (pTag->m_name.GetLength() == 1)
+												switch ((byte)pTag->m_name[0]) {
+												case FT_FILENAME:
 													if (pToAdd->GetCommonFileName().IsEmpty())
 														pToAdd->SetFileName(pTag->GetStr());
 													delete pTag;
-												} else if (!pTag->m_name.Compare(TAG_FILESIZE)) {
+													continue;
+												case FT_FILESIZE:
 													pToAdd->m_uSize = pTag->GetInt();
 													delete pTag;
-												} else {
-													if (!pTag->m_name.Compare(TAG_SOURCEIP))
-														pToAdd->m_uIP = (uint32)pTag->GetInt();
-													else if (!pTag->m_name.Compare(TAG_SOURCEPORT))
-														pToAdd->m_uTCPPort = (uint16)pTag->GetInt();
-													else if (!pTag->m_name.Compare(TAG_SOURCEUPORT))
-														pToAdd->m_uUDPPort = (uint16)pTag->GetInt();
-
-													pToAdd->AddTag(pTag);
+													continue;
+												case FT_SOURCEIP:
+													pToAdd->m_uIP = (uint32)pTag->GetInt();
+													break;
+												case FT_SOURCEPORT:
+													pToAdd->m_uTCPPort = (uint16)pTag->GetInt();
+													break;
+												case FT_SOURCEUPORT:
+													pToAdd->m_uUDPPort = (uint16)pTag->GetInt();
 												}
-											}
+
+											pToAdd->AddTag(pTag);
 										}
 										uint8 uLoad;
 										if (m_pOwner->AddKeyword(uKeyID, uSourceID, pToAdd, uLoad, true))
@@ -1013,18 +1017,22 @@ int CIndexed::CLoadDataThread::Run()
 									CEntry *pToAdd = new Kademlia::CEntry();
 									pToAdd->m_bSource = true;
 									pToAdd->m_tLifetime = fileSource.ReadUInt32();
-									for (uint32 uTotalTags = fileSource.ReadByte(); uTotalTags; --uTotalTags) {
+									for (uint32 uTotalTags = fileSource.ReadByte(); uTotalTags > 0; --uTotalTags) {
 										CKadTag *pTag = fileSource.ReadTag();
-										if (pTag) {
-											if (!pTag->m_name.Compare(TAG_SOURCEIP))
+										if (!pTag)
+											continue;
+										if (pTag->m_name.GetLength() == 1)
+											switch ((byte)pTag->m_name[0]) {
+											case FT_SOURCEIP:
 												pToAdd->m_uIP = (uint32)pTag->GetInt();
-											else if (!pTag->m_name.Compare(TAG_SOURCEPORT))
+												break;
+											case FT_SOURCEPORT:
 												pToAdd->m_uTCPPort = (uint16)pTag->GetInt();
-											else if (!pTag->m_name.Compare(TAG_SOURCEUPORT))
+												break;
+											case FT_SOURCEUPORT:
 												pToAdd->m_uUDPPort = (uint16)pTag->GetInt();
-
-											pToAdd->AddTag(pTag);
-										}
+											}
+										pToAdd->AddTag(pTag);
 									}
 									pToAdd->m_uKeyID.SetValue(uKeyID);
 									pToAdd->m_uSourceID.SetValue(uSourceID);

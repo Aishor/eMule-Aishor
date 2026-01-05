@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,14 +15,12 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "StdAfx.h"
-#include "emule.h"
 #include "preferences.h"
 #include "UPnPImplMiniLib.h"
 #include "Log.h"
 #include "Otherfunctions.h"
 #include "miniupnpc\include\miniupnpc.h"
 #include "miniupnpc\include\upnpcommands.h"
-#include "miniupnpc\include\upnperrors.h"
 #include "opcodes.h"
 
 
@@ -147,7 +145,7 @@ void CUPnPImplMiniLib::DeletePorts(bool bSkipLock)
 void CUPnPImplMiniLib::StartDiscovery(uint16 nTCPPort, uint16 nUDPPort, uint16 nTCPWebPort)
 {
 	DebugLog(_T("Using MiniUPnPLib based implementation"));
-	DebugLog(_T("miniupnpc (c) 2005-2024 Thomas Bernard - http://miniupnp.free.fr/"));
+	DebugLog(_T("miniupnpc (c) 2005-2026 Thomas Bernard - http://miniupnp.free.fr/"));
 	GetOldPorts();
 	m_nUDPPort = nUDPPort;
 	m_nTCPPort = nTCPPort;
@@ -189,8 +187,8 @@ typedef CUPnPImplMiniLib::CStartDiscoveryThread CStartDiscoveryThread;
 IMPLEMENT_DYNCREATE(CStartDiscoveryThread, CWinThread)
 
 CUPnPImplMiniLib::CStartDiscoveryThread::CStartDiscoveryThread()
+	: m_pOwner()
 {
-	m_pOwner = NULL;
 }
 
 BOOL CUPnPImplMiniLib::CStartDiscoveryThread::InitInstance()

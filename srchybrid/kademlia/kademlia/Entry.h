@@ -86,7 +86,6 @@ namespace Kademlia
 		CKeyEntry();
 		virtual	~CKeyEntry();
 
-		virtual	CEntry*	Copy();
 		virtual bool IsKeyEntry()					{ return true; }
 
 		bool	StartSearchTermsMatch(const SSearchTerm &rSearchTerm);

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 #include "opcodes.h"
 #include "deadsourcelist.h"
 #include "updownclient.h"
-#include "Log.h"
+//#include "Log.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -68,11 +68,14 @@ bool operator==(const CDeadSource &ds1, const CDeadSource &ds2)
 {
 	//ASSERT((ds1.m_dwID + ds1.m_dwServerIP) ^ isnulmd4(ds1.m_aucHash));
 	//ASSERT((ds2.m_dwID + ds2.m_dwServerIP) ^ isnulmd4(ds2.m_aucHash));
-	return (
+	return
 		// lowid ed2k and highid kad + ed2k check
-		((ds1.m_dwID != 0 && ds1.m_dwID == ds2.m_dwID) && ((ds1.m_nPort != 0 && ds1.m_nPort == ds2.m_nPort) || (ds1.m_nKadPort != 0 && ds1.m_nKadPort == ds2.m_nKadPort)) && (ds1.m_dwServerIP == ds2.m_dwServerIP || !::IsLowID(ds1.m_dwID)) )
+		((ds1.m_dwID != 0 && ds1.m_dwID == ds2.m_dwID)
+		 && ((ds1.m_nPort != 0 && ds1.m_nPort == ds2.m_nPort) || (ds1.m_nKadPort != 0 && ds1.m_nKadPort == ds2.m_nKadPort))
+		 && (ds1.m_dwServerIP == ds2.m_dwServerIP || !::IsLowID(ds1.m_dwID))
+		)
 		// lowid kad check
-		|| (::IsLowID(ds1.m_dwID) && !isnulmd4(ds1.m_aucHash) && md4equ(ds1.m_aucHash, ds2.m_aucHash)) );
+		|| (::IsLowID(ds1.m_dwID) && !isnulmd4(ds1.m_aucHash) && md4equ(ds1.m_aucHash, ds2.m_aucHash));
 }
 
 CDeadSource& CDeadSource::operator=(const CDeadSource &ds)
@@ -104,7 +107,7 @@ void CDeadSourceList::Init(bool bGlobalList)
 bool CDeadSourceList::IsDeadSource(const CUpDownClient &client) const
 {
 	const CDeadSourcesMap::CPair *pair = m_mapDeadSources.PLookup(CDeadSource(client));
-	return (pair && ::GetTickCount() < pair->value);
+	return pair && ::GetTickCount() < pair->value;
 }
 
 void CDeadSourceList::AddDeadSource(const CUpDownClient &client)

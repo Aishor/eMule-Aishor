@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -82,16 +82,6 @@ int CSplitterControl::SetStyle(int nStyle)
 	return m_nOldStyle;
 }
 
-int CSplitterControl::GetStyle()
-{
-	return m_nType;
-}
-
-void CSplitterControl::SetDrawBorder(bool bEnable)
-{
-	m_bDrawBorder = bEnable;
-}
-
 void CSplitterControl::OnPaint()
 {
 	if (m_bDrawBorder) {
@@ -110,7 +100,7 @@ void CSplitterControl::OnMouseMove(UINT nFlags, CPoint point)
 		CWindowDC dc(NULL);
 		DrawLine(&dc, m_nX, m_nY);
 
-		CPoint pt = point;
+		CPoint pt(point);
 		ClientToScreen(&pt);
 		GetParent()->ScreenToClient(&pt);
 

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,10 +16,10 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
 
+#include <list>
 #include "ThrottledSocket.h" // ZZ:UploadBandWithThrottler (UDP)
 
-class UploadBandwidthThrottler :
-	public CWinThread
+class UploadBandwidthThrottler : public CWinThread
 {
 public:
 	UploadBandwidthThrottler();
@@ -27,11 +27,13 @@ public:
 	UploadBandwidthThrottler(const UploadBandwidthThrottler&) = delete;
 	UploadBandwidthThrottler& operator=(const UploadBandwidthThrottler&) = delete;
 
-	uint64 GetNumberOfSentBytesSinceLastCallAndReset();
-	uint64 GetNumberOfSentBytesOverheadSinceLastCallAndReset();
+	//Total number of bytes that has been put on the sockets since the last call
+	uint64 GetNumberOfSentBytesSinceLastCallAndReset()			{ return (uint64)::InterlockedExchange64((LONG64*)&m_SentBytesSinceLastCall, 0); }
+	//The number of overhead bytes that has been put on the sockets since the last call (control packets)
+	uint64 GetNumberOfSentBytesOverheadSinceLastCallAndReset()	{ return (uint64)::InterlockedExchange64((LONG64*)&m_SentBytesSinceLastCallOverhead, 0); }
 	INT_PTR GetHighestNumberOfFullyActivatedSlotsSinceLastCallAndReset();
 
-	INT_PTR GetStandardListSize()		{ return m_StandardOrder_list.GetCount(); }
+	INT_PTR GetStandardListSize()								{ return m_StandardOrder_list.GetCount(); }
 
 	void AddToStandardList(INT_PTR index, ThrottledFileSocket *socket);
 	bool RemoveFromStandardList(ThrottledFileSocket *socket);
@@ -41,29 +43,29 @@ public:
 	void RemoveFromAllQueuesLocked(ThrottledControlSocket *socket); // ZZ:UploadBandWithThrottler (UDP)
 	void NewUploadDataAvailable();
 	void SocketAvailable();
-	HANDLE GetSocketAvailableEvent()	{ return m_eventSocketAvailable; }
+	HANDLE GetSocketAvailableEvent()							{ return m_eventSocketAvailable; }
 
 	void EndThread();
 
-	void Pause(bool paused);
 	static uint32 GetSlotLimit(uint32 currentUpSpeed);
 private:
 	static UINT AFX_CDECL RunProc(LPVOID pParam);
 	UINT RunInternal();
+	//void Pause(bool paused);
 
 	void RemoveFromAllQueuesNoLock(ThrottledControlSocket *socket); // ZZ:UploadBandWithThrottler (UDP)
 	bool RemoveFromStandardListNoLock(ThrottledFileSocket *socket);
 
 	static uint32 CalculateChangeDelta(uint32 numberOfConsecutiveChanges);
 
-	CTypedPtrList<CPtrList, ThrottledControlSocket*> m_ControlQueue_list; // a queue for all the sockets that want to have Send() called on them. // ZZ:UploadBandWithThrottler (UDP)
-	CTypedPtrList<CPtrList, ThrottledControlSocket*> m_ControlQueueFirst_list; // a queue for all the sockets that want to have Send() called on them. // ZZ:UploadBandWithThrottler (UDP)
-	CTypedPtrList<CPtrList, ThrottledControlSocket*> m_TempControlQueue_list; // sockets that wants to enter m_ControlQueue_list // ZZ:UploadBandWithThrottler (UDP)
-	CTypedPtrList<CPtrList, ThrottledControlSocket*> m_TempControlQueueFirst_list; // sockets that wants to enter m_ControlQueue_list and has been able to send before // ZZ:UploadBandWithThrottler (UDP)
+	std::list<ThrottledControlSocket*> m_ControlQueue_list; // a queue for all the sockets that want to have Send() called on them. // ZZ:UploadBandWithThrottler (UDP)
+	std::list<ThrottledControlSocket*> m_ControlQueueFirst_list; // a queue for all the sockets that want to have Send() called on them. // ZZ:UploadBandWithThrottler (UDP)
+	std::list<ThrottledControlSocket*> m_TempControlQueue_list; // sockets that wants to enter m_ControlQueue_list // ZZ:UploadBandWithThrottler (UDP)
+	std::list<ThrottledControlSocket*> m_TempControlQueueFirst_list; // sockets that wants to enter m_ControlQueue_list and has been able to send before // ZZ:UploadBandWithThrottler (UDP)
 
 	CArray<ThrottledFileSocket*, ThrottledFileSocket*> m_StandardOrder_list; // sockets that have upload slots. Ordered so the most prioritized socket is first
 
-	CCriticalSection sendLocker;
+	CCriticalSection queueLocker;
 	CCriticalSection tempQueueLocker;
 
 	CEvent m_eventThreadEnded;

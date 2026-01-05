@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #include "ClientListCtrl.h"
 #include "MenuCmds.h"
 #include "ClientDetailDialog.h"
-#include "KademliaWnd.h"
 #include "ClientList.h"
 #include "emuledlg.h"
 #include "FriendList.h"
@@ -30,7 +29,6 @@
 #include "ListenSocket.h"
 #include "ChatWnd.h"
 #include "Kademlia/Kademlia/Kademlia.h"
-#include "Kademlia/net/KademliaUDPListener.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -147,13 +145,13 @@ void CClientListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					client->GetDisplayImage(iImage, uOverlayImage);
 
 					rcItem.left = itemLeft + sm_iIconOffset;
-					const POINT point = { rcItem.left, rcItem.top + iIconY };
+					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
 					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 			}
 		}
 		itemLeft += iColumnWidth;
@@ -340,7 +338,7 @@ void CClientListCtrl::OnContextMenu(CWnd*, CPoint point)
 	const CUpDownClient *client = (iSel >= 0) ? reinterpret_cast<CUpDownClient*>(GetItemData(iSel)) : NULL;
 	const bool is_ed2k = client && client->IsEd2kClient();
 
-	CTitleMenu ClientMenu;
+	CTitledMenu ClientMenu;
 	ClientMenu.CreatePopupMenu();
 	ClientMenu.AddMenuTitle(GetResString(IDS_CLIENTS), true);
 	ClientMenu.AppendMenu(MF_STRING | (client ? MF_ENABLED : MF_GRAYED), MP_DETAIL, GetResString(IDS_SHOWDETAILS), _T("CLIENTDETAILS"));
@@ -426,8 +424,8 @@ void CClientListCtrl::RemoveClient(const CUpDownClient *client)
 void CClientListCtrl::RefreshClient(const CUpDownClient *client)
 {
 	if (theApp.emuledlg->activewnd == theApp.emuledlg->transferwnd
-		&& !theApp.IsClosing()
-		&& theApp.emuledlg->transferwnd->GetClientList()->IsWindowVisible())
+		&& theApp.emuledlg->transferwnd->GetClientList()->IsWindowVisible()
+		&& !theApp.IsClosing())
 	{
 		LVFINDINFO find;
 		find.flags = LVFI_PARAM;

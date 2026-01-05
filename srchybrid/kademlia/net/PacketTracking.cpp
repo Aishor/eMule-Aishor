@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ void CPacketTracking::AddTrackedOutPacket(uint32 dwIP, uint8 byOpcode)
 	// later we will check only tracked packets
 	if (IsTrackedOutListRequestPacket(byOpcode)) {
 		const DWORD curTick = ::GetTickCount();
-		listTrackedRequests.AddHead(TrackPackets_Struct{ curTick, dwIP, byOpcode });
+		listTrackedRequests.AddHead(TrackPackets_Struct{curTick, dwIP, byOpcode});
 		while (!listTrackedRequests.IsEmpty() && curTick >= listTrackedRequests.GetTail().dwInserted + SEC2MS(180))
 			listTrackedRequests.RemoveTail();
 	}
@@ -202,7 +202,7 @@ int CPacketTracking::InTrackListIsAllowedPacket(uint32 uIP, uint8 byOpcode, bool
 		TrackedRequest.m_bDbgLogged = false;
 	} else {
 		// add a new entry for this request
-		TrackPacketsIn_Struct::TrackedRequestIn_Struct TrackedRequest =	{ curTick, MIN2MS(1) - token, byOpcode, false };
+		TrackPacketsIn_Struct::TrackedRequestIn_Struct TrackedRequest =	{curTick, MIN2MS(1) - token, byOpcode, false};
 		pTrackEntry->m_aTrackedRequests.Add(TrackedRequest);
 	}
 	return 0;
@@ -228,7 +228,7 @@ void CPacketTracking::InTrackListCleanup()
 void CPacketTracking::AddLegacyChallenge(const CUInt128 &uContactID, const CUInt128 &uChallengeID, uint32 uIP, uint8 byOpcode)
 {
 	const DWORD curTick = ::GetTickCount();
-	listChallengeRequests.AddHead(TrackChallenge_Struct{ curTick, uIP, uContactID, uChallengeID, byOpcode });
+	listChallengeRequests.AddHead(TrackChallenge_Struct{curTick, uIP, uContactID, uChallengeID, byOpcode});
 	while (!listChallengeRequests.IsEmpty() && curTick >= listChallengeRequests.GetTail().dwInserted + SEC2MS(180)) {
 		DEBUG_ONLY(DebugLog(_T("Challenge timed out, client not verified - %s"), (LPCTSTR)ipstr(htonl(listChallengeRequests.GetTail().uIP))));
 		listChallengeRequests.RemoveTail();

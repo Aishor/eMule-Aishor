@@ -1,6 +1,6 @@
 // parts of this file are based on work from pan One (http://home-3.tiscali.nl/~meost/pms/)
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -21,7 +21,6 @@
 #include "opcodes.h"
 #include "Packets.h"
 #include "Preferences.h"
-#include "CxImage/xImage.h"
 #include "Kademlia/Kademlia/Entry.h"
 #include "emule.h"
 #include "emuledlg.h"
@@ -295,8 +294,9 @@ CSearchFile::CSearchFile(CFileDataIO &in_data, bool bOptUTF8, uint32 nSearchID, 
 CSearchFile::~CSearchFile()
 {
 	free(m_pszDirectory);
-	for (int i = m_listImages.GetSize(); --i >= 0;)
-		delete m_listImages[i];
+	for (int i = m_listFrames.GetSize(); --i >= 0;)
+		if (m_listFrames[i])
+			::DeleteObject(m_listFrames[i]);
 }
 
 void CSearchFile::StoreToFile(CFileDataIO &rFile) const

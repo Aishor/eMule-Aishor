@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -282,13 +282,13 @@ void CSearchParamsWnd::OnSize(UINT nType, int cx, int cy)
 
 	if (m_ctlName.m_hWnd == NULL)
 		return;
+	CRect rcClient;
+	GetClientRect(&rcClient);
 	if (cx >= MIN_HORZ_WIDTH) {
-		CRect rcClient;
-		GetClientRect(&rcClient);
 		CalcInsideRect(rcClient, TRUE);
 
-		// resizing the name field instead the filter fields makes sense, because the filter input mostly
-		// stays small while a bigger name filed allows longer search queries without scrolling.
+		// resizing the name field instead of the filter fields makes sense, because the filter input mostly
+		// stays small while a bigger name field allows longer search queries without scrolling.
 		// however it doesn't look nice because of the asymmetry which is created by not resizing
 		// the method selectors but resizing them wouldn't make any sense at all, so we need to find a better
 		// build up at some point. For now stay with the old method which is not perfect but looks fair enough
@@ -351,9 +351,7 @@ void CSearchParamsWnd::OnSize(UINT nType, int cx, int cy)
 		int iCol2Width = rcOptsClnt.Width() - m_ctlOpts.GetColumnWidth(0) - 2/*(**1)*/;
 		if (m_ctlOpts.GetColumnWidth(1) != iCol2Width)
 			m_ctlOpts.SetColumnWidth(1, iCol2Width);
-	} else if (cx < MIN_HORZ_WIDTH) {
-		CRect rcClient;
-		GetClientRect(&rcClient);
+	} else { //cx < MIN_HORZ_WIDTH
 		CalcInsideRect(rcClient, FALSE);
 
 		int y = rcClient.top;
@@ -429,7 +427,7 @@ void CSearchParamsWnd::OnSize(UINT nType, int cx, int cy)
 
 void CSearchParamsWnd::OnUpdateCmdUI(CFrameWnd* /*pTarget*/, BOOL /*bDisableIfNoHndler*/)
 {
-	// Disable MFC's command routing by not passing the process flow to base class
+	// Disable MFC's command routing by not passing the process flow to the base class
 }
 
 void CSearchParamsWnd::UpdateControls()
@@ -528,7 +526,7 @@ public:
 
 	bool operator<(const SFileTypeCbEntry &e) const
 	{
-		return (m_strLabel.Compare(e.m_strLabel) < 0);
+		return m_strLabel.Compare(e.m_strLabel) < 0;
 	}
 
 	CString m_strLabel;
@@ -724,11 +722,6 @@ void CSearchParamsWnd::OnDDClicked()
 BOOL CSearchParamsWnd::SaveSearchStrings()
 {
 	return m_pacSearchString && m_pacSearchString->SaveList(thePrefs.GetMuleDirectory(EMULE_CONFIGDIR) + SEARCH_STRINGS_PROFILE);
-}
-
-void CSearchParamsWnd::SaveSettings()
-{
-	SaveSearchStrings();
 }
 
 void CSearchParamsWnd::OnEnChangeName()

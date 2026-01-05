@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,6 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "emuledlg.h"
 #include "SharedFilesCtrl.h"
@@ -28,8 +29,6 @@
 #include "ListViewWalkerPropertySheet.h"
 #include "UserMsgs.h"
 #include "ResizableLib/ResizableSheet.h"
-#include "KnownFile.h"
-#include "MapKey.h"
 #include "SharedFileList.h"
 #include "MemDC.h"
 #include "PartFile.h"
@@ -53,7 +52,6 @@
 #include "MediaInfo.h"
 #include "Log.h"
 #include "KnownFileList.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -544,10 +542,10 @@ void CSharedFilesCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 							iNoStyleState = (file == m_pHighlightedItem) ? DFCS_PUSHED : 0;
 						}
 
-						HTHEME hTheme = (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) ? g_xpStyle.OpenThemeData(NULL, L"BUTTON") : NULL;
-						RECT rcCheckBox = { rcItem.left, rcIconTop, rcItem.left + 16, rcIconTop + 16 };
+						HTHEME hTheme = (::IsThemeActive() && ::IsAppThemed()) ? ::OpenThemeData(NULL, L"BUTTON") : NULL;
+						RECT rcCheckBox{rcItem.left, rcIconTop, rcItem.left + 16, rcIconTop + 16};
 						if (hTheme != NULL)
-							g_xpStyle.DrawThemeBackground(hTheme, dc.GetSafeHdc(), BP_CHECKBOX, iState, &rcCheckBox, NULL);
+							::DrawThemeBackground(hTheme, dc.GetSafeHdc(), BP_CHECKBOX, iState, &rcCheckBox, NULL);
 						else
 							dc.DrawFrameControl(&rcCheckBox, DFC_BUTTON, DFCS_BUTTONCHECK | iNoStyleState | DFCS_FLAT);
 						rcItem.left += 16 + sm_iLabelOffset;
@@ -559,11 +557,11 @@ void CSharedFilesCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					}
 
 					if (!file->GetFileComment().IsEmpty() || file->GetFileRating()) //not rated
-						m_ImageList.Draw(dc, 0, POINT{ rcItem.left, rcIconTop }, ILD_NORMAL | INDEXTOOVERLAYMASK(1));
+						m_ImageList.Draw(dc, 0, POINT{rcItem.left, rcIconTop}, ILD_NORMAL | INDEXTOOVERLAYMASK(1));
 
 					rcItem.left += iIconDrawWidth + sm_iLabelOffset;
 					if (thePrefs.ShowRatingIndicator() && (file->HasComment() || file->HasRating() || file->IsKadCommentSearchRunning())) {
-						m_ImageList.Draw(dc, 3 + file->UserRating(true), POINT{ rcItem.left, rcIconTop }, ILD_NORMAL);
+						m_ImageList.Draw(dc, 3 + file->UserRating(true), POINT{rcItem.left, rcIconTop}, ILD_NORMAL);
 						rcItem.left += 16 + sm_iLabelOffset;
 					}
 					rcItem.left -= sm_iSubItemInset;
@@ -571,7 +569,7 @@ void CSharedFilesCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
 				rcItem.right -= sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 				break;
 			case 8: //shared parts bar
 				if (pKnownFile != NULL && pKnownFile->GetPartCount()) {
@@ -585,7 +583,7 @@ void CSharedFilesCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			case 11: //shared ed2k/kad
 				if (pKnownFile != NULL) {
 					rcItem.left += sm_iIconOffset;
-					POINT point = { rcItem.left, rcItem.top + iIconY };
+					POINT point{rcItem.left, rcItem.top + iIconY};
 					if (pKnownFile->GetPublishedED2K())
 						m_ImageList.Draw(dc, 1, point, ILD_NORMAL);
 					if (IsSharedInKad(pKnownFile)) {
@@ -786,7 +784,7 @@ void CSharedFilesCtrl::OnContextMenu(CWnd*, CPoint point)
 #endif
 	m_SharedFilesMenu.EnableMenuItem(Irc_SetSendLink, (!bContainsOnlyShareableFile && iSelectedItems == 1 && theApp.emuledlg->ircwnd->IsConnected()) ? MF_ENABLED : MF_GRAYED);
 
-	CTitleMenu WebMenu;
+	CTitledMenu WebMenu;
 	WebMenu.CreateMenu();
 	WebMenu.AddMenuTitle(NULL, true);
 	int iWebMenuEntries = theWebServices.GetFileMenuEntries(&WebMenu);
@@ -899,7 +897,7 @@ BOOL CSharedFilesCtrl::OnCommand(WPARAM wParam, LPARAM)
 					}
 
 					CString newpath;
-					PathCombine(newpath.GetBuffer(MAX_PATH), pKnownFile->GetPath(), newname);
+					::PathCombine(newpath.GetBuffer(MAX_PATH), pKnownFile->GetPath(), newname);
 					newpath.ReleaseBuffer();
 					if (_trename(pKnownFile->GetFilePath(), newpath) != 0) {
 						CString strError;
@@ -1109,7 +1107,7 @@ void CSharedFilesCtrl::OnLvnColumnClick(LPNMHDR pNMHDR, LRESULT *pResult)
 	// Ornis 4-way-sorting
 	int adder = 0;
 	if (pNMLV->iSubItem >= 5 && pNMLV->iSubItem <= 7) { // 5=IDS_SF_REQUESTS, 6=IDS_SF_ACCEPTS, 7=IDS_SF_TRANSFERRED
-		ASSERT(pNMLV->iSubItem - 5 < _countof(m_aSortBySecondValue));
+		ASSERT(pNMLV->iSubItem - 5 < (int)_countof(m_aSortBySecondValue));
 		if (GetSortItem() == pNMLV->iSubItem && !sortAscending) // check for 'descending' because the initial sort order is also 'descending'
 			m_aSortBySecondValue[pNMLV->iSubItem - 5] = !m_aSortBySecondValue[pNMLV->iSubItem - 5];
 		if (m_aSortBySecondValue[pNMLV->iSubItem - 5])
@@ -1565,7 +1563,7 @@ BOOL CSharedFilesCtrl::OnNMClick(LPNMHDR pNMHDR, LRESULT *pResult)
 			// determine if the checkbox was clicked
 			CRect rcItem;
 			if (GetItemRect(iItem, rcItem, LVIR_BOUNDS)) {
-				CPoint pointHit = pNMListView->ptAction;
+				CPoint pointHit(pNMListView->ptAction);
 				ASSERT(rcItem.PtInRect(pointHit));
 				rcItem.left += sm_iIconOffset;
 				rcItem.right = rcItem.left + 16;
@@ -1659,9 +1657,9 @@ void CSharedFilesCtrl::OnMouseMove(UINT nFlags, CPoint point)
 
 CSharedFilesCtrl::CShareDropTarget::CShareDropTarget()
 {
-	m_piDropHelper = NULL;
+	//m_piDropHelper = NULL; would be NULLed on error
 	m_pParent = NULL;
-	m_bUseDnDHelper = SUCCEEDED(CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC_SERVER, IID_IDropTargetHelper, (void**)&m_piDropHelper));
+	m_bUseDnDHelper = SUCCEEDED(CoCreateInstance(CLSID_DragDropHelper, NULL, CLSCTX_INPROC_SERVER, IID_IDropTargetHelper, (LPVOID*)&m_piDropHelper));
 }
 
 CSharedFilesCtrl::CShareDropTarget::~CShareDropTarget()
@@ -1701,9 +1699,9 @@ BOOL CSharedFilesCtrl::CShareDropTarget::OnDrop(CWnd*, COleDataObject *pDataObje
 			bool bFromSingleDirectory = true;	// all files are in the same directory,
 			CString strSingleDirectory;			// which would be this one
 
-			UINT nFileCount = DragQueryFile(hDrop, UINT_MAX, NULL, 0);
+			UINT nFileCount = ::DragQueryFile(hDrop, UINT_MAX, NULL, 0);
 			for (UINT nFile = 0; nFile < nFileCount; ++nFile) {
-				if (DragQueryFile(hDrop, nFile, strFilePath.GetBuffer(MAX_PATH), MAX_PATH) > 0) {
+				if (::DragQueryFile(hDrop, nFile, strFilePath.GetBuffer(MAX_PATH), MAX_PATH) > 0) {
 					strFilePath.ReleaseBuffer();
 					if (ff.FindFile(strFilePath)) {
 						ff.FindNextFile();

@@ -107,6 +107,8 @@ void CMuleSystrayDlg::OnMouseMove(UINT nFlags, CPoint point)
 	CDialog::OnMouseMove(nFlags, point);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4701) //local variable 'lfStaticFont'
 BOOL CMuleSystrayDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
@@ -310,6 +312,7 @@ BOOL CMuleSystrayDlg::OnInitDialog()
 	return TRUE;  // return TRUE unless you set the focus to the control
 				  // EXCEPTION: OCX Property Pages should return FALSE
 }
+#pragma warning(pop)
 
 void CMuleSystrayDlg::OnChangeDowntxt()
 {

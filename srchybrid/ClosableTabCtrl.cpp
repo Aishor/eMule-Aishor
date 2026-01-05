@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,12 +15,12 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "ClosableTabCtrl.h"
 #include "OtherFunctions.h"
 #include "MenuCmds.h"
 #include "UserMsgs.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -245,7 +245,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		// TCS_OWNERDRAWFIXED style.
 		bVistaHotTracked = pDC->GetTextColor() == ::GetSysColor(COLOR_HOTLIGHT);
 
-		hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"TAB");
+		hTheme = ::OpenThemeData(m_hWnd, L"TAB");
 		if (hTheme) {
 			if (bSelected) {
 				// get the real tab item rect
@@ -273,16 +273,16 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 				else
 					iPartId = (nTabIndex == iCnt - 1) ? TABP_TABITEMRIGHTEDGE : TABP_TABITEM;
 			}
-			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
-				g_xpStyle.DrawThemeParentBackground(m_hWnd, *pDC, &rcFullItem);
-			g_xpStyle.DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, &rcBk, NULL);
+			if (::IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
+				::DrawThemeParentBackground(m_hWnd, *pDC, &rcFullItem);
+			::DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, &rcBk, NULL);
 		}
 	}
 
 	// Following background clearing is needed for:
 	//	WinXP/Vista (when used without an application theme)
 	//	Vista (when used with an application theme but without a theme for the tab control)
-	if (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed() || (!hTheme && bVistaThemeActive))
+	if (!::IsThemeActive() || !::IsAppThemed() || (!hTheme && bVistaThemeActive))
 		pDC->FillSolidRect(rcItem, ::GetSysColor(COLOR_BTNFACE));
 
 	int iOldBkMode = pDC->SetBkMode(TRANSPARENT);
@@ -293,7 +293,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		IMAGEINFO ii;
 		piml->GetImageInfo(0, &ii);
 		rcItem.left += bSelected ? 8 : 4;
-		piml->Draw(pDC, tci.iImage, POINT{ rcItem.left, rcItem.top + 2 }, ILD_TRANSPARENT);
+		piml->Draw(pDC, tci.iImage, POINT{rcItem.left, rcItem.top + 2}, ILD_TRANSPARENT);
 			rcItem.left += (ii.rcImage.right - ii.rcImage.left + 1);
 		if (!bSelected)
 			rcItem.left += 4;
@@ -308,15 +308,15 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		CRect rcCloseButton;
 		GetCloseButtonRect(nTabIndex, rcItem, rcCloseButton, bSelected, bVistaThemeActive);
 
-		HTHEME hThemeNC = bVistaThemeActive ? g_xpStyle.OpenThemeData(m_hWnd, _T("WINDOW")) : NULL;
+		HTHEME hThemeNC = bVistaThemeActive ? ::OpenThemeData(m_hWnd, _T("WINDOW")) : NULL;
 		if (hThemeNC) {
 			// Possible "Close" parts: WP_CLOSEBUTTON, WP_SMALLCLOSEBUTTON, WP_MDICLOSEBUTTON
 			int iPartId = WP_SMALLCLOSEBUTTON;
 			int iStateId = (bSelected || bVistaHotTracked) ? CBS_NORMAL : CBS_DISABLED;
-			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
-				g_xpStyle.DrawThemeParentBackground(m_hWnd, *pDC, &rcCloseButton);
-			g_xpStyle.DrawThemeBackground(hThemeNC, *pDC, iPartId, iStateId, rcCloseButton, NULL);
-			g_xpStyle.CloseThemeData(hThemeNC);
+			if (::IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
+				::DrawThemeParentBackground(m_hWnd, *pDC, &rcCloseButton);
+			::DrawThemeBackground(hThemeNC, *pDC, iPartId, iStateId, rcCloseButton, NULL);
+			::CloseThemeData(hThemeNC);
 		} else
 			m_ImgLstCloseButton.Draw(pDC, static_cast<int>(!bSelected && !bVistaHotTracked), rcCloseButton.TopLeft(), ILD_TRANSPARENT);
 
@@ -340,7 +340,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	//
 	// Vista: "DrawThemeText" can not be used in case we need a certain foreground color. Thus we always us
 	// "DrawText" to always get the same font and metrics (just for safety).
-	pDC->DrawText(szLabel, rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
+	pDC->DrawText(szLabel, -1, rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
 
 	if (crOldColor != CLR_NONE)
 		pDC->SetTextColor(crOldColor);
@@ -355,7 +355,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 			rcClip.top += 2;
 
 		pDC->ExcludeClipRect(&rcClip);
-		g_xpStyle.CloseThemeData(hTheme);
+		::CloseThemeData(hTheme);
 	}
 }
 

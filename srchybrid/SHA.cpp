@@ -60,11 +60,6 @@ void CSHA::Reset()
 	m_sha.Restart();
 }
 
-void CSHA::GetHash(SHA1 *pHash) const
-{
-	*pHash = m_hash;
-}
-
 void CSHA::Add(LPCVOID pData, DWORD nLength)
 {
 	m_sha.Update((byte*)pData, nLength);
@@ -218,7 +213,7 @@ bool CSHA::HashFromURN(LPCTSTR pszHash, SHA1 *pHashIn)
 	return false;
 }
 
-bool CSHA::IsNull(SHA1 *pHash)
+bool CSHA::IsNull(const SHA1 *pHash)
 {
 	return *pHash == SHA1();
 }

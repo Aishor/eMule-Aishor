@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,10 +15,8 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <math.h>
 #include "emule.h"
 #include "OScopeCtrl.h"
-#include "emuledlg.h"
 #include "Preferences.h"
 #include "OtherFunctions.h"
 #include "UserMsgs.h"
@@ -48,7 +46,7 @@ BEGIN_MESSAGE_MAP(COScopeCtrl, CWnd)
 END_MESSAGE_MAP()
 
 COScopeCtrl::COScopeCtrl(int NTrends)
-	: ready()
+	: m_ready()
 	, drawBars()
 	, autofitYscale()
 	, m_nClientHeight()
@@ -187,7 +185,7 @@ BOOL COScopeCtrl::CreateWnd(DWORD dwStyle, const CRect &rect, CWnd *pParentWnd, 
 	if (result != 0)
 		InvalidateCtrl();
 	InitWindowStyles(this);
-	ready = true;
+	m_ready = true;
 	return result;
 }
 
@@ -315,7 +313,7 @@ void COScopeCtrl::InvalidateCtrl(bool deleteGraph)
 		m_dcGrid.CreateCompatibleDC(&dc);
 		m_bitmapGrid.DeleteObject();
 		m_bitmapGrid.CreateCompatibleBitmap(&dc, m_nClientWidth, m_nClientHeight);
-		m_bitmapOldGrid.Attach(SelectObject(m_dcGrid, m_bitmapGrid));
+		m_bitmapOldGrid.Attach(::SelectObject(m_dcGrid, m_bitmapGrid));
 	}
 
 	COLORREF crLabelBk;
@@ -344,7 +342,7 @@ void COScopeCtrl::InvalidateCtrl(bool deleteGraph)
 	if (bStraightGraphs) {
 		m_dcGrid.FillSolidRect(m_rectPlot.left, m_rectPlot.top, m_rectPlot.right - m_rectPlot.left + 1, m_rectPlot.bottom - m_rectPlot.top + 1, m_crBackColor);
 
-		RECT rcPlot = { m_rectPlot.left - 1, m_rectPlot.top - 1, m_rectPlot.right + 3, m_rectPlot.bottom + 3 };
+		RECT rcPlot{m_rectPlot.left - 1, m_rectPlot.top - 1, m_rectPlot.right + 3, m_rectPlot.bottom + 3};
 		m_dcGrid.DrawEdge(&rcPlot, EDGE_SUNKEN, BF_RECT);
 	} else {
 		CPen *oldPen = m_dcGrid.SelectObject(&solidPen);
@@ -394,8 +392,8 @@ void COScopeCtrl::InvalidateCtrl(bool deleteGraph)
 	}
 
 	CFont yUnitFont;
-	yUnitFont.CreateFont(FontPointSizeToLogUnits(8 * 10), 0, 900, 900, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET,
-	OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, theApp.GetDefaultFontFaceName());
+	yUnitFont.CreateFont(FontPointSizeToLogUnits(8 * 10), 0, 900, 900, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET
+				, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, theApp.GetDefaultFontFaceName());
 
 	// grab the horizontal font
 	CFont *oldFont = m_dcGrid.SelectObject(&sm_fontAxis);
@@ -496,7 +494,7 @@ void COScopeCtrl::InvalidateCtrl(bool deleteGraph)
 		m_dcPlot.CreateCompatibleDC(&dc);
 		m_bitmapPlot.DeleteObject();
 		m_bitmapPlot.CreateCompatibleBitmap(&dc, m_nClientWidth, m_nClientHeight);
-		m_bitmapOldPlot.Attach(SelectObject(m_dcPlot, m_bitmapPlot));
+		m_bitmapOldPlot.Attach(::SelectObject(m_dcPlot, m_bitmapPlot));
 	}
 
 	// make sure the plot bitmap is cleared
@@ -512,7 +510,7 @@ void COScopeCtrl::InvalidateCtrl(bool deleteGraph)
 		m_bDoUpdate = false;
 		if (m_nRedrawTimer)
 			KillTimer(m_nRedrawTimer);
-		VERIFY((m_nRedrawTimer = SetTimer(IDT_REDRAW, 200, NULL)) != 0); // reduce flickering
+		VERIFY((m_nRedrawTimer = SetTimer(IDT_REDRAW, SEC2MS(1) / 5, NULL)) != 0); // reduce flickering
 	}
 
 	InvalidateRect(m_rectClient);
@@ -539,9 +537,9 @@ void COScopeCtrl::AppendPoints(double dNewPoint[], bool bInvalidate, bool bAdd2L
 
 	if (m_nTrendPoints > 0) {
 		if (CustShift.m_nPointsToDo == 0) {
+			CustShift.m_nRmndr = 0;
 			CustShift.m_nPointsToDo = m_nTrendPoints - 1;
 			CustShift.m_nWidthToDo = m_nPlotWidth;
-			CustShift.m_nRmndr = 0;
 		}
 
 		// a little bit tricky setting m_nShiftPixels in "fixed number of points through plot width" mode
@@ -554,10 +552,8 @@ void COScopeCtrl::AppendPoints(double dNewPoint[], bool bInvalidate, bool bAdd2L
 	}
 	DrawPoint();
 
-	if (bInvalidate && ready && m_bDoUpdate)
+	if (bInvalidate && m_ready) // && m_bDoUpdate)
 		Invalidate();
-
-	return;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -612,9 +608,8 @@ void COScopeCtrl::AppendEmptyPoints(double dNewPoint[], bool bInvalidate, bool b
 		// draw the next line segment
 		for (int iTrend = 0; iTrend < m_NTrends; ++iTrend) {
 			PlotData_t &plot = m_PlotData[iTrend];
-			plot.nPrevY = (long)(m_rectPlot.bottom
-				- plot.dVerticalFactor *
-					(plot.dCurrentPosition - plot.dLowerLimit));
+			plot.nPrevY = (int)(m_rectPlot.bottom
+				- plot.dVerticalFactor * (plot.dCurrentPosition - plot.dLowerLimit));
 
 			// store the current point for connection to the next point
 			plot.dPreviousPosition = plot.dCurrentPosition;
@@ -685,18 +680,16 @@ void COScopeCtrl::DrawPoint()
 			if (plot.nPrevY > 0)
 				prevY = plot.nPrevY;
 			else {
-				prevY = m_rectPlot.bottom
-					- (long)((plot.dPreviousPosition - plot.dLowerLimit)
-						* plot.dVerticalFactor);
+				prevY = (int)(m_rectPlot.bottom
+					- plot.dVerticalFactor * (plot.dPreviousPosition - plot.dLowerLimit));
 			}
 			if (!plot.BarsPlot)
 				m_dcPlot.MoveTo(prevX, prevY);
 
 			// draw to the current point
 			int currX = m_rectPlot.right;
-			int currY = m_rectPlot.bottom
-				- (long)((plot.dCurrentPosition - plot.dLowerLimit)
-					* plot.dVerticalFactor);
+			int currY = (int)(m_rectPlot.bottom
+				- plot.dVerticalFactor * (plot.dCurrentPosition - plot.dLowerLimit));
 			plot.nPrevY = currY;
 			if (plot.BarsPlot)
 				m_dcPlot.MoveTo(currX, m_rectPlot.bottom);
@@ -756,7 +749,7 @@ void COScopeCtrl::OnSize(UINT nType, int cx, int cy)
 		m_dcGrid.SelectObject(m_bitmapOldGrid.Detach());
 		m_bitmapGrid.DeleteObject();
 		m_bitmapGrid.CreateCompatibleBitmap(&dc, m_nClientWidth, m_nClientHeight);
-		m_bitmapOldGrid.Attach(SelectObject(m_dcGrid, m_bitmapGrid));
+		m_bitmapOldGrid.Attach(::SelectObject(m_dcGrid, m_bitmapGrid));
 	}
 
 	// destroy and recreate the plot bitmap
@@ -764,7 +757,7 @@ void COScopeCtrl::OnSize(UINT nType, int cx, int cy)
 		m_dcPlot.SelectObject(m_bitmapOldPlot.Detach());
 		m_bitmapPlot.DeleteObject();
 		m_bitmapPlot.CreateCompatibleBitmap(&dc, m_nClientWidth, m_nClientHeight);
-		m_bitmapOldPlot.Attach(SelectObject(m_dcPlot, m_bitmapPlot));
+		m_bitmapOldPlot.Attach(::SelectObject(m_dcPlot, m_bitmapPlot));
 	}
 
 	InvalidateCtrl();

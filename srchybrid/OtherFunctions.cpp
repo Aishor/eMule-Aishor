@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,11 +15,13 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <sys/stat.h>
-#include <share.h>
-#include <io.h>
+#include <atlimage.h>
 #include <fcntl.h>
+#include <io.h>
 #include <regex>
+#include <share.h>
+#include <ShlObj_core.h>
+#include <sys/stat.h>
 #include "emule.h"
 #include "UpDownClient.h"
 #include "DownloadQueue.h"
@@ -29,21 +31,16 @@
 #include "KnownFileList.h"
 #include "Opcodes.h"
 #include "WebServices.h"
-#include <shlobj.h>
 #include "emuledlg.h"
 #include "MenuCmds.h"
 #include "ZipFile.h"
 #include "RarFile.h"
-#include <atlbase.h>
-#include "StringConversion.h"
 #include "shahashset.h"
 #include "collection.h"
 #include "SafeFile.h"
 #include "Kademlia/Kademlia/kademlia.h"
 #include "kademlia/kademlia/UDPFirewallTester.h"
 #include "Log.h"
-#include "CxImage/xImage.h"
-#include "Netioapi.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -354,53 +351,19 @@ bool ShellDeleteFile(LPCTSTR pszFilePath)
 		fp.pFrom = todel;
 		fp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NORECURSION;
 		__try {
-			return (SHFileOperation(&fp) == 0);
+			return !SHFileOperation(&fp);
 		} __except (EXCEPTION_EXECUTE_HANDLER) {
 		}
 	}
-	return (::DeleteFile(pszFilePath) != FALSE);
+	return ::DeleteFile(pszFilePath) != 0;
 }
 
 CString ShellGetFolderPath(int iCSIDL)
 {
-	CString strFolderPath;
-
-	// Try the Unicode version from "shell32" *and* examine the function result - just the presence of that
-	// function does not mean that it returns the requested path.
-	//
-	// Win98: 'SHGetFolderPathW' is available in 'shell32.dll', but it does not support all of the CSIDL values.
-	HRESULT(WINAPI *pfnSHGetFolderPathW)(HWND, int, HANDLE, DWORD, LPWSTR);
-	(FARPROC&)pfnSHGetFolderPathW = GetProcAddress(GetModuleHandle(_T("shell32")), "SHGetFolderPathW");
-	if (pfnSHGetFolderPathW) {
-		WCHAR wszPath[MAX_PATH];
-		if ((*pfnSHGetFolderPathW)(NULL, iCSIDL, NULL, SHGFP_TYPE_CURRENT, wszPath) == S_OK)
-			strFolderPath = wszPath;
-	}
-
-	if (strFolderPath.IsEmpty()) {
-		HMODULE hLibShFolder = LoadLibrary(_T("shfolder.dll"));
-		if (hLibShFolder) {
-			(FARPROC&)pfnSHGetFolderPathW = GetProcAddress(hLibShFolder, "SHGetFolderPathW");
-			if (pfnSHGetFolderPathW) {
-				WCHAR wszPath[MAX_PATH];
-				if ((*pfnSHGetFolderPathW)(NULL, iCSIDL, NULL, SHGFP_TYPE_CURRENT, wszPath) == S_OK)
-					strFolderPath = wszPath;
-			}
-
-			if (strFolderPath.IsEmpty()) {
-				HRESULT(WINAPI *pfnSHGetFolderPathA)(HWND, int, HANDLE, DWORD, LPSTR);
-				(FARPROC&)pfnSHGetFolderPathA = GetProcAddress(hLibShFolder, "SHGetFolderPathA");
-				if (pfnSHGetFolderPathA) {
-					CHAR aszPath[MAX_PATH];
-					if ((*pfnSHGetFolderPathA)(NULL, iCSIDL, NULL, SHGFP_TYPE_CURRENT, aszPath) == S_OK)
-						strFolderPath = CString(aszPath);
-				}
-			}
-			FreeLibrary(hLibShFolder);
-		}
-	}
-
-	return strFolderPath;
+	TCHAR szPath[MAX_PATH];
+	if (SUCCEEDED(::SHGetFolderPath(NULL, iCSIDL, NULL, SHGFP_TYPE_CURRENT, szPath)))
+		return CString(szPath);
+	return CString();
 }
 
 // Print the hash in a format which is similar to CertMgr's.
@@ -451,12 +414,11 @@ CString URLDecode(const CString &inStr, bool bKeepNewLine)
 CString URLEncode(const CString &sInT)
 {
 	CStringA sIn(sInT);
-	LPCSTR pInBuf = sIn;
 
 	CString sOut;
 	LPTSTR pOutBuf = sOut.GetBuffer(sIn.GetLength() * 3);
 	// do encoding
-	while (*pInBuf) {
+	for (LPCSTR pInBuf = sIn; *pInBuf; ++pInBuf) {
 		if (_istalnum((BYTE)*pInBuf))
 			*pOutBuf++ = (BYTE)*pInBuf;
 		else {
@@ -464,7 +426,6 @@ CString URLEncode(const CString &sInT)
 			*pOutBuf++ = toHex((BYTE)*pInBuf >> 4);
 			*pOutBuf++ = toHex((BYTE)*pInBuf & 0xf);
 		}
-		++pInBuf;
 	}
 	*pOutBuf = _T('\0');
 	sOut.ReleaseBuffer();
@@ -474,7 +435,6 @@ CString URLEncode(const CString &sInT)
 CString EncodeURLQueryParam(const CString &sInT)
 {
 	CStringA sIn(sInT);
-	LPCSTR pInBuf = sIn;
 
 	// query		= *uric
 	// uric			= reserved | unreserved | escaped
@@ -487,7 +447,7 @@ CString EncodeURLQueryParam(const CString &sInT)
 	CString sOut;
 	LPTSTR pOutBuf = sOut.GetBuffer(sIn.GetLength() * 3);
 	// do encoding
-	while (*pInBuf) {
+	for (LPCSTR pInBuf = sIn; *pInBuf; ++pInBuf) {
 		if (_istalnum((BYTE)*pInBuf))
 			*pOutBuf++ = (BYTE)*pInBuf;
 		else if (_istspace((BYTE)*pInBuf))
@@ -497,7 +457,6 @@ CString EncodeURLQueryParam(const CString &sInT)
 			*pOutBuf++ = toHex((BYTE)*pInBuf >> 4);
 			*pOutBuf++ = toHex((BYTE)*pInBuf & 0xf);
 		}
-		++pInBuf;
 	}
 	*pOutBuf = _T('\0');
 	sOut.ReleaseBuffer();
@@ -775,7 +734,7 @@ bool IsRunningXPSP2OrHigher()
 	WORD wv = thePrefs.GetWindowsVersion();
 	if (wv == _WINVER_XP_)
 		return IsRunningXPSP2();
-	return (wv > _WINVER_XP_);
+	return wv > _WINVER_XP_;
 }
 
 uint64 GetFreeDiskSpaceX(LPCTSTR pDirectory)
@@ -939,8 +898,8 @@ uint32 DecodeBase32(LPCTSTR pszInput, CAICHHash &Hash)
 }
 
 CWebServices::CWebServices()
+	: m_tDefServicesFileLastModified()
 {
-	m_tDefServicesFileLastModified = 0;
 }
 
 CString CWebServices::GetDefaultServicesFile() const
@@ -1010,7 +969,7 @@ INT_PTR CWebServices::ReadAllServices()
 	return m_aServices.GetCount();
 }
 
-int CWebServices::GetAllMenuEntries(CTitleMenu *pMenu, DWORD dwFlags)
+int CWebServices::GetAllMenuEntries(CTitledMenu *pMenu, DWORD dwFlags)
 {
 	struct _stat64 st;
 	if (m_aServices.IsEmpty() || (statUTC(GetDefaultServicesFile(), st) == 0 && st.st_mtime > m_tDefServicesFileLastModified))
@@ -1099,10 +1058,10 @@ extern "C" int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM, LPARAM 
 bool SelectDir(HWND hWnd, LPTSTR pszPath, LPCTSTR pszTitle, LPCTSTR pszDlgTitle)
 {
 	ASSERT(pszPath != NULL);
-	bool bResult = false;
-	(void)CoInitialize(NULL);
+	(void)::CoInitialize(NULL);
 	LPMALLOC pShlMalloc;
-	if (SHGetMalloc(&pShlMalloc) == NOERROR) {
+	bool bResult = (SHGetMalloc(&pShlMalloc) == NOERROR);
+	if (bResult) {
 		BROWSEINFO BrsInfo = {};
 		BrsInfo.hwndOwner = hWnd;
 		BrsInfo.lpszTitle = (pszTitle != NULL) ? pszTitle : pszDlgTitle;
@@ -1125,7 +1084,7 @@ bool SelectDir(HWND hWnd, LPTSTR pszPath, LPCTSTR pszTitle, LPCTSTR pszDlgTitle)
 		pShlMalloc->Release();
 		::PathAddBackslash(pszPath);
 	}
-	CoUninitialize();
+	::CoUninitialize();
 	return bResult;
 }
 
@@ -1538,18 +1497,17 @@ struct SED2KFileType
 	{ _T(".emulecollection"), ED2KFT_EMULECOLLECTION }
 };
 
-int __cdecl CompareE2DKFileType(const void *p1, const void *p2) noexcept
+static int __cdecl CompareE2DKFileType(const void *p1, const void *p2) noexcept
 {
 	return _tcscmp(reinterpret_cast<const SED2KFileType*>(p1)->pszExt, reinterpret_cast<const SED2KFileType*>(p2)->pszExt);
 }
 
 EED2KFileType GetED2KFileTypeID(LPCTSTR pszFileName)
 {
-	LPCTSTR pszExt = _tcsrchr(pszFileName, _T('.'));
-	if (pszExt == NULL)
-		return ED2KFT_ANY;
+	LPCTSTR const pszExt = ::PathFindExtension(pszFileName);
+	if (!pszExt[0] || !pszExt[1])
+		return ED2KFT_ANY; //no extension
 	CString strExt(pszExt);
-
 	SED2KFileType ft;
 	ft.pszExt = strExt.MakeLower();
 	ft.iFileType = ED2KFT_ANY;
@@ -1578,7 +1536,7 @@ LPCTSTR GetED2KFileTypeSearchTerm(EED2KFileType iFileID)
 	case ED2KFT_EMULECOLLECTION:
 		return _T(ED2KFTSTR_EMULECOLLECTION);
 	}
-	return NULL;
+	return _T(ED2KFTSTR_ANY);
 }
 
 // Returns the ed2k file type integer ID which is to be used for publishing+searching
@@ -1670,7 +1628,7 @@ public:
 #ifdef _DEBUG
 		// check for duplicate entries
 		LPCTSTR pszLast = g_aED2KFileTypes[0].pszExt;
-		for (int i = 1; i < _countof(g_aED2KFileTypes); ++i) {
+		for (size_t i = 1; i < _countof(g_aED2KFileTypes); ++i) {
 			ASSERT(_tcscmp(pszLast, g_aED2KFileTypes[i].pszExt) != 0);
 			pszLast = g_aED2KFileTypes[i].pszExt;
 		}
@@ -1679,7 +1637,7 @@ public:
 };
 CED2KFileTypes theED2KFileTypes; // get the list sorted *before* any code is accessing it
 
-const BYTE* FindPattern(const BYTE *pucBuff, int iBuffSize, const BYTE *pucPattern, int iPatternSize)
+static const BYTE* FindPattern(const BYTE *pucBuff, int iBuffSize, const BYTE *pucPattern, int iPatternSize)
 {
 	for (int iSearchRange = iBuffSize - iPatternSize; iSearchRange >= 0; --iSearchRange) {
 		if (memcmp(pucBuff, pucPattern, iPatternSize) == 0)
@@ -1791,7 +1749,7 @@ int GetModuleErrorString(DWORD dwError, CString &rstrError, LPCTSTR pszModule)
 	LPCVOID lpSource;
 	if (pszModule) {
 		dwFlags = FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
-		lpSource = GetModuleHandle(pszModule);
+		lpSource = ::GetModuleHandle(pszModule);
 	} else {
 		dwFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
 		lpSource = NULL;
@@ -1975,7 +1933,7 @@ CString DbgGetHexDump(const uint8 *data, UINT size)
 	buffer.Format(_T("Size=%u, Data=["), size);
 	UINT i;
 	for (i = 0; i < size && i < 50; ++i)
-		buffer.AppendFormat(&(_T(" %02x")[static_cast<int>(!i)]), data[i]);
+		buffer.AppendFormat(&_T(" %02x")[static_cast<size_t>(!i)], data[i]);
 
 	buffer += (i < size) ? _T("]") : _T("..]");
 	return buffer;
@@ -2060,7 +2018,7 @@ bool IsGoodIP(uint32 nIP, bool forceCheck)
 
 	if (nIP == 0 || (uint8)nIP == 127 || (uint8)nIP >= 224) {
 #ifdef _DEBUG
-		return ((uint8)nIP == 127 && thePrefs.GetAllowLocalHostIP());
+		return ((uint8)nIP == 127) && thePrefs.GetAllowLocalHostIP();
 #else
 		return false;
 #endif
@@ -2111,7 +2069,7 @@ CString GetFormatedUInt(ULONG ulVal)
 	}
 	CString strVal;
 	const int iBuffSize = _countof(szVal) * 2;
-	int iResult = GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, szVal, &nf, strVal.GetBuffer(iBuffSize), iBuffSize);
+	int iResult = ::GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, szVal, &nf, strVal.GetBuffer(iBuffSize), iBuffSize);
 	strVal.ReleaseBuffer();
 	return iResult ? strVal : CString(szVal);
 }
@@ -2133,7 +2091,7 @@ CString GetFormatedUInt64(ULONGLONG ullVal)
 	}
 	const int iBuffSize = _countof(szVal) * 2;
 	CString strVal;
-	int iResult = GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, szVal, &nf, strVal.GetBuffer(iBuffSize), iBuffSize);
+	int iResult = ::GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, szVal, &nf, strVal.GetBuffer(iBuffSize), iBuffSize);
 	strVal.ReleaseBuffer();
 	return iResult ? strVal : CString(szVal);
 }
@@ -2218,7 +2176,7 @@ void DebugHexDump(CFile &file)
 	}
 }
 
-LPCTSTR DbgGetFileNameFromID(const uchar *hash)
+static LPCTSTR DbgGetFileNameFromID(const uchar *hash)
 {
 	CKnownFile *reqfile = theApp.sharedfiles->GetFileByID(hash);
 	if (reqfile != NULL)
@@ -2676,7 +2634,7 @@ void ipstrA(CHAR *pszAddress, int iMaxAddress, uint32 nIP)
 	snprintf(pszAddress, iMaxAddress, "%u.%u.%u.%u", pucIP[0], pucIP[1], pucIP[2], pucIP[3]);
 }
 
-bool IsDaylightSavingTimeActive(LONG &rlDaylightBias)
+static bool IsDaylightSavingTimeActive(LONG &rlDaylightBias)
 {
 	TIME_ZONE_INFORMATION tzi;
 	if (GetTimeZoneInformation(&tzi) != TIME_ZONE_ID_DAYLIGHT)
@@ -2690,12 +2648,12 @@ class CVolumeInfo
 public:
 	static bool IsNTFSVolume(LPCTSTR pszVolume)
 	{
-		return (GetVolumeInfo(pszVolume) == _T("NTFS"));
+		return GetVolumeInfo(pszVolume) == _T("NTFS");
 	}
 
 	static bool IsFATVolume(LPCTSTR pszVolume)
 	{
-		return (_tcsnicmp(GetVolumeInfo(pszVolume), _T("FAT"), 3) == 0);
+		return _tcsnicmp(GetVolumeInfo(pszVolume), _T("FAT"), 3) == 0;
 	}
 
 	static const CString& GetVolumeInfo(LPCTSTR pszVolume)
@@ -2746,12 +2704,12 @@ protected:
 static CVolumeInfo g_VolumeInfo;
 CMapStringToString CVolumeInfo::m_mapVolumeInfo;
 
-bool IsNTFSVolume(LPCTSTR pszVolume)
+static bool IsNTFSVolume(LPCTSTR pszVolume)
 {
 	return g_VolumeInfo.IsNTFSVolume(pszVolume);
 }
 
-bool IsFATVolume(LPCTSTR pszVolume)
+static bool IsFATVolume(LPCTSTR pszVolume)
 {
 	return g_VolumeInfo.IsFATVolume(pszVolume);
 }
@@ -2761,7 +2719,7 @@ void ClearVolumeInfoCache(int iDrive)
 	g_VolumeInfo.ClearCache(iDrive);
 }
 
-bool IsFileOnNTFSVolume(LPCTSTR pszFilePath)
+static bool IsFileOnNTFSVolume(LPCTSTR pszFilePath)
 {
 	CString strRootPath(pszFilePath);
 	BOOL bResult = ::PathStripToRoot(strRootPath.GetBuffer());
@@ -2808,7 +2766,7 @@ bool IsThumbsDb(const CString &sFilePath, const CString &sFileName)
 	return false;
 }
 
-bool IsAutoDaylightTimeSetActive()
+static bool IsAutoDaylightTimeSetActive()
 {
 	CRegKey key;
 	if (key.Open(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation"), KEY_READ) == ERROR_SUCCESS) {
@@ -2944,38 +2902,6 @@ uint32 GetRandomUInt32()
 #endif
 }
 
-HWND ReplaceRichEditCtrl(CWnd *pwndRE, CWnd *pwndParent, CFont *pFont)
-{
-	HWND hwndNewRE = NULL;
-
-	ASSERT(pwndRE);
-	if (pwndRE) {
-		TCHAR szClassName[MAX_PATH];
-		if (GetClassName(pwndRE->m_hWnd, szClassName, _countof(szClassName)) && _tcsicmp(szClassName, _T("RichEdit20W")) == 0)
-			return NULL;
-
-		CRect rcWnd;
-		pwndRE->GetWindowRect(rcWnd);
-
-		DWORD dwStyle = pwndRE->GetStyle();
-		dwStyle |= WS_VSCROLL | WS_HSCROLL;
-		DWORD dwExStyle = pwndRE->GetExStyle();
-
-		CString strText;
-		pwndRE->GetWindowText(strText);
-
-		LONG_PTR uCtrlID = ::GetWindowLongPtr(*pwndRE, GWLP_ID);
-
-		pwndRE->DestroyWindow();
-
-		pwndParent->ScreenToClient(&rcWnd);
-		hwndNewRE = ::CreateWindowEx(dwExStyle, RICHEDIT_CLASS, strText, dwStyle, rcWnd.left, rcWnd.top, rcWnd.Width(), rcWnd.Height(), pwndParent->m_hWnd, (HMENU)uCtrlID, NULL, NULL);
-		if (hwndNewRE && pFont && pFont->m_hObject)
-			::SendMessage(hwndNewRE, WM_SETFONT, (WPARAM)pFont->m_hObject, 0);
-	}
-	return hwndNewRE;
-}
-
 void DisableAutoSelect(CRichEditCtrl &re)
 {
 	re.SetSel(0, 0);
@@ -2992,10 +2918,9 @@ void InstallSkin(LPCTSTR pszSkinPackage)
 
 	static TCHAR const _szSkinSuffix[] = _T(".") EMULSKIN_BASEEXT _T(".ini");
 	UINT uid = 0;
-	CString szExt(::PathFindExtension(pszSkinPackage));
-	szExt.MakeLower();
-
-	if (szExt == _T(".zip")) {
+	LPCTSTR pszExt = ::PathFindExtension(pszSkinPackage);
+	pszExt += static_cast<int>(*pszExt != _T('\0'));
+	if (_tcsicmp(pszExt, _T("zip")) == 0) {
 		CZIPFile zip;
 		if (zip.Open(pszSkinPackage)) {
 			// Search the "*.eMuleSkin.ini" file.
@@ -3052,7 +2977,7 @@ void InstallSkin(LPCTSTR pszSkinPackage)
 			zip.Close();
 		} else
 			uid = IDS_INSTALL_SKIN_PKG_ERROR;
-	} else if (szExt == _T(".rar")) {
+	} else if (_tcsicmp(pszExt, _T("rar")) == 0) {
 		CRARFile rar;
 		if (rar.Open(pszSkinPackage)) {
 			bool bError = false;
@@ -3268,7 +3193,7 @@ int FontPointSizeToLogUnits(int nPointSize)
 #endif
 		pt.x = 0;
 		::DPtoLP(hDC, &pt, 1);
-		POINT ptOrg = {0, 0};
+		POINT ptOrg{};
 		::DPtoLP(hDC, &ptOrg, 1);
 		nPointSize = -abs(pt.y - ptOrg.y);
 		::ReleaseDC(HWND_DESKTOP, hDC);
@@ -3330,7 +3255,7 @@ bool IsUnicodeFile(LPCTSTR pszFilePath)
 	return bResult;
 }
 
-bool IsRegExpValid(const CString & regexpr)
+bool IsRegExpValid(const CString &regexpr)
 {
 	try {
 		std::basic_regex<TCHAR> reFN(regexpr);
@@ -3359,16 +3284,16 @@ ULONGLONG GetModuleVersion(LPCTSTR pszFilePath)
 {
 	ULONGLONG ullVersion = 0;
 	DWORD dwUnused;
-	DWORD dwVerInfSize = GetFileVersionInfoSize(const_cast<LPTSTR>(pszFilePath), &dwUnused);
+	DWORD dwVerInfSize = ::GetFileVersionInfoSize(const_cast<LPTSTR>(pszFilePath), &dwUnused);
 	if (dwVerInfSize != 0) {
 		LPBYTE pucVerInf = (LPBYTE)malloc(dwVerInfSize);
 		if (pucVerInf) {
-			if (GetFileVersionInfo(const_cast<LPTSTR>(pszFilePath), 0, dwVerInfSize, pucVerInf)) {
+			if (::GetFileVersionInfo(const_cast<LPTSTR>(pszFilePath), 0, dwVerInfSize, pucVerInf)) {
 				VS_FIXEDFILEINFO *pFileInf = NULL;
 				UINT uLen = 0;
-				if (VerQueryValue(pucVerInf, _T("\\"), (LPVOID*)&pFileInf, &uLen) && pFileInf && uLen) {
-					ullVersion = MAKEDLLVERULL(HIWORD(pFileInf->dwFileVersionMS), LOWORD(pFileInf->dwFileVersionMS),
-						HIWORD(pFileInf->dwFileVersionLS), LOWORD(pFileInf->dwFileVersionLS));
+				if (::VerQueryValue(pucVerInf, _T("\\"), (LPVOID*)&pFileInf, &uLen) && pFileInf && uLen) {
+					ullVersion = MAKEDLLVERULL(HIWORD(pFileInf->dwFileVersionMS), LOWORD(pFileInf->dwFileVersionMS)
+											, HIWORD(pFileInf->dwFileVersionLS), LOWORD(pFileInf->dwFileVersionLS));
 				}
 			}
 			free(pucVerInf);
@@ -3722,9 +3647,9 @@ EFileType GetFileTypeEx(CShareableFile *kfile, bool checkextention, bool checkfi
 	if (!checkextention)
 		return res;
 
-	LPCTSTR pDot = ::PathFindExtension(kfile->GetFileName());
-	CString extLC(pDot + static_cast<int>(*pDot != _T('\0'))); //skip the dot
-	extLC.MakeLower();
+	LPCTSTR const pDot = ::PathFindExtension(kfile->GetFileName());
+	CString extLC(&pDot[static_cast<int>(*pDot != _T('\0'))]); //skip the dot
+	extLC.MakeUpper();
 
 	for (const SFileExts *ext = s_fileexts; ext->ftype != FILETYPE_UNKNOWN; ++ext) {
 		const CString &testext(ext->extlist);
@@ -3755,10 +3680,10 @@ bool ExtensionIs(LPCTSTR pszFilePath, LPCTSTR pszExt)
 // 1 - type matches acceptable extension
 // 0 - extension not found
 //-1 - extension was found, but types did not match
-int IsExtensionTypeOf(EFileType ftype, const CString &ext)
+int IsExtensionTypeOf(EFileType ftype, LPCTSTR const pszExt)
 {
 	CString fext;
-	fext.Format(_T("|%s|"), (LPCTSTR)ext);
+	fext.Format(_T("|%s|"), pszExt);
 	for (const SFileExts *pext = s_fileexts; pext->ftype != FILETYPE_UNKNOWN; ++pext) {
 		const CString &testext(pext->extlist);
 		if (testext.Find(fext) >= 0)
@@ -3870,22 +3795,169 @@ uint8 GetMyConnectOptions(bool bEncryption, bool bCallback)
 	return byCryptOptions;
 }
 
-bool AddIconGrayscaledToImageList(CImageList &rList, HICON hIcon)
+//Colour distance sRGB redmean
+static unsigned ColourDistance(BGR e1, BGR e2)
 {
-	// Use to create grey-scaled alpha using icons on WinXP and lower
-	// Only works with edited CxImage lib, not 6.0 standard
-	bool bResult = false;
-	ICONINFO iinfo;
-	if (::GetIconInfo(hIcon, &iinfo)) {
-		CxImage cxGray;
-		if (cxGray.CreateFromHBITMAP(iinfo.hbmColor)) {
-			cxGray.GrayScale();
-			HBITMAP hGrayBmp = cxGray.MakeBitmap(NULL, true);
-			bResult = rList.Add(CBitmap::FromHandle(hGrayBmp), CBitmap::FromHandle(iinfo.hbmMask)) != -1;
-			::DeleteObject(hGrayBmp);
+	int rmean = ((int)e1.r + (int)e2.r) / 2;
+	int r = (int)e1.r - (int)e2.r;
+	int g = (int)e1.g - (int)e2.g;
+	int b = (int)e1.b - (int)e2.b;
+	return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8);
+}
+
+int bestclr(const RGBQUAD* const palette, const BGR c)
+{
+	unsigned dist = UINT_MAX;
+	int best = -1;
+	for (int i = 256; --i >= 0;) {
+		unsigned d = ColourDistance(*(BGR*)&palette[i], c);
+		if (!d)
+			return i;
+		if (d < dist) {
+			dist = d;
+			best = i;
 		}
-		::DeleteObject(iinfo.hbmColor);
-		::DeleteObject(iinfo.hbmMask);
 	}
-	return bResult;
+	return best;
+}
+
+static HBITMAP GreyBitmap(const HBITMAP inbmp)
+{
+	BITMAP bm;
+	if (!inbmp || ::GetObject(inbmp, sizeof bm, &bm) != sizeof bm)
+		return 0;
+	ASSERT(bm.bmBitsPixel != 16); //not implemented
+
+#define BGR2GREY(b,g,r) (((b)*117+(g)*601+(r)*306)>>10)
+
+	HDC hdc = ::CreateCompatibleDC(NULL);
+	HBITMAP hbmPrev = (HBITMAP)::SelectObject(hdc, inbmp);
+	struct {
+		BITMAPINFOHEADER bmiHeader;
+		RGBQUAD bmiColors[256];
+	} bmiGrey = { {0} };
+	bmiGrey.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmiGrey.bmiHeader.biWidth = bm.bmWidth;
+	bmiGrey.bmiHeader.biHeight = bm.bmHeight;
+	bmiGrey.bmiHeader.biPlanes = bm.bmPlanes;
+	bmiGrey.bmiHeader.biBitCount = bm.bmBitsPixel;
+	bmiGrey.bmiHeader.biCompression = BI_RGB;
+	if (bm.bmBitsPixel <= 8) { //1, 2, 4, 8 bpp
+		DWORD i = ::GetDIBColorTable(hdc, 0, _countof(bmiGrey.bmiColors), bmiGrey.bmiColors);
+		bmiGrey.bmiHeader.biClrUsed = i;
+		while (i-- > 0) {
+			BYTE b = BGR2GREY(bmiGrey.bmiColors[i].rgbBlue, bmiGrey.bmiColors[i].rgbGreen, bmiGrey.bmiColors[i].rgbRed);
+			bmiGrey.bmiColors[i] = RGBQUAD{b, b, b, bmiGrey.bmiColors[i].rgbReserved};
+		}
+	}
+
+	BYTE *pBits;
+	HBITMAP outbmp = ::CreateDIBSection(NULL, (BITMAPINFO*)&bmiGrey, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
+	if (outbmp) {
+		HDC hdcMem = ::CreateCompatibleDC(NULL);
+		HBITMAP hBitmapOld = (HBITMAP)::SelectObject(hdcMem, outbmp);
+		::BitBlt(hdcMem, 0, 0, bm.bmWidth, bm.bmHeight, hdc, 0, 0, SRCCOPY);
+		::SelectObject(hdcMem, hBitmapOld);
+		::DeleteDC(hdcMem);
+		if (bm.bmBitsPixel >= 24) {
+			int step = bm.bmBitsPixel / 8;
+			for (int i = bm.bmHeight; --i >= 0;) {
+				BYTE *d = pBits;
+				for (int j = bm.bmWidth; --j >= 0;) {
+					BYTE g = (BYTE)BGR2GREY(d[0], d[1], d[2]);
+					d[0] = d[1] = d[2] = g;
+					d += step;
+				}
+				pBits += bm.bmWidthBytes;
+			}
+		}
+	}
+
+	::SelectObject(hdc, hbmPrev);
+	::DeleteDC(hdc);
+	return outbmp;
+}
+
+// Create grey-scaled icon for WinXP and lower
+static HICON GreyIcon(const HICON hIcon)
+{
+	HICON hGreyIcon = 0;
+	if (hIcon) {
+		ICONINFO iinfo;
+		if (::GetIconInfo(hIcon, &iinfo)) {
+			HBITMAP hGreyBmp = GreyBitmap(iinfo.hbmColor);
+			::DeleteObject(iinfo.hbmColor);
+			if (hGreyBmp) {
+				iinfo.hbmColor = hGreyBmp;
+				hGreyIcon = ::CreateIconIndirect(&iinfo);
+				::DeleteObject(hGreyBmp);
+			}
+			::DeleteObject(iinfo.hbmMask);
+		}
+	}
+	return hGreyIcon;
+}
+
+int AddIconGreyedToImageList(CImageList &rList, const HICON hIcon)
+{
+	int nPos = -1;
+	HICON hGreyBmp = GreyIcon(hIcon);
+	if (hGreyBmp) {
+		nPos = rList.Add(hGreyBmp);
+		::DeleteObject(hGreyBmp);
+	}
+	return nPos;
+}
+
+byte* bmp2mem(HBITMAP hbmp, size_t &size, REFGUID imgfmt)
+{
+	if (hbmp) {
+		CComPtr<IStream> stream;
+		stream.Attach(::SHCreateMemStream(NULL, 0));
+		CImage bmp;
+		bmp.Attach(hbmp);
+		HRESULT h = bmp.Save(stream, imgfmt);
+		bmp.Detach();
+		if (SUCCEEDED(h)) {
+			ULARGE_INTEGER liSize;
+			if (SUCCEEDED(IStream_Size(stream, &liSize))) {
+				size = (size_t)liSize.QuadPart;
+				if (SUCCEEDED(IStream_Reset(stream))) {
+					byte *outbuf = new byte[size];
+					if (SUCCEEDED(IStream_Read(stream, outbuf, (ULONG)size)))
+						return outbuf;
+					delete[] outbuf;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+HBITMAP mem2bmp(const byte *inbuf, const size_t size)
+{
+	if (inbuf && size) {
+		CComPtr<IStream> stream;
+		stream.Attach(::SHCreateMemStream(inbuf, (UINT)size));
+		CImage img;
+		if (SUCCEEDED(img.Load(stream)))
+			return img.Detach();
+	}
+	return 0;
+}
+
+HICON ReplaceIconGreyedInImageList(CImageList &rList, int nPos)
+{
+	if (nPos >= 0 && nPos < rList.GetImageCount()) {
+		HICON hIcon = rList.ExtractIcon(nPos);
+		if (hIcon) {
+			HICON hGreyIcon = GreyIcon(hIcon);
+			if (hGreyIcon) {
+				VERIFY(rList.Replace(nPos, hGreyIcon) == nPos);
+				VERIFY(::DestroyIcon(hGreyIcon));
+			}
+		}
+		return hIcon;
+	}
+	return 0;
 }

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 #include "emule.h"
 #include "UploadQueue.h"
 #include "Packets.h"
-#include "KnownFile.h"
+#include "PartFile.h"
 #include "ListenSocket.h"
 #include "Exceptions.h"
 #include "Scheduler.h"
@@ -34,13 +34,11 @@
 #include "KnownFileList.h"
 #include "ServerConnect.h"
 #include "ClientCredits.h"
-#include "Server.h"
 #include "ServerList.h"
 #include "WebServer.h"
 #include "emuledlg.h"
 #include "ServerWnd.h"
 #include "TransferDlg.h"
-#include "SearchDlg.h"
 #include "StatisticsDlg.h"
 #include "Kademlia/Kademlia/Kademlia.h"
 #include "Kademlia/Kademlia/Prefs.h"
@@ -63,7 +61,9 @@ static uint32 igraph, istats;
 
 
 CUploadQueue::CUploadQueue()
-	: datarate()
+	: average_ur_hist(512, 512)
+	, activeClients_hist(512, 512)
+	, datarate()
 	, friendDatarate()
 	, successfullupcount()
 	, failedupcount()
@@ -76,17 +76,15 @@ CUploadQueue::CUploadQueue()
 	, m_iHighestNumberOfFullyActivatedSlotsSinceLastCall()
 	, m_MaxActiveClients()
 	, m_MaxActiveClientsShortTime()
+	, m_average_ur_sum()
 	, m_lastCalculatedDataRateTick()
-	, m_average_dr_sum()
 	, m_dwLastResortedUploadSlots()
 	, m_bStatisticsWaitingListDirty(true)
 {
+	i1sec = i2sec = i5sec = i60sec = 0;
 	VERIFY((h_timer = ::SetTimer(NULL, 0, SEC2MS(1)/10, UploadTimer)) != 0);
 	if (thePrefs.GetVerbose() && !h_timer)
 		AddDebugLogLine(true, _T("Failed to create 'upload queue' timer - %s"), (LPCTSTR)GetErrorMessage(::GetLastError()));
-	i1sec = 0;
-	i60sec = 0;
-	i2sec = 0;
 }
 
 CUploadQueue::~CUploadQueue()
@@ -239,59 +237,46 @@ void CUploadQueue::UpdateActiveClientsInfo(DWORD curTick)
 	// Save number of active clients for statistics
 	INT_PTR tempHighest = theApp.uploadBandwidthThrottler->GetHighestNumberOfFullyActivatedSlotsSinceLastCallAndReset();
 
-	/*if(thePrefs.GetLogUlDlEvents() && theApp.uploadBandwidthThrottler->GetStandardListSize() > uploadinglist.GetCount()) {
+	//if(thePrefs.GetLogUlDlEvents() && theApp.uploadBandwidthThrottler->GetStandardListSize() > uploadinglist.GetCount())
 		// debug info, will remove this when I'm done.
-		AddDebugLogLine(false, _T("UploadQueue: Error! Throttler has more slots than UploadQueue! Throttler: %i UploadQueue: %i Tick: %i"), theApp.uploadBandwidthThrottler->GetStandardListSize(), uploadinglist.GetCount(), ::GetTickCount());
-	}*/
+	//	AddDebugLogLine(false, _T("UploadQueue: Error! Throttler has more slots than UploadQueue! Throttler: %i UploadQueue: %i Tick: %i"), theApp.uploadBandwidthThrottler->GetStandardListSize(), uploadinglist.GetCount(), ::GetTickCount());
 
-	m_iHighestNumberOfFullyActivatedSlotsSinceLastCall = min(tempHighest, uploadinglist.GetCount() + 1);
+	tempHighest = min(tempHighest, uploadinglist.GetCount() + 1);
+	m_iHighestNumberOfFullyActivatedSlotsSinceLastCall = tempHighest;
 
-	// save some data about number of fully active clients
-	int tempMaxRemoved = 0;
-	while (!activeClients_tick_list.IsEmpty() && !activeClients_list.IsEmpty() && curTick >= activeClients_tick_list.GetHead() + SEC2MS(20)) {
-		activeClients_tick_list.RemoveHead();
-		int removed = activeClients_list.RemoveHead();
-
-		if (removed > tempMaxRemoved)
-			tempMaxRemoved = removed;
+	// save some data about the number of fully active clients
+	INT_PTR tempMaxRemoved = 0;
+	while (!activeClients_hist.IsEmpty() && curTick >= activeClients_hist.Head().timestamp + SEC2MS(20)) {
+		tempMaxRemoved = max(tempMaxRemoved, activeClients_hist.Head().slots);
+		activeClients_hist.RemoveHead();
 	}
 
-	activeClients_list.AddTail((int)m_iHighestNumberOfFullyActivatedSlotsSinceLastCall);
-	activeClients_tick_list.AddTail(curTick);
+	activeClients_hist.AddTail(ActiveClientsData{tempHighest, curTick});
 
-	if (activeClients_tick_list.GetCount() > 1) {
-		INT_PTR tempMaxActiveClients = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
-		INT_PTR tempMaxActiveClientsShortTime = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
-		POSITION activeClientsTickPos = activeClients_tick_list.GetTailPosition();
-		POSITION activeClientsListPos = activeClients_list.GetTailPosition();
-		while (activeClientsListPos != NULL && (tempMaxRemoved > tempMaxActiveClients && tempMaxRemoved >= m_MaxActiveClients || curTick < activeClients_tick_list.GetAt(activeClientsTickPos) + SEC2MS(10))) {
-			DWORD activeClientsTickSnapshot = activeClients_tick_list.GetAt(activeClientsTickPos);
-			int activeClientsSnapshot = activeClients_list.GetAt(activeClientsListPos);
-
-			if (activeClientsSnapshot > tempMaxActiveClients)
-				tempMaxActiveClients = activeClientsSnapshot;
-
-			if (activeClientsSnapshot > tempMaxActiveClientsShortTime && curTick < activeClientsTickSnapshot + SEC2MS(10))
-				tempMaxActiveClientsShortTime = activeClientsSnapshot;
-
-			activeClients_tick_list.GetPrev(activeClientsTickPos);
-			activeClients_list.GetPrev(activeClientsListPos);
+	if (activeClients_hist.Count() <= 1)
+		m_MaxActiveClients = m_MaxActiveClientsShortTime = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
+	else {
+		INT_PTR tempMax, tempMaxShortTime;
+		tempMax = tempMaxShortTime = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
+		for (UINT_PTR ix = activeClients_hist.Count(); ix-- > 0;) {
+			const ActiveClientsData &d = activeClients_hist[ix];
+			if (curTick >= d.timestamp + SEC2MS(10) && (tempMaxRemoved <= tempMax || tempMaxRemoved < m_MaxActiveClients))
+				break;
+			if (d.slots > tempMax)
+				tempMax = d.slots;
+			if (d.slots > tempMaxShortTime && curTick < d.timestamp + SEC2MS(10))
+				tempMaxShortTime = d.slots;
 		}
-
-		if (tempMaxRemoved >= m_MaxActiveClients || tempMaxActiveClients > m_MaxActiveClients)
-			m_MaxActiveClients = tempMaxActiveClients;
-
-		m_MaxActiveClientsShortTime = tempMaxActiveClientsShortTime;
-	} else {
-		m_MaxActiveClients = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
-		m_MaxActiveClientsShortTime = m_iHighestNumberOfFullyActivatedSlotsSinceLastCall;
+		if (tempMaxRemoved >= m_MaxActiveClients || tempMax > m_MaxActiveClients)
+			m_MaxActiveClients = tempMax;
+		m_MaxActiveClientsShortTime = tempMaxShortTime;
 	}
 }
 
 /**
  * Maintenance method for the uploading slots. It adds and removes clients to the
- * uploading list. It also makes sure that all the uploading slots' Sockets always have
- * enough packets in their queues, etc.
+ * uploading list. It also makes sure that all the uploading slots' Sockets
+ * always have enough packets in their queues, etc.
  *
  * This method is called approximately once every 100 milliseconds.
  */
@@ -362,22 +347,15 @@ void CUploadQueue::Process()
 	}
 
 	// Save used bandwidth for speed calculations
+	(void)theApp.uploadBandwidthThrottler->GetNumberOfSentBytesOverheadSinceLastCallAndReset(); //reset only
 	uint64 sentBytes = theApp.uploadBandwidthThrottler->GetNumberOfSentBytesSinceLastCallAndReset();
-	average_dr_list.AddTail(sentBytes);
-	m_average_dr_sum += sentBytes;
+	m_average_ur_sum += sentBytes;
 
-	(void)theApp.uploadBandwidthThrottler->GetNumberOfSentBytesOverheadSinceLastCallAndReset();
-
-	average_friend_dr_list.AddTail(theStats.sessionSentBytesToFriend);
-
-	// Save time between each speed snapshot
-	average_tick_list.AddTail(curTick);
-
+	average_ur_hist.AddTail(AverageUploadRate{sentBytes, theStats.sessionSentBytesToFriend, curTick});
 	// keep no more than 30 secs of data
-	while (average_tick_list.GetCount() > 3 && !average_friend_dr_list.IsEmpty() && curTick >= average_tick_list.GetHead() + SEC2MS(30)) {
-		m_average_dr_sum -= average_dr_list.RemoveHead();
-		average_friend_dr_list.RemoveHead();
-		average_tick_list.RemoveHead();
+	while (average_ur_hist.Count() > 3 && curTick >= average_ur_hist.Head().timestamp + SEC2MS(30)) {
+		m_average_ur_sum -= average_ur_hist.Head().upBytes;
+		average_ur_hist.RemoveHead();
 	}
 };
 
@@ -524,15 +502,15 @@ void CUploadQueue::AddClientToQueue(CUpDownClient *client, bool bIgnoreTimelimit
 {
 	//This is to keep users from abusing the limits we put on lowID callbacks.
 	//1)Check if we are connected to any network and that we are a lowID.
-	//(Although this check shouldn't matter as they wouldn't have found us.
-	// But, maybe I'm missing something, so it's best to check as a precaution.)
+	//  (Although this check shouldn't matter as they wouldn't have found us.
+	//  But, maybe I'm missing something, so it's best to check as a precaution.)
 	//2)Check if the user is connected to Kad. We do allow all Kad Callbacks.
 	//3)Check if the user is in our download list or a friend.
-	//We give these users a special pass as they are helping us.
+	//  We give these users a special pass as they are helping us.
 	//4)Are we connected to a server? If we are, is the user on the same server?
-	//TCP lowID callbacks are also allowed.
+	//  TCP lowID callbacks are also allowed.
 	//5)If the queue is very short, allow anyone in as we want to make sure
-	//our upload is always used.
+	//  our upload is always used.
 	if (   theApp.IsConnected()
 		&& theApp.IsFirewalled()
 		&& !client->GetKadPort()
@@ -949,12 +927,14 @@ VOID CALLBACK CUploadQueue::UploadTimer(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR /
 				igraph = 0;
 				theApp.emuledlg->statisticswnd->SetCurrentRate(theApp.uploadqueue->GetDatarate() / 1024.0f, theApp.downloadqueue->GetDatarate() / 1024.0f);
 			}
-			if (theApp.emuledlg->activewnd == theApp.emuledlg->statisticswnd && theApp.emuledlg->IsWindowVisible())
-				// display stats
-				if (thePrefs.GetStatsInterval() > 0 && ++istats >= (uint32)thePrefs.GetStatsInterval()) {
-					istats = 0;
-					theApp.emuledlg->statisticswnd->ShowStatistics();
-				}
+			if (theApp.emuledlg->activewnd == theApp.emuledlg->statisticswnd
+				&& theApp.emuledlg->IsWindowVisible()
+				&& thePrefs.GetStatsInterval() > 0	// display is on
+				&& ++istats >= (uint32)thePrefs.GetStatsInterval())
+			{
+				istats = 0;
+				theApp.emuledlg->statisticswnd->ShowStatistics();
+			}
 
 			theApp.uploadqueue->UpdateDatarates();
 
@@ -975,12 +955,11 @@ VOID CALLBACK CUploadQueue::UploadTimer(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR /
 
 			// *** 5 seconds **********************************************
 			if (++i5sec >= 5) {
+				i5sec = 0;
 #ifdef _DEBUG
 				if (thePrefs.m_iDbgHeap > 0 && !AfxCheckMemory())
 					AfxDebugBreak();
 #endif
-
-				i5sec = 0;
 				theApp.listensocket->Process();
 				theApp.OnlineSig(); // Added By Bouc7
 				if (!theApp.emuledlg->IsTrayIconToFlash())
@@ -1049,14 +1028,13 @@ void CUploadQueue::UpdateDatarates()
 {
 	// Calculate average data rate
 	const DWORD curTick = ::GetTickCount();
-	if (curTick >= m_lastCalculatedDataRateTick + (SEC2MS(1) / 2)) {
-		m_lastCalculatedDataRateTick = curTick;
-
-		if (average_dr_list.GetCount() >= 2 && average_tick_list.GetTail() > average_tick_list.GetHead()) {
-			DWORD duration = average_tick_list.GetTail() - average_tick_list.GetHead();
-			datarate = (uint32)(SEC2MS(m_average_dr_sum - average_dr_list.GetHead()) / duration);
-			friendDatarate = (uint32)(SEC2MS(average_friend_dr_list.GetTail() - average_friend_dr_list.GetHead()) / duration);
-		}
+	if (curTick < m_lastCalculatedDataRateTick + (SEC2MS(1) / 2))
+		return;
+	m_lastCalculatedDataRateTick = curTick;
+	if (average_ur_hist.Count() > 1 && average_ur_hist.Tail().timestamp > average_ur_hist.Head().timestamp) {
+		DWORD duration = average_ur_hist.Tail().timestamp - average_ur_hist.Head().timestamp;
+		datarate = (uint32)(SEC2MS(m_average_ur_sum - average_ur_hist.Head().upBytes) / duration);
+		friendDatarate = (uint32)(SEC2MS(average_ur_hist.Tail().upFriendBytes - average_ur_hist.Head().upFriendBytes) / duration);
 	}
 }
 

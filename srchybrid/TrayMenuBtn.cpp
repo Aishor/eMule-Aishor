@@ -111,8 +111,8 @@ void CTrayMenuBtn::OnPaint()
 	MemDC.DrawText(m_strText, rText, DT_CALCRECT | DT_SINGLELINE | DT_LEFT);
 	CPoint pt(rClient.left + 2 + iLeftOffset, rClient.Height() / 2 - rText.Height() / 2);
 	CPoint sz(rText.Width(), rText.Height());
-	MemDC.DrawState(pt, sz, m_strText, DST_TEXT | (bEnabled ? DSS_NORMAL : DSS_DISABLED),
-		FALSE, m_strText.GetLength(), (CBrush*)NULL);
+	MemDC.DrawState(pt, sz, m_strText, DST_TEXT | (bEnabled ? DSS_NORMAL : DSS_DISABLED)
+				, FALSE, m_strText.GetLength(), (CBrush*)NULL);
 	dc.BitBlt(0, 0, rClient.Width(), rClient.Height(), &MemDC, 0, 0, SRCCOPY);
 	MemDC.SelectObject(pOldBMP);
 	if (pOldFONT)

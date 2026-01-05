@@ -170,7 +170,7 @@ CStringA GetSocks5Error(char rep)
 		"Address type not supported"
 	};
 
-	if (rep < 0 || rep >= _countof(pError)) {
+	if (rep < 0 || rep >= (int)_countof(pError)) {
 		CStringA strError;
 		strError.Format("Unknown reply: %i", rep);
 		return strError;
@@ -509,19 +509,19 @@ void CAsyncProxySocketLayer::OnReceive(int nErrorCode)
 				}
 				const CStringA sAsciiHost(m_pProxyPeerHost);
 				size_t nlen = sAsciiHost.GetLength();
-				char *command = new char[10 + nlen + 1]{};
+				char *command = new char[10 + nlen + 1];
 				command[0] = 5;
 				command[1] = static_cast<char>(m_nProxyOpID);
-				//command[2]=0;
+				command[2] = 0;
 				command[3] = m_nProxyPeerIp ? 1 : 3;
-				int nBufLen = 4;
+				int nBufLen;
 				if (m_nProxyPeerIp) {
-					*(ULONG*)&command[nBufLen] = m_nProxyPeerIp;
-					nBufLen += 4;
+					*(ULONG*)&command[4] = m_nProxyPeerIp;
+					nBufLen = 8;
 				} else {
-					command[nBufLen] = static_cast<char>(nlen);
-					strncpy(&command[++nBufLen], sAsciiHost, nlen);
-					nBufLen += (int)nlen;
+					command[4] = static_cast<char>(nlen);
+					strncpy(&command[5], sAsciiHost, nlen);
+					nBufLen = 5 + (int)nlen;
 				}
 				*(USHORT*)&command[nBufLen] = m_nProxyPeerPort;
 				nBufLen += 2;
@@ -1078,11 +1078,6 @@ BOOL CAsyncProxySocketLayer::GetPeerName(LPSOCKADDR lpSockAddr, int *lpSockAddrL
 		addr->sin_addr.s_addr = m_nProxyPeerIp;
 	}
 	return res;
-}
-
-int CAsyncProxySocketLayer::GetProxyType() const
-{
-	return m_ProxyData.nProxyType;
 }
 
 void CAsyncProxySocketLayer::Close()

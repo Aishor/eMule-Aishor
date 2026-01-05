@@ -63,8 +63,8 @@ public:
 	CLogFile();
 	~CLogFile();
 
-	bool IsOpen() const;
-	const CString& GetFilePath() const;
+	bool IsOpen() const								{ return m_fp != NULL; }
+	const CString& GetFilePath() const				{ return m_strFilePath; }
 	bool SetFilePath(LPCTSTR pszFilePath);
 	void SetMaxFileSize(UINT uMaxFileSize);
 	bool SetFileFormat(const ELogFileFormat eFileFormat);

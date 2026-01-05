@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -171,7 +171,7 @@ void CKadContactHistogramCtrl::OnPaint()
 	for (UINT s = 0; s <= uMax; s += uStep) {
 		int y = iBaseLineY - (uHistHeight * s) / uMax;
 		int iLabelY = y - m_iMaxLabelHeight / 2;
-		RECT rcLabel = { 1, iLabelY, 1 + m_iMaxNumLabelWidth, iLabelY + m_iMaxLabelHeight };
+		RECT rcLabel{1, iLabelY, 1 + m_iMaxNumLabelWidth, iLabelY + m_iMaxLabelHeight};
 		if (s > 0) {
 			dc.MoveTo(iBaseLineX - 2, y);
 			dc.LineTo(iBaseLineX + uHistWidth, y);

@@ -17,9 +17,9 @@
 *
 *********************************************************************/
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "TreePropSheetPgFrameDef.h"
-#include "VisualStylesXP.h"
 
 extern bool g_bLowColorDesktop;
 
@@ -97,14 +97,14 @@ CRect CPropPageFrameDefault::CalcMsgArea()
 {
 	RECT rect;
 	GetClientRect(&rect);
-	if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-		HTHEME hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"Tab");
+	if (::IsThemeActive() && ::IsAppThemed()) {
+		HTHEME hTheme = ::OpenThemeData(m_hWnd, L"Tab");
 		if (hTheme) {
 			RECT rectContent;
 			CDC *pDc = GetDC();
-			g_xpStyle.GetThemeBackgroundContentRect(hTheme, pDc->m_hDC, TABP_PANE, 0, &rect, &rectContent);
+			::GetThemeBackgroundContentRect(hTheme, pDc->m_hDC, TABP_PANE, 0, &rect, &rectContent);
 			ReleaseDC(pDc);
-			g_xpStyle.CloseThemeData(hTheme);
+			::CloseThemeData(hTheme);
 
 			if (GetShowCaption())
 				rectContent.top = rect.top + GetCaptionHeight() + 1;
@@ -120,14 +120,14 @@ CRect CPropPageFrameDefault::CalcCaptionArea()
 {
 	CRect rect;
 	GetClientRect(rect);
-	if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-		HTHEME hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"Tab");
+	if (::IsThemeActive() && ::IsAppThemed()) {
+		HTHEME hTheme = ::OpenThemeData(m_hWnd, L"Tab");
 		if (hTheme) {
 			CRect rectContent;
 			CDC *pDc = GetDC();
-			g_xpStyle.GetThemeBackgroundContentRect(hTheme, pDc->m_hDC, TABP_PANE, 0, rect, rectContent);
+			::GetThemeBackgroundContentRect(hTheme, pDc->m_hDC, TABP_PANE, 0, rect, rectContent);
 			ReleaseDC(pDc);
-			g_xpStyle.CloseThemeData(hTheme);
+			::CloseThemeData(hTheme);
 
 			if (GetShowCaption())
 				rectContent.bottom = rect.top + GetCaptionHeight();
@@ -151,7 +151,7 @@ void CPropPageFrameDefault::DrawCaption(CDC *pDc, CRect rect, LPCTSTR lpszCaptio
 	COLORREF clrLeft = ::GetSysColor(COLOR_ACTIVECAPTION);
 	COLORREF clrRight;
 	if (!g_bLowColorDesktop) {
-		if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed())
+		if (::IsThemeActive() && ::IsAppThemed())
 			clrRight = pDc->GetPixel(rect.right - 1, rect.top); // not very smart, but for XP styles, we need the 'real' background color
 		else
 			clrRight = ::GetSysColor(COLOR_3DFACE);
@@ -171,15 +171,15 @@ void CPropPageFrameDefault::DrawCaption(CDC *pDc, CRect rect, LPCTSTR lpszCaptio
 	// draw text
 	rect.left += 2;
 
-	COLORREF clrPrev = pDc->SetTextColor(::GetSysColor(COLOR_CAPTIONTEXT));
-	int nBkStyle = pDc->SetBkMode(TRANSPARENT);
-	CFont *pFont = pDc->SelectObject(&theApp.m_fontDefaultBold);
+	COLORREF clrOld = pDc->SetTextColor(::GetSysColor(COLOR_CAPTIONTEXT));
+	int iOldBkMode = pDc->SetBkMode(TRANSPARENT);
+	CFont *pOldFont = pDc->SelectObject(&theApp.m_fontDefaultBold);
 
-	pDc->DrawText(lpszCaption, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+	pDc->DrawText(lpszCaption, -1, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
 
-	pDc->SetTextColor(clrPrev);
-	pDc->SetBkMode(nBkStyle);
-	pDc->SelectObject(pFont);
+	pDc->SetTextColor(clrOld);
+	pDc->SetBkMode(iOldBkMode);
+	pDc->SelectObject(pOldFont);
 }
 
 
@@ -227,14 +227,14 @@ void CPropPageFrameDefault::OnPaint()
 
 BOOL CPropPageFrameDefault::OnEraseBkgnd(CDC *pDC)
 {
-	if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-		HTHEME hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"Tab");
+	if (::IsThemeActive() && ::IsAppThemed()) {
+		HTHEME hTheme = ::OpenThemeData(m_hWnd, L"Tab");
 		if (hTheme) {
 			RECT rect;
 			GetClientRect(&rect);
-			g_xpStyle.DrawThemeBackground(hTheme, pDC->m_hDC, TABP_PANE, 0, &rect, NULL);
+			::DrawThemeBackground(hTheme, pDC->m_hDC, TABP_PANE, 0, &rect, NULL);
 
-			g_xpStyle.CloseThemeData(hTheme);
+			::CloseThemeData(hTheme);
 		}
 		return TRUE;
 	}

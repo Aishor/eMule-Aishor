@@ -31,8 +31,8 @@ public:
 	bool IsBound() const				{ return m_bBound; }
 
 	bool SetList(const CStringArray &p_sItemList);
-	const CStringArray& GetList() const;
-	int GetItemCount();
+	const CStringArray& GetList() const	{ return m_asList; }
+	int GetItemCount() const			{ return (int)m_asList.GetCount(); }
 
 	bool AddItem(const CString &p_sItem, int iPos);
 	bool RemoveItem(const CString &p_sItem);

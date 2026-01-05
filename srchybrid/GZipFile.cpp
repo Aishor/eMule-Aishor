@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 CGZIPFile::CGZIPFile()
+	: m_gzFile()
 {
-	m_gzFile = 0;
 }
 
 bool CGZIPFile::Open(LPCTSTR pszFilePath)
@@ -64,7 +64,7 @@ CString CGZIPFile::GetUncompressedFilePath() const
 	// return path of input file without ".gz" extension
 	LPCTSTR pDot = ::PathFindExtension(m_strGzFilePath);
 	if (_tcsicmp(pDot, _T(".gz")) != 0)
-		pDot = m_strGzFilePath; //empty string if not .gz
+		pDot = m_strGzFilePath; //return an empty string if not .gz
 	return m_strGzFilePath.Left((int)((LPCTSTR)m_strGzFilePath - pDot));
 }
 

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ namespace Kademlia
 		CLookupHistory();
 		~CLookupHistory();
 
-		void	ContactReceived(CContact *pRecContact, CContact *pFromContact, const CUInt128 &uDistance, bool bCloser, bool bForceInteresting = false);
+		void	ContactReceived(const CContact *pRecContact, const CContact *pFromContact, const CUInt128 &uDistance, bool bCloser, bool bForceInteresting = false);
 		void	ContactAskedKad(const CContact *pContact);
 		void	ContactAskedKeyword(const CContact *pContact);
 		void	ContactRespondedKeyword(uint32 uContactIP, uint16 uContactUDPPort, uint32 uResultCount);

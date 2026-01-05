@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2003-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2003-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,25 +16,18 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
 #include "emule.h"
-#include "CxImage/xImage.h"
-#include "quantize.h"
+#include "emuledlg.h"
 #include "FrameGrabThread.h"
 #include "OtherFunctions.h"
+#include "quantize.h"
 #ifndef HAVE_QEDIT_H
-// This is a remote feature and not optional, in order to keep to working properly for other clients who want to use it
+// This is a separate feature, required in this module
 // Check emule_site_config.h to fix it
-#error Missing 'qedit.h', look at "emule_site_config.h" for further information.
+#error Missing 'qedit.h', see comments in "emule_site_config.h" for further information.
 #endif
+#include <qedit.h>
 
 // DirectShow MediaDet
-#include <strmif.h>
-#define _DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-		EXTERN_C const GUID DECLSPEC_SELECTANY name \
-				= { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
-_DEFINE_GUID(MEDIATYPE_Video, 0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
-_DEFINE_GUID(MEDIATYPE_Audio, 0x73647561, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
-_DEFINE_GUID(FORMAT_VideoInfo, 0x05589f80, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a);
-_DEFINE_GUID(FORMAT_WaveFormatEx, 0x05589f81, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a);
 //#define MMNODRV		// mmsystem: Installable driver support
 #define MMNOSOUND		// mmsystem: Sound support
 //#define MMNOWAVE		// mmsystem: Waveform support
@@ -46,25 +39,17 @@ _DEFINE_GUID(FORMAT_WaveFormatEx, 0x05589f81, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 
 #define MMNOMCI			// mmsystem: MCI support
 //#define MMNOMMIO		// mmsystem: Multimedia file I/O support
 #define MMNOMMSYSTEM	// mmsystem: General MMSYSTEM functions
-// NOTE: If you get a compile error due to missing 'qedit.h', look at "emule_site_config.h" for further information.
-#include <qedit.h>
-typedef struct tagVIDEOINFOHEADER
-{
-	RECT            rcSource;          // The bit we really want to use
-	RECT            rcTarget;          // Where the video should go
-	DWORD           dwBitRate;         // Approximate bit data rate
-	DWORD           dwBitErrorRate;    // Bit error rate for this stream
-	REFERENCE_TIME  AvgTimePerFrame;   // Average time per frame (100ns units)
-	BITMAPINFOHEADER bmiHeader;
-} VIDEOINFOHEADER;
-#include "emuledlg.h"
+#include <dshow.h>
+
+#if TEST_FRAMEGRABBER
+#include <atlimage.h>
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
 
 IMPLEMENT_DYNCREATE(CFrameGrabThread, CWinThread)
 
@@ -91,16 +76,17 @@ BOOL CFrameGrabThread::InitInstance()
 
 BOOL CFrameGrabThread::Run()
 {
-	imgResults = new CxImage*[nFramesToGrab]{};
+	imgResults = new HBITMAP[nFramesToGrab]{};
 	FrameGrabResult_Struct *result = new FrameGrabResult_Struct;
-	(void)CoInitialize(NULL);
+	(void)::CoInitialize(NULL);
 	result->nImagesGrabbed = (uint8)GrabFrames();
-	CoUninitialize();
+	::CoUninitialize();
 	result->imgResults = imgResults;
 	result->pSender = pSender;
 	if (!theApp.emuledlg->PostMessage(TM_FRAMEGRABFINISHED, (WPARAM)pOwner, (LPARAM)result)) {
 		for (int i = (int)result->nImagesGrabbed; --i >= 0;)
-			delete result->imgResults[i];
+			if (result->imgResults[i])
+				::DeleteObject(result->imgResults[i]);
 		delete[] result->imgResults;
 		delete result;
 	}
@@ -110,10 +96,12 @@ BOOL CFrameGrabThread::Run()
 UINT CFrameGrabThread::GrabFrames()
 {
 #define TIMEBETWEENFRAMES	50.0 // could be a param later, if needed
+	uint32 nFramesGrabbed = 0;
+	char *buffer = NULL;
+	HDC hdc = 0;
 	try {
-		HRESULT hr;
 		CComPtr<IMediaDet> pDet;
-		hr = pDet.CoCreateInstance(__uuidof(MediaDet));
+		HRESULT hr = pDet.CoCreateInstance(__uuidof(MediaDet));
 		if (!SUCCEEDED(hr))
 			return 0;
 
@@ -121,8 +109,8 @@ UINT CFrameGrabThread::GrabFrames()
 		CComBSTR bstrFilename(strFileName);
 		pDet->put_Filename(bstrFilename);
 
-		long lStreams;
 		bool bFound = false;
+		long lStreams;
 		pDet->get_OutputStreams(&lStreams);
 		for (long i = 0; i < lStreams; ++i) {
 			GUID major_type;
@@ -137,22 +125,21 @@ UINT CFrameGrabThread::GrabFrames()
 		if (!bFound)
 			return 0;
 
-		double dLength = 0;
-		pDet->get_StreamLength(&dLength);
-		if (dStartTime > dLength)
+		double dLength;
+		hr = pDet->get_StreamLength(&dLength);
+		if (!SUCCEEDED(hr) || dStartTime > dLength)
 			dStartTime = 0;
 
-		long width = 0, height = 0;
 		AM_MEDIA_TYPE mt;
 		hr = pDet->get_StreamMediaType(&mt);
-		if (mt.formattype != FORMAT_VideoInfo)
+		if (!SUCCEEDED(hr) || mt.formattype != FORMAT_VideoInfo)
 			return 0; // Should not happen, in theory.
 
 		VIDEOINFOHEADER *pVih = (VIDEOINFOHEADER*)(mt.pbFormat);
-		width = pVih->bmiHeader.biWidth;
-		height = pVih->bmiHeader.biHeight;
+		long width = pVih->bmiHeader.biWidth;
+		long height = pVih->bmiHeader.biHeight;
 
-		// We want the absolute height, don't care about orientation.
+		// We want absolute height, don't care about orientation.
 		if (height < 0)
 			height = -height;
 
@@ -166,74 +153,96 @@ UINT CFrameGrabThread::GrabFrames()
 			mt.pUnk->Release();
 			mt.pUnk = NULL;
 		}
-		/**/
 
-		uint32 nFramesGrabbed;
-		for (nFramesGrabbed = 0; nFramesGrabbed < nFramesToGrab; ++nFramesGrabbed) {
+		hdc = ::CreateCompatibleDC(NULL);
+		size_t nBufSize = 0;
+		byte bmi[sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256];
+		for (; nFramesGrabbed < nFramesToGrab; ++nFramesGrabbed) {
 			long size;
-			hr = pDet->GetBitmapBits(dStartTime + (nFramesGrabbed * TIMEBETWEENFRAMES), &size, NULL, width, height);
+			hr = pDet->GetBitmapBits(dStartTime, &size, NULL, width, height);
 			if (SUCCEEDED(hr)) {
-				// we could also directly create a Bitmap in memory, however this caused problems/failed with *some* movie files
-				// when I tried it for the MMPreview, while this method works always - so I'll continue to use this one
-				uint32_t nFullBufferLen = static_cast<uint32_t>(sizeof(BITMAPFILEHEADER) + size);
-				char *buffer = new char[nFullBufferLen];
-
-				BITMAPFILEHEADER *pHdr = reinterpret_cast<BITMAPFILEHEADER*>(buffer);
-				memset(buffer, 0, sizeof(BITMAPFILEHEADER));
-				pHdr->bfType = 'MB';
-				pHdr->bfSize = nFullBufferLen;
-				pHdr->bfOffBits = sizeof(BITMAPINFOHEADER) + sizeof(BITMAPFILEHEADER);
-
-				try {
-					hr = pDet->GetBitmapBits(dStartTime + nFramesGrabbed * TIMEBETWEENFRAMES, NULL, &buffer[sizeof(BITMAPFILEHEADER)], width, height);
-				} catch (...) {
-					ASSERT(0);
-					hr = E_FAIL;
-				}
-
-				if (FAILED(hr)) {
+				size_t nFrameBitmapLen = sizeof(BITMAPINFOHEADER) + size;
+				if (nBufSize < nFrameBitmapLen) {
 					delete[] buffer;
+					buffer = NULL;
+					nBufSize = 0;
+				}
+				if (!nBufSize) {
+					buffer = new char[nFrameBitmapLen];
+					nBufSize = nFrameBitmapLen;
+				}
+				hr = pDet->GetBitmapBits(dStartTime, NULL, buffer, width, height);
+				if (FAILED(hr)) { //see Vfwmsgs.h for error codes
+					ASSERT(0);
 					break;
 				}
 
-				// decode
-				CxImage *imgResult = new CxImage();
-				imgResult->Decode((uint8_t*)buffer, nFullBufferLen, CXIMAGE_FORMAT_BMP);
-				delete[] buffer;
-				if (!imgResult->IsValid()) {
-					delete imgResult;
-					break;
-				}
-
-				// resize if needed
-				if (nMaxWidth > 0 && nMaxWidth < width) {
-					float scale = (float)nMaxWidth / imgResult->GetWidth();
-					int32_t nMaxHeigth = (int32_t)(imgResult->GetHeight() * scale);
-					imgResult->Resample(nMaxWidth, nMaxHeigth, 0);
-				}
-
-				// decrease bpp if needed
+				BITMAPINFOHEADER &bmih = *(BITMAPINFOHEADER*)bmi;
+				bmih = *(BITMAPINFOHEADER*)buffer;
 				if (bReduceColor) {
-					RGBQUAD pal[256];
-					CQuantizer q(_countof(pal), 8);
-					q.ProcessImage(imgResult->GetDIB());
-					q.SetColorTable(pal);
-					imgResult->DecreaseBpp(8, true, pal);
+					CQuantizer q(256, 8);
+					q.ProcessImage(buffer);
+					q.SetColorTable(((BITMAPINFO*)bmi)->bmiColors);
+					bmih.biClrUsed = 256;
+					bmih.biBitCount = 8;
 				}
+				if (nMaxWidth > 0 && nMaxWidth < (uint32)width) {	//resize
+					bmih.biWidth = (LONG)nMaxWidth;
+					bmih.biHeight = (LONG)(bmih.biHeight * nMaxWidth / width);
+				}
+				bmih.biSizeImage = 0;
+
+				byte *pBits;
+				HBITMAP hFrame = ::CreateDIBSection(NULL, (BITMAPINFO*)bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
+				HBITMAP hBitmapOld = (HBITMAP)::SelectObject(hdc, hFrame);
+
+				//Resize and reduce colours in one pass without error diffusion.
+				int step0 = ((BITMAPINFOHEADER*)buffer)->biBitCount / 8;
+				int stride0 = ((((width * ((BITMAPINFOHEADER*)buffer)->biBitCount) + 31) & ~31) >> 3);
+				int stride1 = ((((bmih.biWidth * bmih.biBitCount) + 31) & ~31) >> 3);
+				byte *src = (byte*)&buffer[sizeof(BITMAPINFOHEADER)];
+				BGR last; //tiny colour caching
+				int idx = -1;
+				for (int i = 0; i < bmih.biHeight; ++i) {
+					byte *d = pBits;
+					byte *q = &src[i * height / bmih.biHeight * stride0];
+					for (int j = 0; j < bmih.biWidth; ++j) {
+						int k = j * width / bmih.biWidth * step0;
+						if (bReduceColor) {
+							if (idx < 0 || memcmp(&last, &q[k], sizeof(BGR))) {
+								last = *(BGR*)&q[k];
+								idx = bestclr(((BITMAPINFO*)bmi)->bmiColors, last);
+							}
+							ASSERT(idx >= 0 && (DWORD)idx < bmih.biClrUsed);
+							*d++ = (byte)idx;
+						} else {
+							*(BGR*)d = *(BGR*)&q[k];
+							d += sizeof(BGR);
+						}
+					}
+					pBits += stride1;
+				}
+
+				::SelectObject(hdc, hBitmapOld);
+				// done
+				imgResults[nFramesGrabbed] = hFrame;
 #if TEST_FRAMEGRABBER //see also "case MP_OPEN" in CSharedFilesCtrl::OnContextMenu
 				CString TestName;
-				TestName.Format(_T("G:\\em\\testframe%i.png"), nFramesGrabbed);
-				imgResult->Save(TestName, CXIMAGE_FORMAT_PNG); //Save grabbed images for inspection
+				TestName.Format(_T("\\tmp\\testframe%i.bmp"), nFramesGrabbed);
+				CImage img;
+				img.Attach(hFrame, CImage::DIBOR_DEFAULT);
+				img.Save(TestName, Gdiplus::ImageFormatBMP); //Save grabbed images for inspection
+				img.Detach();
 #endif
-				// done
-				imgResults[nFramesGrabbed] = imgResult;
 			}
+			dStartTime += TIMEBETWEENFRAMES;
 		}
-		return nFramesGrabbed;
 	} catch (...) {
 		ASSERT(0);
 	}
-	return 0;
+	::DeleteDC(hdc);
+	delete[] buffer;
+	return nFramesGrabbed;
 }
 
 void CFrameGrabThread::SetValues(const CKnownFile *in_pOwner, const CString &in_strFileName, uint8 in_nFramesToGrab, double in_dStartTime, bool in_bReduceColor, uint16 in_nMaxWidth, void *in_pSender)

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -102,7 +102,7 @@ void CBarShader::SetHeight(int height)
 	}
 }
 
-void CBarShader::SetRect(const CRect & rect)
+void CBarShader::SetRect(const CRect &rect)
 {
 	SetWidth(rect.Width());
 	SetHeight(rect.Height());
@@ -151,12 +151,12 @@ void CBarShader::Fill(COLORREF color)
 	// SLUGFILLER: speedBarShader
 }
 
-void CBarShader::Draw(CDC *dc, int iLeft, int iTop, bool bFlat)
+void CBarShader::Draw(CDC &dc, int iLeft, int iTop, bool bFlat)
 {
 	//FillSolidRect() is simpler and faster, though FillRect() did not alter background colour
 	//minor additional trouble: to save and restore background colour for CMuleListCtrl
-	COLORREF cBk = dc->GetBkColor();
-	RECT rectSpan = { 0, iTop, iLeft, iTop + m_iHeight };
+	COLORREF cBk = dc.GetBkColor();
+	RECT rectSpan{0, iTop, iLeft, iTop + m_iHeight};
 	uint64 uBytesInOnePixel = (uint64)(m_dBytesPerPixel + 0.5);
 	uint64 start = 0; //bsCurrent->start;
 
@@ -203,21 +203,21 @@ void CBarShader::Draw(CDC *dc, int iLeft, int iTop, bool bFlat)
 			color = m_Spans.GetNextValue(pos);
 		// SLUGFILLER: speedBarShader
 	}
-	dc->SetBkColor(cBk); //restore background colour
+	dc.SetBkColor(cBk); //restore background colour
 }
 
-void CBarShader::FillBarRect(CDC *dc, LPRECT rectSpan, COLORREF color, bool bFlat)
+void CBarShader::FillBarRect(CDC &dc, LPRECT rectSpan, COLORREF color, bool bFlat)
 {
 	if (!color || bFlat)
-		dc->FillSolidRect(rectSpan, color);
+		dc.FillSolidRect(rectSpan, color);
 	else
 		FillBarRect(dc, rectSpan, GetRValue(color), GetGValue(color), GetBValue(color), false);
 }
 
-void CBarShader::FillBarRect(CDC *dc, LPRECT rectSpan, float fRed, float fGreen, float fBlue, bool bFlat)
+void CBarShader::FillBarRect(CDC &dc, LPRECT rectSpan, float fRed, float fGreen, float fBlue, bool bFlat)
 {
 	if (bFlat)
-		dc->FillSolidRect(rectSpan, RGB((int)(fRed + .5f), (int)(fGreen + .5f), (int)(fBlue + .5f)));
+		dc.FillSolidRect(rectSpan, RGB((int)(fRed + .5f), (int)(fGreen + .5f), (int)(fBlue + .5f)));
 	else {
 		if (m_Modifiers == NULL || (m_used3dlevel != thePrefs.Get3DDepth() && !m_bIsPreview))
 			BuildModifiers();
@@ -230,16 +230,16 @@ void CBarShader::FillBarRect(CDC *dc, LPRECT rectSpan, float fRed, float fGreen,
 
 			rect.top = iTop + i;
 			rect.bottom = iTop + i + 1;
-			dc->FillSolidRect(&rect, cbNew);
+			dc.FillSolidRect(&rect, cbNew);
 
 			rect.top = iBot - i - 1;
 			rect.bottom = iBot - i;
-			dc->FillSolidRect(&rect, cbNew);
+			dc.FillSolidRect(&rect, cbNew);
 		}
 	}
 }
 
-void CBarShader::DrawPreview(CDC *dc, int iLeft, int iTop, UINT previewLevel)		//Cax2 aqua bar
+void CBarShader::DrawPreview(CDC &dc, int iLeft, int iTop, UINT previewLevel)		//Cax2 aqua bar
 {
 	m_bIsPreview = true;
 	m_used3dlevel = previewLevel;

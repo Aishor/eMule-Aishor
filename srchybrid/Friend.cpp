@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -43,8 +43,8 @@ void CFriend::init()
 
 CFriend::CFriend()
 	: m_abyUserhash()
-	, m_dwLastSeen()
-	, m_dwLastChatted()
+	, m_tLastSeen()
+	, m_tLastChatted()
 	, m_strName()
 	, m_dwLastUsedIP()
 	, m_nLastUsedPort()
@@ -55,8 +55,8 @@ CFriend::CFriend()
 //Added this to work with the IRC. Probably a better way to do it. But wanted this in the release.
 CFriend::CFriend(const uchar *abyUserhash, time_t dwLastSeen, uint32 dwLastUsedIP, uint16 nLastUsedPort
 	, uint32 dwLastChatted, LPCTSTR pszName, uint32 dwHasHash)
-	: m_dwLastSeen(dwLastSeen)
-	, m_dwLastChatted(dwLastChatted)
+	: m_tLastSeen(dwLastSeen)
+	, m_tLastChatted(dwLastChatted)
 	, m_strName(pszName)
 	, m_dwLastUsedIP(dwLastUsedIP)
 	, m_nLastUsedPort(nLastUsedPort)
@@ -69,8 +69,8 @@ CFriend::CFriend(const uchar *abyUserhash, time_t dwLastSeen, uint32 dwLastUsedI
 }
 
 CFriend::CFriend(CUpDownClient *client)
-	: m_dwLastSeen(time(NULL))
-	, m_dwLastChatted()
+	: m_tLastSeen(time(NULL))
+	, m_tLastChatted()
 {
 	ASSERT(client);
 	init();
@@ -97,8 +97,8 @@ void CFriend::LoadFromFile(CFileDataIO &file)
 	file.ReadHash16(m_abyUserhash);
 	m_dwLastUsedIP = file.ReadUInt32();
 	m_nLastUsedPort = file.ReadUInt16();
-	m_dwLastSeen = file.ReadUInt32();
-	m_dwLastChatted = file.ReadUInt32();
+	m_tLastSeen = file.ReadUInt32();
+	m_tLastChatted = file.ReadUInt32();
 
 	for (uint32 tagcount = file.ReadUInt32(); tagcount > 0; --tagcount) {
 		const CTag *newtag = new CTag(file, false);
@@ -122,8 +122,8 @@ void CFriend::WriteToFile(CFileDataIO &file)
 	file.WriteHash16(m_abyUserhash);
 	file.WriteUInt32(m_dwLastUsedIP);
 	file.WriteUInt16(m_nLastUsedPort);
-	file.WriteUInt32((uint32)m_dwLastSeen);
-	file.WriteUInt32((uint32)m_dwLastChatted);
+	file.WriteUInt32((uint32)m_tLastSeen);
+	file.WriteUInt32((uint32)m_tLastChatted);
 
 	uint32 uTagCount = 0;
 	ULONGLONG uTagCountFilePos = file.GetPosition();
@@ -177,7 +177,7 @@ void CFriend::SetLinkedClient(CUpDownClient *linkedClient)
 			else
 				linkedClient->SetFriendSlot(m_LinkedClient->GetFriendSlot());
 
-			m_dwLastSeen = time(NULL);
+			m_tLastSeen = time(NULL);
 			m_dwLastUsedIP = linkedClient->GetConnectIP();
 			m_nLastUsedPort = linkedClient->GetUserPort();
 			m_strName = linkedClient->GetUserName();

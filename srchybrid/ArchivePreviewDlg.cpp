@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,6 @@
 #include "stdafx.h"
 #include "emule.h"
 #include "ArchivePreviewDlg.h"
-#include "KnownFile.h"
 #include "partfile.h"
 #include "preferences.h"
 #include "UserMsgs.h"
@@ -43,7 +42,7 @@ private:
 public:
 	EncodeFileName();
 	//int Encode(char *Name, wchar_t *NameW, byte *EncName);
-	void Decode(const char* const Name, byte *EncName, int EncSize, wchar_t *NameW, int MaxDecSize);
+	void Decode(const char *const Name, byte *EncName, int EncSize, wchar_t *NameW, int MaxDecSize);
 };
 
 EncodeFileName::EncodeFileName()
@@ -54,7 +53,7 @@ EncodeFileName::EncodeFileName()
 {
 }
 
-void EncodeFileName::Decode(const char* const Name, byte *EncName, int EncSize, wchar_t *NameW, int MaxDecSize)
+void EncodeFileName::Decode(const char *const Name, byte *EncName, int EncSize, wchar_t *NameW, int MaxDecSize)
 {
 	int EncPos = 0, DecPos = 0;
 	byte HighByte = EncName[EncPos++];
@@ -426,7 +425,7 @@ int CArchivePreviewDlg::ShowAceResults(int succ, archiveScannerThreadParams_s *t
 				// compression level
 				if (!temp.IsEmpty())
 					temp += _T(", ");
-				temp.AppendFormat(_T("L%i"), (BYTE)(block->TECHINFO >> 8));
+				temp.AppendFormat(_T("L%i"), (byte)(block->TECHINFO >> 8));
 				m_ContentList.SetItemText(iItem, uSubId++, temp);
 			}
 
@@ -1042,7 +1041,7 @@ void CArchivePreviewDlg::UpdateArchiveDisplay(bool doscan)
 			return;
 		}
 	} else
-		filled->Add(Gap_Struct{ 0, (uint64)pFile->GetFileSize() });
+		filled->Add(Gap_Struct{0, (uint64)pFile->GetFileSize()});
 
 	SetDlgItemText(IDC_INFO_STATUS, GetResString(IDS_ARCPREV_PLEASEWAIT));
 

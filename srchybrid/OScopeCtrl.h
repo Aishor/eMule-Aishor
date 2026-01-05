@@ -31,7 +31,7 @@ public:
 	void Reset();
 	void ReCreateGraph();
 
-	bool ready;
+	bool m_ready;
 	bool drawBars;
 	bool autofitYscale;
 	int m_nXGrids;

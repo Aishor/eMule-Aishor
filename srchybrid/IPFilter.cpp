@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -21,9 +21,7 @@
 #include "emule.h"
 #include "IPFilter.h"
 #include "OtherFunctions.h"
-#include "StringConversion.h"
 #include "Preferences.h"
-#include "emuledlg.h"
 #include "Log.h"
 
 #ifdef _DEBUG
@@ -69,6 +67,8 @@ INT_PTR	CIPFilter::LoadFromDefaultFile(bool bShowResponse)
 	return AddFromFile(GetDefaultFilePath(), bShowResponse);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4701) //local variables 'level' 'end' 'start'
 INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 {
 	const DWORD dwStart = ::GetTickCount();
@@ -95,7 +95,7 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 				eFileType = FilterDat;
 			else {
 				VERIFY(_setmode(_fileno(readFile), _O_BINARY) != -1);
-				static const BYTE _aucP2Bheader[] = "\xFF\xFF\xFF\xFFP2B";
+				static const BYTE _aucP2Bheader[] = "\xff\xff\xff\xff" "P2B";
 				BYTE aucHeader[sizeof _aucP2Bheader - 1];
 				if (fread(aucHeader, sizeof aucHeader, 1, readFile) == 1) {
 					if (memcmp(aucHeader, _aucP2Bheader, sizeof _aucP2Bheader - 1) == 0)
@@ -107,6 +107,7 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 				}
 			}
 
+			uint32 prevStart = 0; //set 'modified' flag if start IPs were not in ascending order
 			if (eFileType == PeerGuardian2) {
 				// Version 1: strings are ISO-8859-1 encoded
 				// Version 2: strings are UTF-8 encoded
@@ -130,6 +131,9 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 						if (fread(&uStart, sizeof uStart, 1, readFile) != 1)
 							break;
 						uStart = ntohl(uStart);
+						if (prevStart > uStart)
+							m_bModified = true;
+						prevStart = uStart;
 
 						uint32 uEnd;
 						if (fread(&uEnd, sizeof uEnd, 1, readFile) != 1)
@@ -186,10 +190,15 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 						bValid = false;
 					// add a filter
 					if (bValid) {
+						if (prevStart > start)
+							m_bModified = true;
+						prevStart = start;
 						AddIPRange(start, end, level, desc);
 						++iFoundRanges;
-					} else
+					} else {
 						DEBUG_ONLY(sbuffer.IsEmpty() ? 0 : TRACE("IP filter: ignored line %u\n", iLine));
+						m_bModified = true;
+					}
 				}
 			}
 		} catch (...) {
@@ -203,64 +212,41 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 		qsort(m_iplist.GetData(), m_iplist.GetCount(), sizeof(m_iplist[0]), CompareByStartIP);
 
 		// merge overlapping and adjacent filter ranges
-		int iDuplicate = 0;
-		int iMerged = 0;
+		INT_PTR iDuplicate = 0;
+		INT_PTR iMerged = 0;
 		if (m_iplist.GetCount() >= 2) {
-			// On large IP-filter lists there is a noticeable performance problem when merging the list.
-			// The 'CIPFilterArray::RemoveAt' call is way too expensive to get called during the merging,
-			// thus we use temporary helper arrays to copy only the entries into the final list which
-			// are not get deleted.
+			INT_PTR iDeleted = 0;
 
-			// Reserve a byte array (its used as a boolean array actually) as large as the current
-			// IP-filter list, so we can set a 'to delete' flag for each entry in the current IP-filter list.
-			char *pcToDelete = new char[m_iplist.GetCount()]{};
-			int iNumToDelete = 0;
-
-			SIPFilter *pPrv = m_iplist[0];
-			for (INT_PTR i = 1; i < m_iplist.GetCount(); ++i) {
-				SIPFilter *pCur = m_iplist[i];
-				if (pCur->start >= pPrv->start && pCur->start <= pPrv->end	 // overlapping
-					|| pCur->start == pPrv->end + 1 && pCur->level == pPrv->level) // adjacent
+			SIPFilter **pPrv = &m_iplist[0];
+			SIPFilter **pEnd = &m_iplist[m_iplist.GetCount() - 1];
+			for (SIPFilter **pCur = pPrv; ++pCur <= pEnd;) {
+				SIPFilter &rPrv = **pPrv;
+				SIPFilter &rCur = **pCur;
+				if (rCur.start >= rPrv.start && rCur.start <= rPrv.end	 // overlapping
+					|| rCur.start == rPrv.end + 1 && rCur.level == rPrv.level) // adjacent
 				{
-					if (pCur->start != pPrv->start || pCur->end != pPrv->end) { // don't merge identical entries
-						//TODO: not yet handled, overlapping entries with different 'level'
-						if (pCur->end > pPrv->end)
-							pPrv->end = pCur->end;
-						//pPrv->desc.AppendFormat("; %s", (LPCSTR)pCur->desc); // this may create a very, very long description string...
+					if (rCur.start != rPrv.start || rCur.end != rPrv.end) { // don't merge identical entries
+						//TODO: different 'level' for overlapping entries are not yet handled
+						if (rCur.end > rPrv.end)
+							rPrv.end = rCur.end;
+						//rPrv->desc.AppendFormat("; %s", (LPCSTR)rCur->desc); // this may create a very, very long description string...
 						++iMerged;
 					} else {
 						// if we have identical entries, use the lowest 'level'
-						if (pCur->level < pPrv->level)
-							pPrv->level = pCur->level;
+						if (rCur.level < rPrv.level)
+							rPrv.level = rCur.level;
 						++iDuplicate;
 					}
-					delete pCur;
-					//m_iplist.RemoveAt(i);	// way too expensive (read above)
-					pcToDelete[i] = 1;		// mark this entry as 'to delete'
-					++iNumToDelete;
+					delete *pCur;
+					++iDeleted;
 				} else
-					pPrv = pCur;
+					*++pPrv = *pCur;
 			}
 
-			// Create new IP-filter list which contains only the entries from
-			// the original IP-filter list which are not to be deleted.
-			if (iNumToDelete > 0) {
-				CIPFilterArray newList;
-				int iNewListIndex = (int)(m_iplist.GetCount() - iNumToDelete);
-				newList.SetSize(iNewListIndex);
-				for (INT_PTR i = m_iplist.GetCount(); --i >= 0;)
-					if (!pcToDelete[i])
-						newList[--iNewListIndex] = m_iplist[i];
-
-				ASSERT(!iNewListIndex); //everything has been copied
-
-				// Replace current list with new list. Dump, but still fast enough (only 1 memcpy)
-				m_iplist.RemoveAll();
-				m_iplist.Append(newList);
-				newList.RemoveAll();
+			if (iDeleted > 0) {
+				m_iplist.SetSize(m_iplist.GetCount() - iDeleted);	// Truncate the IP filter
 				m_bModified = true;
 			}
-			delete[] pcToDelete;
 		}
 
 		if (thePrefs.GetVerbose()) {
@@ -271,6 +257,8 @@ INT_PTR CIPFilter::AddFromFile(LPCTSTR pszFilePath, bool bShowResponse)
 	}
 	return m_iplist.GetCount();
 }
+#pragma warning(pop)
+
 
 void CIPFilter::SaveToDefaultFile()
 {
@@ -423,11 +411,6 @@ bool CIPFilter::IsFiltered(uint32 ip, uint32 level) /*const*/
 CString CIPFilter::GetLastHit() const
 {
 	return CString(m_pLastHit ? m_pLastHit->desc : "Not available");
-}
-
-const CIPFilterArray& CIPFilter::GetIPFilter() const
-{
-	return m_iplist;
 }
 
 bool CIPFilter::RemoveIPFilter(const SIPFilter *pFilter)

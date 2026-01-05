@@ -47,8 +47,8 @@ protected:
 public:
 	CQuantizer(UINT nMaxColors, UINT nColorBits);
 	virtual ~CQuantizer();
-	BOOL ProcessImage(HANDLE hImage);
-	UINT GetColorCount() const;
+	BOOL ProcessImage(void *bmpImage);
+	UINT GetColorCount() const			{ return m_nLeafCount; }
 	void SetColorTable(RGBQUAD *prgb);
 
 protected:

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -116,7 +116,7 @@ void CFriendListCtrl::AddFriend(const CFriend *pFriend)
 	int iItem = InsertItem(LVIF_TEXT | LVIF_PARAM, GetItemCount(), pFriend->m_strName, 0, 0, 0, (LPARAM)pFriend);
 	if (iItem >= 0)
 		UpdateFriend(iItem, pFriend);
-	theApp.emuledlg->chatwnd->UpdateFriendlistCount(theApp.friendlist->GetCount());
+	theApp.emuledlg->chatwnd->UpdateFriendlistCount();
 }
 
 void CFriendListCtrl::RemoveFriend(const CFriend *pFriend)
@@ -127,7 +127,7 @@ void CFriendListCtrl::RemoveFriend(const CFriend *pFriend)
 	int iItem = FindItem(&find);
 	if (iItem >= 0)
 		DeleteItem(iItem);
-	theApp.emuledlg->chatwnd->UpdateFriendlistCount(theApp.friendlist->GetCount());
+	theApp.emuledlg->chatwnd->UpdateFriendlistCount();
 }
 
 void CFriendListCtrl::RefreshFriend(const CFriend *pFriend)
@@ -142,7 +142,7 @@ void CFriendListCtrl::RefreshFriend(const CFriend *pFriend)
 
 void CFriendListCtrl::OnContextMenu(CWnd*, CPoint point)
 {
-	CTitleMenu ClientMenu;
+	CTitledMenu ClientMenu;
 	ClientMenu.CreatePopupMenu();
 	ClientMenu.AddMenuTitle(GetResString(IDS_FRIENDLIST), true);
 
@@ -296,6 +296,6 @@ int CALLBACK CFriendListCtrl::SortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lP
 
 void CFriendListCtrl::UpdateList()
 {
-	theApp.emuledlg->chatwnd->UpdateFriendlistCount(theApp.friendlist->GetCount());
+	theApp.emuledlg->chatwnd->UpdateFriendlistCount();
 	SortItems(SortProc, MAKELONG(GetSortItem(), !GetSortAscending()));
 }

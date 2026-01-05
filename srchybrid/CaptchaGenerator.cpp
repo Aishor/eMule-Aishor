@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,8 +15,10 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "StdAfx.h"
+#include <atlimage.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "CaptchaGenerator.h"
-#include "CxImage/xImage.h"
 #include "OtherFunctions.h"
 
 #ifdef _DEBUG
@@ -26,77 +28,117 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 #define LETTERSIZE  32
-#define CROWDEDSIZE 18
+#define CROWDEDSIZE 23
 
 // fairly simple captcha generator, might be improved if spammers think it's really worth it to solve captchas in eMule
 
-static TCHAR const schCaptchaContent[] = _T("ABCDEFGHIJKLMNPQRSTUVWXYZ123456789");
+static TCHAR const sCaptchaCharSet[] = _T("ABCDEFGHIJKLMNPQRSTUVWXYZ123456789");
 
 CCaptchaGenerator::CCaptchaGenerator(uint32 nLetterCount)
-	: m_pimgCaptcha()
+	: m_hbmpCaptcha()
 {
 	ReGenerateCaptcha(nLetterCount);
-}
-
-CCaptchaGenerator::~CCaptchaGenerator()
-{
-	Clear();
 }
 
 void CCaptchaGenerator::ReGenerateCaptcha(uint32 nLetterCount)
 {
 	Clear();
 	//CUpDownClient::ProcessCaptchaRequest verifies that height is between 11 and 49, width between 11 and 149
-	CxImage *pimgResult = new CxImage(nLetterCount > 1 ? ((LETTERSIZE) + nLetterCount * (CROWDEDSIZE)) : (LETTERSIZE), 48, 1, CXIMAGE_FORMAT_BMP);
-	pimgResult->SetPaletteColor(0, 255, 255, 255);
-	pimgResult->SetPaletteColor(1, 0, 0, 0, 0);
-	pimgResult->Clear();
-	CxImage imgBlank(LETTERSIZE, LETTERSIZE, 1, CXIMAGE_FORMAT_BMP);
-	imgBlank.SetPaletteColor(0, 255, 255, 255);
-	imgBlank.SetPaletteColor(1, 0, 0, 0, 0);
-	imgBlank.Clear();
-	TCHAR strLetter[2] = {};
-	for (uint32 i = 0; i < nLetterCount; ++i) {
-		CxImage imgLetter(imgBlank);
+	int nWidth = nLetterCount > 1 ? ((LETTERSIZE)+nLetterCount * (CROWDEDSIZE)) : (LETTERSIZE);
+	int nHeight = 48;
+	struct {
+		BITMAPINFOHEADER bmiHeader;
+		RGBQUAD bmiColors[2];
+	} bmiMono = { {0}, { {255, 255, 255} } };
+	bmiMono.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmiMono.bmiHeader.biWidth = nWidth;
+	bmiMono.bmiHeader.biHeight = nHeight;
+	bmiMono.bmiHeader.biPlanes = 1;
+	bmiMono.bmiHeader.biBitCount = 1;
+	bmiMono.bmiHeader.biCompression = BI_RGB;
+	void *pv;
+	m_hbmpCaptcha = ::CreateDIBSection(NULL, (BITMAPINFO*)&bmiMono, DIB_RGB_COLORS, &pv, NULL, 0);
+	bmiMono.bmiHeader.biWidth = LETTERSIZE;
+	HBITMAP hBitMem = ::CreateDIBSection(NULL, (BITMAPINFO*)&bmiMono, DIB_RGB_COLORS, &pv, NULL, 0);
 
-		strLetter[0] = schCaptchaContent[rand() % (_countof(schCaptchaContent) - 1)];
-		m_strCaptchaText += strLetter[0];
+	int nFontSize = 40;
+	LOGFONT m_LF = { 0 };
+	m_LF.lfHeight = nFontSize;
+	m_LF.lfWeight = FW_HEAVY;
+	_tcsncpy(m_LF.lfFaceName, _T("Arial"), LF_FACESIZE - 1);	// For UNICODE support
+	HFONT hFont = CreateFontIndirect(&m_LF);
 
-		int32_t iFontSize = rand() % 10;
-		int32_t iTextOffsetX = 3 + rand() % 11;
-		imgLetter.DrawString(NULL, iTextOffsetX, 32, strLetter, imgLetter.RGBtoRGBQUAD(RGB(0, 0, 0)), _T("Arial"), 40 - iFontSize, 1000);
-		float fRotate = 35.0f - (rand() % 71);
-		imgLetter.Rotate2(fRotate, NULL, CxImage::IM_BILINEAR, CxImage::OM_BACKGROUND, 0, false, false);
-		uint32 nOffset = i * CROWDEDSIZE;
-		ASSERT(pimgResult->GetHeight() >= imgLetter.GetHeight() && pimgResult->GetWidth() >= nOffset + imgLetter.GetWidth());
-		for (uint32 j = 0; j < imgLetter.GetHeight(); ++j)
-			for (uint32 k = 0; k < imgLetter.GetWidth(); ++k)
-				if (pimgResult->GetPixelIndex(nOffset + k, j) != 1)
-					pimgResult->SetPixelIndex(nOffset + k, j, imgLetter.GetPixelIndex(k, j));
+	HDC hdc = ::CreateCompatibleDC(NULL);
+	HDC hdcMem = ::CreateCompatibleDC(NULL);
+	HBITMAP hBitmapOld = (HBITMAP)::SelectObject(hdc, m_hbmpCaptcha);
+	HBITMAP hBitMemOld = (HBITMAP)::SelectObject(hdcMem, hBitMem);
+	HFONT hFontOld = (HFONT)::SelectObject(hdcMem, hFont);
+	ASSERT(hdc && hdcMem && m_hbmpCaptcha && hBitMem && hFont);
+
+	WCHAR wT[2] = { 0 };
+	int xOff = (CROWDEDSIZE) / 2;
+	for (uint32 n = 0; n < nLetterCount; ++n) {
+		*wT = sCaptchaCharSet[rand() % (_countof(sCaptchaCharSet) - 1)];
+		m_strCaptchaText += *wT;
+		RECT r{0, 0, (LETTERSIZE), (LETTERSIZE) };
+		::DrawText(hdcMem, wT, 1, &r, DT_TOP | DT_LEFT | DT_CALCRECT);
+		::DrawText(hdcMem, wT, 1, &r, DT_TOP | DT_LEFT);
+		float scale = (nFontSize - (rand() % 10)) / (float)nFontSize;
+		float angle = (35 - (rand() % 71)) * (float)M_PI / 180;
+		float co = cosf(angle);
+		float si = sinf(angle);
+		LONG x2 = (r.right - r.left) / 2;
+		LONG y2 = (r.bottom - r.top) / 2;
+		RECT r2{ r.left - x2, r.top - y2, r.right - x2, r.bottom - y2 };
+		POINT ap[3];
+		x2 += xOff;
+		y2 += rand() & 8;
+		ap[0].x = (LONG)(x2 + scale * (r2.left * co - r2.top * si));
+		ap[0].y = (LONG)(y2 + scale * (r2.left * si + r2.top * co));
+		ap[1].x = (LONG)(x2 + scale * (r2.right * co - r2.top * si));
+		ap[1].y = (LONG)(y2 + scale * (r2.right * si + r2.top * co));
+		ap[2].x = (LONG)(x2 + scale * (r2.left * co - r2.bottom * si));
+		ap[2].y = (LONG)(y2 + scale * (r2.left * si + r2.bottom * co));
+		::PlgBlt(hdc, ap, hdcMem, 0, 0, r.right - r.left, r.bottom - r.top, NULL, 0, 0);
+		xOff += CROWDEDSIZE;
 	}
-	pimgResult->Jitter(1);
-	//pimgResult->Save(_T("D:\\CaptchaTest.bmp"), CXIMAGE_FORMAT_BMP);
-	m_pimgCaptcha = pimgResult;
+	for (int j = nWidth * nHeight / 4; --j > 0;) //add noise
+		::SetPixel(hdc, rand() % nWidth, rand() % nHeight, RGB(0, 0, 0));
+
+	::SelectObject(hdcMem, hFontOld);
+	::DeleteObject(hFont);
+	::SelectObject(hdcMem, hBitMemOld);
+	::DeleteObject(hBitMem);
+	::DeleteDC(hdcMem);
+	::SelectObject(hdc, hBitmapOld);
+	::DeleteDC(hdc);
+#if TEST_FRAMEGRABBER //reusing macro from FrameGrabThread
+	CImage captcha;
+	captcha.Attach(m_hbmpCaptcha);
+	captcha.Save(_T("\\tmp\\CaptchaTest.bmp"), Gdiplus::ImageFormatBMP);
+	captcha.Detach();
+#endif
 }
 
 void CCaptchaGenerator::Clear()
 {
-	delete m_pimgCaptcha;
-	m_pimgCaptcha = NULL;
+	if (m_hbmpCaptcha) {
+		::DeleteObject(m_hbmpCaptcha);
+		m_hbmpCaptcha = 0;
+	}
 	m_strCaptchaText.Empty();
 }
 
-bool CCaptchaGenerator::WriteCaptchaImage(CFileDataIO &file)
+bool CCaptchaGenerator::WriteCaptchaImage(CFileDataIO &file) const
 {
-	if (m_pimgCaptcha == NULL)
-		return false;
-	BYTE *pbyBuffer = NULL;
-	int32_t ulSize = 0;
-	if (m_pimgCaptcha->Encode(pbyBuffer, ulSize, CXIMAGE_FORMAT_BMP)) {
-		file.Write(pbyBuffer, ulSize);
-		ASSERT(ulSize > 100 && ulSize < 1000);
-		free(pbyBuffer);
-		return true;
+	if (m_hbmpCaptcha) {
+		size_t size;
+		byte *buf = bmp2mem(m_hbmpCaptcha, size, Gdiplus::ImageFormatBMP);
+		if (buf) {
+			file.Write(buf, (UINT)size);
+			delete[] buf;
+			return true;
+		}
 	}
 	return false;
 }

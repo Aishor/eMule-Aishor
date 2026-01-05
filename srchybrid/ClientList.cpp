@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -49,9 +49,11 @@ static char THIS_FILE[] = __FILE__;
 
 CClientList::CClientList()
 	: m_pBuddy()
+	, m_dwLastBanCleanUp(::GetTickCount())
+	, m_dwLastTrackedCleanUp(m_dwLastBanCleanUp)
+	, m_dwLastClientCleanUp(m_dwLastBanCleanUp)
 	, m_nBuddyStatus(Disconnected)
 {
-	m_dwLastBanCleanUp = m_dwLastTrackedCleanUp = m_dwLastClientCleanUp = ::GetTickCount();
 	m_bannedList.InitHashTable(331);
 	m_trackedClientsMap.InitHashTable(2011);
 	m_globDeadSourceList.Init(true);
@@ -63,11 +65,11 @@ CClientList::~CClientList()
 }
 
 void CClientList::GetStatistics(uint32 &ruTotalClients
-	, int stats[NUM_CLIENTLIST_STATS]
-	, CClientVersionMap &clientVersionEDonkey
-	, CClientVersionMap &clientVersionEDonkeyHybrid
-	, CClientVersionMap &clientVersionEMule
-	, CClientVersionMap &clientVersionAMule)
+							, int stats[NUM_CLIENTLIST_STATS]
+							, CClientVersionMap &clientVersionEDonkey
+							, CClientVersionMap &clientVersionEDonkeyHybrid
+							, CClientVersionMap &clientVersionEMule
+							, CClientVersionMap &clientVersionAMule)
 {
 	ruTotalClients = (uint32)list.GetCount();
 	memset(stats, 0, NUM_CLIENTLIST_STATS * sizeof stats[0]);
@@ -247,11 +249,62 @@ CUpDownClient *CClientList::FindClientByConnIP(uint32 clientip, UINT port) const
 	return NULL;
 }
 
+CUpDownClient* CClientList::FindClientByIP(uint32 clientip) const
+{
+	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
+		CUpDownClient *cur_client = list.GetNext(pos);
+		if (cur_client->GetIP() == clientip)
+			return cur_client;
+	}
+	return NULL;
+}
+
 CUpDownClient* CClientList::FindClientByIP(uint32 clientip, UINT port) const
 {
 	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
 		CUpDownClient *cur_client = list.GetNext(pos);
 		if (cur_client->GetIP() == clientip && cur_client->GetUserPort() == port)
+			return cur_client;
+	}
+	return NULL;
+}
+
+CUpDownClient* CClientList::FindClientByIP_KadPort(uint32 ip, uint16 port) const
+{
+	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
+		CUpDownClient *cur_client = list.GetNext(pos);
+		if (cur_client->GetIP() == ip && cur_client->GetKadPort() == port)
+			return cur_client;
+	}
+	return NULL;
+}
+
+CUpDownClient* CClientList::FindClientByIP_UDP(uint32 clientip, UINT nUDPport) const
+{
+	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
+		CUpDownClient *cur_client = list.GetNext(pos);
+		if (cur_client->GetIP() == clientip && cur_client->GetUDPPort() == nUDPport)
+			return cur_client;
+	}
+	return NULL;
+}
+
+CUpDownClient* CClientList::FindClientBySearchID(uint32 dwSearchID) const
+{
+	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
+		CUpDownClient *cur_client = list.GetNext(pos);
+		if (cur_client->GetSearchID() == dwSearchID)
+			return cur_client;
+	}
+	return NULL;
+}
+
+CUpDownClient* CClientList::FindClientByServerID(uint32 uServerIP, uint32 uED2KUserID) const
+{
+	uint32 uHybridUserID = ntohl(uED2KUserID);
+	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
+		CUpDownClient *cur_client = list.GetNext(pos);
+		if (cur_client->GetServerIP() == uServerIP && cur_client->GetUserIDHybrid() == uHybridUserID)
 			return cur_client;
 	}
 	return NULL;
@@ -272,52 +325,11 @@ CUpDownClient* CClientList::FindClientByUserHash(const uchar *clienthash, uint32
 	return pFound;
 }
 
-CUpDownClient* CClientList::FindClientByIP(uint32 clientip) const
-{
-	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
-		CUpDownClient *cur_client = list.GetNext(pos);
-		if (cur_client->GetIP() == clientip)
-			return cur_client;
-	}
-	return NULL;
-}
-
-CUpDownClient* CClientList::FindClientByIP_UDP(uint32 clientip, UINT nUDPport) const
-{
-	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
-		CUpDownClient *cur_client = list.GetNext(pos);
-		if (cur_client->GetIP() == clientip && cur_client->GetUDPPort() == nUDPport)
-			return cur_client;
-	}
-	return NULL;
-}
-
 CUpDownClient* CClientList::FindClientByUserID_KadPort(uint32 clientID, uint16 kadPort) const
 {
 	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
 		CUpDownClient *cur_client = list.GetNext(pos);
 		if (cur_client->GetUserIDHybrid() == clientID && cur_client->GetKadPort() == kadPort)
-			return cur_client;
-	}
-	return NULL;
-}
-
-CUpDownClient* CClientList::FindClientByIP_KadPort(uint32 ip, uint16 port) const
-{
-	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
-		CUpDownClient *cur_client = list.GetNext(pos);
-		if (cur_client->GetIP() == ip && cur_client->GetKadPort() == port)
-			return cur_client;
-	}
-	return NULL;
-}
-
-CUpDownClient* CClientList::FindClientByServerID(uint32 uServerIP, uint32 uED2KUserID) const
-{
-	uint32 uHybridUserID = ntohl(uED2KUserID);
-	for (POSITION pos = list.GetHeadPosition(); pos != NULL;) {
-		CUpDownClient *cur_client = list.GetNext(pos);
-		if (cur_client->GetServerIP() == uServerIP && cur_client->GetUserIDHybrid() == uHybridUserID)
 			return cur_client;
 	}
 	return NULL;
@@ -352,7 +364,7 @@ void CClientList::RemoveAllBannedClients()
 ///////////////////////////////////////////////////////////////////////////////
 // Tracked clients
 
-void CClientList::AddTrackClient(CUpDownClient *toadd)
+void CClientList::AddTrackClient(const CUpDownClient *toadd)
 {
 	CDeletedClient *pResult;
 	if (m_trackedClientsMap.Lookup(toadd->GetIP(), pResult)) {
@@ -364,7 +376,7 @@ void CClientList::AddTrackClient(CUpDownClient *toadd)
 				return;
 			}
 
-		pResult->m_ItemsList.Add(PORTANDHASH{ toadd->GetUserPort(), toadd->Credits() });
+		pResult->m_ItemsList.Add(PORTANDHASH{toadd->GetUserPort(), toadd->Credits()});
 	} else
 		m_trackedClientsMap[toadd->GetIP()] = new CDeletedClient(toadd);
 }
@@ -540,9 +552,9 @@ void CClientList::Process()
 		case KS_CONNECTING_BUDDY:
 			//We are trying to connect to this client.
 			//Although it should NOT happen, we make sure we are not already connected to a buddy.
-			//If we are we set to KS_NONE and it's removed next cycle.
-			//But if we are not already connected, make sure we set the flag to connecting so we know
-			//things are working correctly.
+			//If we are, set state to KS_NONE and it's removed next cycle.
+			//But if we are not already connected, we set the flag to 'Connecting',
+			//so we know things are working correctly.
 			if (m_nBuddyStatus == Connected)
 				cur_client->SetKadState(KS_NONE);
 			else {
@@ -551,8 +563,8 @@ void CClientList::Process()
 			}
 			break;
 		case KS_CONNECTED_BUDDY:
-			//A potential connected buddy client wanting to me in the Kad network
-			//We set our flag to connected to make sure things are still working correctly.
+			//A potential connected buddy client in the Kad network.
+			//We set our flag to Connected to make sure things are still working correctly.
 			buddy = Connected;
 
 			//If m_nBuddyStatus is not connected already, we set this client as our buddy!
@@ -595,7 +607,8 @@ void CClientList::Process()
 			//TODO 0.49b: Kad buddies won't work with RequireCrypt, so it is disabled for now but should (and will)
 			//be fixed in later version
 			// Update: Buddy connections itself support obfuscation properly since 0.49a (this makes it work fine if our buddy uses require crypt),
-			// however callback requests don't support it yet so we wouldn't be able to answer callback requests with RequireCrypt, protocol change intended for the next version
+			// however callback requests don't support it yet so we wouldn't be able to answer callback requests with RequireCrypt,
+			// protocol change intended for the next version
 			if (m_nBuddyStatus == Disconnected && Kademlia::CKademlia::GetPrefs()->GetFindBuddy() && !thePrefs.IsCryptLayerRequired()) {
 				DEBUG_ONLY(DebugLog(_T("Starting Buddy search")));
 				//We are a firewalled client with no buddy. We have also waited a set time
@@ -608,14 +621,12 @@ void CClientList::Process()
 					Kademlia::CKademlia::GetPrefs()->SetFindBuddy();
 				}
 			}
-		} else {
-			if (m_pBuddy) {
-				//Lets make sure that if we have a buddy, they are firewalled!
-				//If they are also not firewalled, then someone must have fixed their firewall or stopped saturating their line.
-				//We just set the state of this buddy to KS_NONE and things will be cleared up with the next cycle.
-				if (!m_pBuddy->HasLowID())
-					m_pBuddy->SetKadState(KS_NONE);
-			}
+		} else if (m_pBuddy) {
+			//Lets make sure that if we have a buddy, they are firewalled!
+			//If they are also not firewalled, then someone must have fixed their firewall or stopped saturating their line.
+			//We just set the state of this buddy to KS_NONE and things will be cleared up with the next cycle.
+			if (!m_pBuddy->HasLowID())
+				m_pBuddy->SetKadState(KS_NONE);
 		}
 	} else if (m_pBuddy) {
 		//We are not connected any more. Just set this buddy to KS_NONE and things will be cleared out on next cycle.
@@ -659,7 +670,7 @@ bool CClientList::IsValidClient(CUpDownClient *tocheck) const
 ///////////////////////////////////////////////////////////////////////////////
 // Kad client list
 
-bool CClientList::RequestTCP(Kademlia::CContact *contact, uint8 byConnectOptions)
+bool CClientList::RequestTCP(const Kademlia::CContact *contact, uint8 byConnectOptions)
 {
 	uint32 nContactIP = contact->GetNetIP();
 	// don't connect ourself
@@ -691,7 +702,7 @@ bool CClientList::RequestTCP(Kademlia::CContact *contact, uint8 byConnectOptions
 	return true;
 }
 
-void CClientList::RequestBuddy(Kademlia::CContact *contact, uint8 byConnectOptions)
+void CClientList::RequestBuddy(const Kademlia::CContact *contact, uint8 byConnectOptions)
 {
 	uint32 nContactIP = contact->GetNetIP();
 	// don't connect to ourself
@@ -718,7 +729,7 @@ void CClientList::RequestBuddy(Kademlia::CContact *contact, uint8 byConnectOptio
 	AddClient(pNewClient);
 }
 
-bool CClientList::IncomingBuddy(Kademlia::CContact *contact, Kademlia::CUInt128 *buddyID)
+bool CClientList::IncomingBuddy(const Kademlia::CContact *contact, const Kademlia::CUInt128 &buddyID)
 {
 	uint32 nContactIP = contact->GetNetIP();
 	//If eMule already knows this client, abort this. It could cause conflicts.
@@ -736,10 +747,10 @@ bool CClientList::IncomingBuddy(Kademlia::CContact *contact, Kademlia::CUInt128 
 	CUpDownClient *pNewClient = new CUpDownClient(NULL, contact->GetTCPPort(), contact->GetIPAddress(), 0, 0, false);
 	pNewClient->SetKadPort(contact->GetUDPPort());
 	pNewClient->SetKadState(KS_INCOMING_BUDDY);
-	byte ID[16];
+	byte ID[sizeof Kademlia::CUInt128];
 	contact->GetClientID().ToByteArray(ID);
 	pNewClient->SetUserHash(ID); //??
-	buddyID->ToByteArray(ID);
+	buddyID.ToByteArray(ID);
 	pNewClient->SetBuddyID(ID);
 	AddToKadList(pNewClient);
 	AddClient(pNewClient);
@@ -819,7 +830,7 @@ CDeletedClient::CDeletedClient(const CUpDownClient *pClient)
 {
 	m_cBadRequest = 0;
 	m_dwInserted = ::GetTickCount();
-	m_ItemsList.Add(PORTANDHASH{ pClient->GetUserPort(), pClient->Credits() });
+	m_ItemsList.Add(PORTANDHASH{pClient->GetUserPort(), pClient->Credits()});
 }
 
 // ZZ:DownloadManager -->
@@ -844,7 +855,7 @@ void CClientList::ProcessA4AFClients() const
 void CClientList::AddKadFirewallRequest(uint32 dwIP)
 {
 	const DWORD curTick = ::GetTickCount();
-	listFirewallCheckRequests.AddHead(IPANDTICS{ dwIP, curTick });
+	listFirewallCheckRequests.AddHead(IPANDTICS{dwIP, curTick});
 	while (!listFirewallCheckRequests.IsEmpty() && curTick >= listFirewallCheckRequests.GetTail().dwInserted + SEC2MS(180))
 		listFirewallCheckRequests.RemoveTail();
 }
@@ -871,7 +882,7 @@ void CClientList::AddConnectingClient(CUpDownClient *pToAdd)
 		}
 
 	ASSERT(pToAdd->GetConnectingState() != CCS_NONE);
-	m_liConnectingClients.AddTail(CONNECTINGCLIENT{ pToAdd, ::GetTickCount() });
+	m_liConnectingClients.AddTail(CONNECTINGCLIENT{pToAdd, ::GetTickCount()});
 }
 
 void CClientList::ProcessConnectingClientsList()
@@ -904,7 +915,7 @@ void CClientList::RemoveConnectingClient(const CUpDownClient *pToRemove)
 void CClientList::AddTrackCallbackRequests(uint32 dwIP)
 {
 	const DWORD curTick = ::GetTickCount();
-	listDirectCallbackRequests.AddHead(IPANDTICS{ dwIP, curTick });
+	listDirectCallbackRequests.AddHead(IPANDTICS{dwIP, curTick});
 	while (!listDirectCallbackRequests.IsEmpty() && curTick >= listDirectCallbackRequests.GetTail().dwInserted + SEC2MS(180))
 		listDirectCallbackRequests.RemoveTail();
 }

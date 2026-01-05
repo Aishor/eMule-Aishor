@@ -127,7 +127,7 @@ CString CIni::GetStringLong(LPCTSTR lpszEntry, LPCTSTR lpszDefault, LPCTSTR lpsz
 
 	CString ret;
 	do {
-		GetPrivateProfileString(m_strSection, lpszEntry, (lpszDefault ? lpszDefault : _T(""))
+		::GetPrivateProfileString(m_strSection, lpszEntry, (lpszDefault ? lpszDefault : _T(""))
 			, ret.GetBuffer(maxstrlen), maxstrlen, m_strFileName);
 		ret.ReleaseBuffer();
 		if ((unsigned)ret.GetLength() < maxstrlen - 2)
@@ -144,7 +144,7 @@ CString CIni::GetStringUTF8(LPCTSTR lpszEntry, LPCTSTR lpszDefault, LPCTSTR lpsz
 		m_strSection = lpszSection;
 
 	CStringA strUTF8;
-	GetPrivateProfileStringA(CStringA(m_strSection), CStringA(lpszEntry), CStringA(lpszDefault)
+	::GetPrivateProfileStringA(CStringA(m_strSection), CStringA(lpszEntry), CStringA(lpszDefault)
 		, strUTF8.GetBuffer(MAX_INI_BUFFER), MAX_INI_BUFFER, CStringA(m_strFileName));
 	strUTF8.ReleaseBuffer();
 	return OptUtf8ToStr(strUTF8);
@@ -201,10 +201,12 @@ bool CIni::GetBool(LPCTSTR lpszEntry, bool bDefault, LPCTSTR lpszSection)
 	return _tstoi(GetString(lpszEntry, szDefault, lpszSection)) != 0;
 }
 
+#pragma warning(push)
+#pragma warning(disable:4774)
 CPoint CIni::GetPoint(LPCTSTR lpszEntry, const CPoint &ptDefault, LPCTSTR lpszSection)
 {
 	static LPCTSTR const pszFmt = _T("(%ld,%ld)");
-	CPoint ptReturn = ptDefault;
+	CPoint ptReturn(ptDefault);
 
 	CString strDefault;
 	strDefault.Format(pszFmt, ptDefault.x, ptDefault.y);
@@ -233,6 +235,7 @@ CRect CIni::GetRect(LPCTSTR lpszEntry, const CRect &rcDefault, LPCTSTR lpszSecti
 	}
 	return rcReturn;
 }
+#pragma warning(pop)
 
 COLORREF CIni::GetColRef(LPCTSTR lpszEntry, COLORREF crDefault, LPCTSTR lpszSection)
 {
@@ -682,7 +685,7 @@ int CIni::Parse(const CString &strIn, int nOffset, CString &strOut)
 CString CIni::Read(LPCTSTR lpszFileName, LPCTSTR lpszSection, LPCTSTR lpszEntry, LPCTSTR lpszDefault)
 {
 	CString strReturn;
-	GetPrivateProfileString(lpszSection
+	::GetPrivateProfileString(lpszSection
 		, lpszEntry
 		, lpszDefault
 		, strReturn.GetBuffer(MAX_INI_BUFFER)

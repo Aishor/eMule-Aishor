@@ -29,7 +29,6 @@ their client on the eMule forum.
 */
 
 #include "stdafx.h"
-#include <string.h>
 #include "kademlia/io/IOException.h"
 
 #ifdef _DEBUG
@@ -41,8 +40,8 @@ static char THIS_FILE[] = __FILE__;
 using namespace Kademlia;
 
 CIOException::CIOException(int iCause)
+	: m_iCause(iCause)
 {
-	m_iCause = iCause;
 }
 /*
 BOOL CIOException::GetErrorMessage(LPTSTR lpszError, UINT uMaxError, PUINT pnHelpContext) const

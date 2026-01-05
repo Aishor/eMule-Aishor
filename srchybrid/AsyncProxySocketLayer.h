@@ -148,7 +148,7 @@ public:
 	BOOL PrepareListen(unsigned long ip);
 
 	//Returns the type of the proxy
-	int GetProxyType() const;
+	int GetProxyType() const			{ return m_ProxyData.nProxyType; }
 
 	virtual bool GetPeerName(CString &rPeerAddress, UINT &rPeerPort);
 	virtual BOOL GetPeerName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen);

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #include "StatisticFile.h"
 #include "ShareableFile.h"
 
-class CxImage;
 class CUpDownClient;
 class Packet;
 class CFileDataIO;
@@ -77,7 +76,7 @@ public:
 	void	AddUploadingClient(CUpDownClient *client);
 	void	RemoveUploadingClient(CUpDownClient *client);
 	virtual void	UpdatePartsInfo();
-	virtual	void	DrawShareStatusBar(CDC *dc, LPCRECT rect, bool onlygreyrect, bool bFlat) const;
+	virtual	void	DrawShareStatusBar(CDC &dc, LPCRECT rect, bool onlygreyrect, bool bFlat) const;
 
 	// comment
 	void	SetFileComment(LPCTSTR pszComment);
@@ -111,7 +110,7 @@ public:
 	// preview
 	bool	IsMovie() const;
 	virtual bool GrabImage(uint8 nFramesToGrab, double dStartTime, bool bReduceColor, uint16 nMaxWidth, void *pSender);
-	virtual void GrabbingFinished(CxImage **imgResults, uint8 nFramesGrabbed, void *pSender);
+	virtual void GrabbingFinished(HBITMAP *imgResults, uint8 nFramesGrabbed, void *pSender);
 
 	bool	ImportParts();
 
@@ -132,7 +131,7 @@ public:
 	// NOTE: this value can *not* be compared with NT's version of the UTC time
 	time_t	m_tUtcLastModified;
 
-	time_t	m_nCompleteSourcesTime;
+	time_t	m_tCompleteSourcesTime;
 	uint16	m_nCompleteSourcesCount;
 	uint16	m_nCompleteSourcesCountLo;
 	uint16	m_nCompleteSourcesCountHi;

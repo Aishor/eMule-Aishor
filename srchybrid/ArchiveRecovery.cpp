@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -789,7 +789,7 @@ RAR_BlockFile* CArchiveRecovery::scanForRarFileHeader(CFile *input, archiveScann
 				// CRC of fields from HEAD_TYPE to ATTR + filename + ext. stuff
 				uint16 headCRC = readUInt16(input);
 
-				RARFILEHDR *hdr = (RARFILEHDR*)checkCRC;
+				const RARFILEHDR *hdr = (RARFILEHDR*)checkCRC;
 				input->Read(checkCRC, sizeof *hdr);
 
 				// this bit always is set
@@ -927,7 +927,7 @@ RAR_BlockFile* CArchiveRecovery::scanForRarFileHeader(CFile *input, archiveScann
 }
 
 // This assumes that head crc has already been checked
-bool CArchiveRecovery::validateRarFileBlock(RAR_BlockFile *block)
+bool CArchiveRecovery::validateRarFileBlock(const RAR_BlockFile *block)
 {
 	if (block->HEAD_TYPE != 0x74)
 		return false;
@@ -1043,7 +1043,7 @@ void make_crctable()   // initializes CRC table
 
 // Updates crc from addr till addr+len-1
 //
-ULONG getcrc(ULONG crc, UCHAR *addr, INT len)
+ULONG getcrc(ULONG crc, const UCHAR *addr, INT len)
 {
 	while (len--)
 		crc = crctable[(unsigned char)crc ^ (*addr++)] ^ (crc >> 8);
@@ -1432,7 +1432,7 @@ void CArchiveRecovery::ISOReadDirectory(archiveScannerThreadParams_s *aitp, UINT
 		// selfdir, parentdir ( "." && ".." ) handling
 		if ((file->fileFlags & ISO_DIRECTORY) && file->nameLen == 1 && (unsigned)file->name[0] <= 1) {
 			// get size of directory and calculate how many sectors are spanned
-			if (file->name[0] == 0x00)
+			if (file->name[0] == 0)
 				iSecsOfDirectoy = (int)(file->dataSize / secSize);
 			delete file;
 			continue;
@@ -1464,7 +1464,7 @@ void CArchiveRecovery::ISOReadDirectory(archiveScannerThreadParams_s *aitp, UINT
 	}
 }
 
-bool CArchiveRecovery::recoverISO(CFile *isoInput, CFile *isoOutput, archiveScannerThreadParams_s *aitp
+bool CArchiveRecovery::recoverISO(CFile *isoInput, const CFile *isoOutput, archiveScannerThreadParams_s *aitp
 		, CArray<Gap_Struct> *paFilled)
 {
 	if (isoOutput)
@@ -1525,13 +1525,13 @@ bool CArchiveRecovery::recoverISO(CFile *isoInput, CFile *isoOutput, archiveScan
 		if (tempSec.descr_type == 0x00 && tempSec.descr_ver == 0x01) {
 
 			if (memcmp(tempSec.magic, sig_udf_bea, 5) == 0 && iUdfDetectState == 0)
-				iUdfDetectState = 1;// detected Beginning Extended Area Descriptor (BEA)
+				iUdfDetectState = 1;	// detected Beginning Extended Area Descriptor (BEA)
 
-			else if (memcmp(tempSec.magic, sig_udf_nsr2, 5) == 0 && iUdfDetectState == 1) // Volume Sequence Descriptor (VSD) 2
-				iUdfDetectState = 2;
+			else if (memcmp(tempSec.magic, sig_udf_nsr2, 5) == 0 && iUdfDetectState == 1)
+				iUdfDetectState = 2;	// Volume Sequence Descriptor (VSD) 2
 
-			else if (memcmp(tempSec.magic, sig_udf_nsr3, 5) == 0 && iUdfDetectState == 1) // Volume Sequence Descriptor (VSD) 3
-				iUdfDetectState = 3;
+			else if (memcmp(tempSec.magic, sig_udf_nsr3, 5) == 0 && iUdfDetectState == 1)
+				iUdfDetectState = 3;	// Volume Sequence Descriptor (VSD) 3
 
 			else if (memcmp(tempSec.magic, sig_tea, 5) == 0 && (iUdfDetectState == 2 || iUdfDetectState == 3))
 				iUdfDetectState += 2;	// remember Terminating Extended Area Descriptor (TEA) received

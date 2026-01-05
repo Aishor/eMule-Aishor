@@ -20,7 +20,6 @@
 #include "otherfunctions.h"
 #include "enbitmap.h"
 #include "TaskbarNotifier.h"
-#include "emuledlg.h"
 #include "UserMsgs.h"
 #include "opcodes.h"
 
@@ -90,22 +89,11 @@ CTaskbarNotifier::CTaskbarNotifier()
 	, m_nIncrementHide()
 	, m_nHistoryPosition()
 	, m_nActiveMessageType(TBN_NULL)
-	, m_pfnAlphaBlend()
 {
-	m_hMsImg32Dll = LoadLibrary(_T("MSIMG32.DLL"));
-	if (m_hMsImg32Dll) {
-		(FARPROC &)m_pfnAlphaBlend = GetProcAddress(m_hMsImg32Dll, "AlphaBlend");
-		if (m_pfnAlphaBlend == NULL) {
-			FreeLibrary(m_hMsImg32Dll);
-			m_hMsImg32Dll = NULL;
-		}
-	}
 }
 
 CTaskbarNotifier::~CTaskbarNotifier()
 {
-	if (m_hMsImg32Dll)
-		FreeLibrary(m_hMsImg32Dll);
 	while (!m_MessageHistory.IsEmpty())
 		delete static_cast<CTaskbarNotifierHistory*>(m_MessageHistory.RemoveHead());
 }
@@ -299,26 +287,6 @@ void CTaskbarNotifier::SetTextColor(COLORREF crNormalTextColor, COLORREF crSelec
 	RedrawWindow(&m_rcText);
 }
 
-void CTaskbarNotifier::SetTextRect(const RECT &rcText)
-{
-	m_rcText = rcText;
-}
-
-void CTaskbarNotifier::SetCloseBtnRect(const RECT &rcCloseBtn)
-{
-	m_rcCloseBtn = rcCloseBtn;
-}
-
-void CTaskbarNotifier::SetHistoryBtnRect(const RECT &rcHistoryBtn)
-{
-	m_rcHistoryBtn = rcHistoryBtn;
-}
-
-void CTaskbarNotifier::SetTextFormat(UINT uTextFormat)
-{
-	m_uTextFormat = uTextFormat;
-}
-
 void CTaskbarNotifier::SetBitmapRegion(int red, int green, int blue)
 {
 	BITMAP bm;
@@ -342,7 +310,7 @@ bool CTaskbarNotifier::SetBitmap(UINT nBitmapID, int red, int green, int blue)
 	ASSERT(m_nBitmapWidth != 0 && m_nBitmapHeight != 0);
 
 	SetBitmapRegion(red, green, blue);
-	return (m_nBitmapWidth != 0 && m_nBitmapHeight != 0);
+	return m_nBitmapWidth != 0 && m_nBitmapHeight != 0;
 }
 
 bool CTaskbarNotifier::SetBitmap(CBitmap *pBitmap, int red, int green, int blue)
@@ -543,16 +511,16 @@ HRGN CTaskbarNotifier::CreateRgnFromBitmap(HBITMAP hBmp, COLORREF color)
 		return NULL;
 
 	BITMAP bm;
-	GetObject(hBmp, sizeof bm, &bm);
+	::GetObject(hBmp, sizeof bm, &bm);
 
 	ASSERT(!m_bBitmapAlpha);
 	const BYTE *pBitmapBits = NULL;
-	if (bm.bmBitsPixel == 32 && m_pfnAlphaBlend) {
-		DWORD dwBitmapBitsSize = GetBitmapBits(hBmp, 0, NULL);
+	if (bm.bmBitsPixel == 32) {
+		DWORD dwBitmapBitsSize = ::GetBitmapBits(hBmp, 0, NULL);
 		if (dwBitmapBitsSize) {
 			pBitmapBits = (BYTE*)malloc(dwBitmapBitsSize);
 			if (pBitmapBits) {
-				if (GetBitmapBits(hBmp, dwBitmapBitsSize, (LPVOID)pBitmapBits) == (LONG)dwBitmapBitsSize) {
+				if (::GetBitmapBits(hBmp, dwBitmapBitsSize, (LPVOID)pBitmapBits) == (LONG)dwBitmapBitsSize) {
 					const BYTE *pLine = pBitmapBits;
 					int iLines = bm.bmHeight;
 					while (!m_bBitmapAlpha && iLines-- > 0) {
@@ -580,7 +548,7 @@ HRGN CTaskbarNotifier::CreateRgnFromBitmap(HBITMAP hBmp, COLORREF color)
 	HRGN hRgn = NULL;
 
 	// allocate memory for region data
-	const DWORD MAXBUF = 40;	// size of one block in RECTs (i.e. MAXBUF*sizeof(RECT) in bytes)
+	const DWORD MAXBUF = 40;	// number of RECTs in one block (i.e. MAXBUF*sizeof(RECT) in bytes)
 	DWORD cBlocks = 0;			// number of allocated blocks
 	RGNDATAHEADER *pRgnData = (RGNDATAHEADER*)malloc(sizeof(RGNDATAHEADER) + (++cBlocks) * MAXBUF * sizeof(RECT));
 	if (pRgnData) {
@@ -589,8 +557,8 @@ HRGN CTaskbarNotifier::CreateRgnFromBitmap(HBITMAP hBmp, COLORREF color)
 		pRgnData->iType = RDH_RECTANGLES;
 		pRgnData->nCount = 0;
 
-		INT iFirstXPos = 0;		// left position of current scan line where mask was found
-		bool bWasFirst = false;	// set when mask was found in current scan line
+		INT iFirstXPos = 0;		// left position of the current scan line where mask was found
+		bool bWasFirst = false;	// set when mask was found in the current scan line
 
 		const BYTE *pBitmapLine = (pBitmapBits != NULL) ? pBitmapBits + bm.bmWidthBytes * (bm.bmHeight - 1) : NULL;
 		for (int y = 0; pRgnData != NULL && y < bm.bmHeight; ++y) {
@@ -655,11 +623,6 @@ HRGN CTaskbarNotifier::CreateRgnFromBitmap(HBITMAP hBmp, COLORREF color)
 	free((void*)pBitmapBits);
 	ReleaseDC(pDC);
 	return hRgn;
-}
-
-int CTaskbarNotifier::GetMessageType()
-{
-	return m_nActiveMessageType;
 }
 
 void CTaskbarNotifier::OnMouseMove(UINT nFlags, CPoint point)
@@ -746,10 +709,10 @@ BOOL CTaskbarNotifier::OnEraseBkgnd(CDC *pDC)
 	CDC memDC;
 	memDC.CreateCompatibleDC(pDC);
 	CBitmap *pOldBitmap = memDC.SelectObject(&m_bitmapBackground);
-	if (m_bBitmapAlpha && m_pfnAlphaBlend) {
+	if (m_bBitmapAlpha) {
 		static const BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-		(*m_pfnAlphaBlend)(pDC->m_hDC, 0, 0, m_nCurrentWidth, m_nCurrentHeight,
-			memDC.m_hDC, 0, 0, m_nCurrentWidth, m_nCurrentHeight, bf);
+		::AlphaBlend(pDC->m_hDC, 0, 0, m_nCurrentWidth, m_nCurrentHeight
+					, (HDC)memDC, 0, 0, m_nCurrentWidth, m_nCurrentHeight, bf);
 	} else
 		pDC->BitBlt(0, 0, m_nCurrentWidth, m_nCurrentHeight, &memDC, 0, 0, SRCCOPY);
 
@@ -761,16 +724,11 @@ void CTaskbarNotifier::OnPaint()
 {
 	CPaintDC dc(this);
 	CFont *pOldFont;
-	if (m_bMouseIsOver) {
-		if (m_rcText.PtInRect(m_ptMousePosition)) {
-			m_bTextSelected = true;
-			dc.SetTextColor(m_crSelectedTextColor);
-			pOldFont = dc.SelectObject(&m_fontSelected);
-		} else {
-			m_bTextSelected = false;
-			dc.SetTextColor(m_crNormalTextColor);
-			pOldFont = dc.SelectObject(&m_fontNormal);
-		}
+	if (m_bMouseIsOver)
+		m_bTextSelected = m_rcText.PtInRect(m_ptMousePosition);
+	if ((m_bMouseIsOver & m_bTextSelected) != 0) {
+		dc.SetTextColor(m_crSelectedTextColor);
+		pOldFont = dc.SelectObject(&m_fontSelected);
 	} else {
 		dc.SetTextColor(m_crNormalTextColor);
 		pOldFont = dc.SelectObject(&m_fontNormal);

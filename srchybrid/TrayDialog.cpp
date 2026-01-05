@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,9 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include "emule.h"
 #include "TrayDialog.h"
-#include "emuledlg.h"
 #include "Preferences.h"
 #include "MenuCmds.h"
 #include "UserMsgs.h"
@@ -86,11 +84,6 @@ void CTrayDialog::OnDestroy()
 	// shouldn't that be done before passing the message to DefWinProc?
 	if (m_nidIconData.hWnd && m_nidIconData.uID > 0 && TrayIconVisible())
 		VERIFY(Shell_NotifyIcon(NIM_DELETE, &m_nidIconData));
-}
-
-bool CTrayDialog::TrayIconVisible()
-{
-	return m_bTrayIconVisible;
 }
 
 void CTrayDialog::TraySetIcon(HICON hIcon, bool bDelete)
@@ -267,11 +260,6 @@ void CTrayDialog::OnSysCommand(UINT nID, LPARAM lParam)
 		CTrayDialogBase::OnSysCommand(nID, lParam);
 }
 
-void CTrayDialog::TraySetMinimizeToTray(bool *pbMinimizeToTray)
-{
-	m_pbMinimizeToTray = pbMinimizeToTray;
-}
-
 void CTrayDialog::TrayMinimizeToTrayChange()
 {
 	if (m_pbMinimizeToTray)
@@ -327,6 +315,6 @@ LRESULT CTrayDialog::OnTaskBarCreated(WPARAM, LPARAM)
 
 void CTrayDialog::RestoreWindow()
 {
-	ShowWindow(SW_SHOW);
+	ShowWindow(SW_NORMAL);
 	SetForegroundWindow();
 }

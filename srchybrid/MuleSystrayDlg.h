@@ -8,7 +8,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 };
 
-#include "TrayMenuBtn.h"		// Added by ClassView
+#include "TrayMenuBtn.h"	// Added by ClassView
 #include "GradientStatic.h"	// Added by ClassView
 #include "resource.h"
 

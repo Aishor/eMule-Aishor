@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ struct SIPFilter
 	uint32		start;
 	uint32		end;
 	uint32		level;
-	UINT		hits;
+	uint32		hits;
 	CStringA	desc;
 };
 
@@ -67,7 +67,7 @@ public:
 	bool IsFiltered(uint32 ip) /*const*/;
 	bool IsFiltered(uint32 ip, uint32 level) /*const*/;
 	CString GetLastHit() const;
-	const CIPFilterArray& GetIPFilter() const;
+	const CIPFilterArray& GetIPFilter() const			{ return m_iplist; }
 
 private:
 	const SIPFilter *m_pLastHit;

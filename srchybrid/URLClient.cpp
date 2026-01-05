@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -76,12 +76,14 @@ bool CUrlClient::SetUrl(LPCTSTR pszUrl, uint32 nIP)
 	TCHAR szUserName[INTERNET_MAX_USER_NAME_LENGTH];
 	TCHAR szPassword[INTERNET_MAX_PASSWORD_LENGTH];
 	TCHAR szExtraInfo[INTERNET_MAX_URL_LENGTH];
-	URL_COMPONENTS Url = {};
+	URL_COMPONENTS Url;
 	Url.dwStructSize = (DWORD)sizeof Url;
 	Url.lpszScheme = szScheme;
 	Url.dwSchemeLength = _countof(szScheme);
+	Url.nScheme = INTERNET_SCHEME_DEFAULT;
 	Url.lpszHostName = szHostName;
 	Url.dwHostNameLength = _countof(szHostName);
+	Url.nPort = 0;
 	Url.lpszUserName = szUserName;
 	Url.dwUserNameLength = _countof(szUserName);
 	Url.lpszPassword = szPassword;
@@ -90,10 +92,8 @@ bool CUrlClient::SetUrl(LPCTSTR pszUrl, uint32 nIP)
 	Url.dwUrlPathLength = _countof(szUrlPath);
 	Url.lpszExtraInfo = szExtraInfo;
 	Url.dwExtraInfoLength = _countof(szExtraInfo);
-	if (!::InternetCrackUrl(szUrl, 0, 0, &Url))
-		return false;
-
-	if (Url.dwSchemeLength == 0					// non-empty URL
+	if (!::InternetCrackUrl(szUrl, 0, 0, &Url)
+		|| Url.dwSchemeLength == 0				// must be a non-empty URL
 		|| Url.nScheme != INTERNET_SCHEME_HTTP	// we only support "http://"
 		|| Url.dwHostNameLength == 0			// we must know the hostname
 		|| Url.dwUserNameLength > 0				// no support for user/password
@@ -214,13 +214,12 @@ void CUrlClient::ConnectionEstablished()
 void CUrlClient::SendHelloPacket()
 {
 	//SendHttpBlockRequests();
-	return;
 }
 
 void CUrlClient::SendFileRequest()
 {
 	// This may be called in some rare situations depending on socket states.
-	; // just ignore it
+	// Just ignore it
 }
 
 bool CUrlClient::Disconnected(LPCTSTR pszReason, bool bFromSocket)

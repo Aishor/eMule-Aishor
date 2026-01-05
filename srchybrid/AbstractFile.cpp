@@ -1,6 +1,6 @@
 // parts of this file are based on work from pan One (http://home-3.tiscali.nl/~meost/pms/)
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ static char THIS_FILE[] = __FILE__;
 IMPLEMENT_DYNAMIC(CAbstractFile, CObject)
 
 CAbstractFile::CAbstractFile()
-	: m_nFileSize(0ull)
+	: m_nFileSize()
 	, m_FileIdentifier(m_nFileSize)
 	, m_uRating()
 	, m_uUserRating()
@@ -173,11 +173,6 @@ void CAbstractFile::SetAFileName(LPCTSTR pszFileName, bool bReplaceInvalidFileSy
 		for (int i = m_strFileName.GetLength(); --i >= 0;)
 			if (m_strFileName[i] < _T(' ')) //space
 				m_strFileName.Delete(i, 1);
-}
-
-void CAbstractFile::SetFileType(LPCTSTR pszFileType)
-{
-	m_strFileType = pszFileType;
 }
 
 CString CAbstractFile::GetFileTypeDisplayStr() const

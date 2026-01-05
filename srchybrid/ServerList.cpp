@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,12 +15,10 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <io.h>
 #include <share.h>
 #include "emule.h"
 #include "ServerList.h"
 #include "SafeFile.h"
-#include "Exceptions.h"
 #include "OtherFunctions.h"
 #include "IPFilter.h"
 #include "LastCommonRouteFinder.h"
@@ -486,32 +484,30 @@ CServer* CServerList::GetNextServer(bool bTryObfuscated)
 
 CServer* CServerList::GetNextSearchServer()
 {
-	for (INT_PTR i = 0; i < list.GetCount(); ++i) {
-		POSITION posIndex = list.FindIndex(searchserverpos);
-		if (posIndex == NULL) {	//server delete operation could invalidate search position
-			posIndex = list.GetHeadPosition();
-			searchserverpos = 0;
-		}
-		if (++searchserverpos >= list.GetCount())
-			searchserverpos = 0;
-		return list.GetAt(posIndex);
+	if (list.IsEmpty())
+		return NULL;
+	POSITION posIndex = list.FindIndex(searchserverpos);
+	if (posIndex == NULL) {	//server delete operation had invalidated search position
+		posIndex = list.GetHeadPosition();
+		searchserverpos = 0;
 	}
-	return NULL;
+	if (++searchserverpos >= list.GetCount())
+		searchserverpos = 0;
+	return list.GetAt(posIndex);
 }
 
 CServer* CServerList::GetNextStatServer()
 {
-	for (INT_PTR i = 0; i < list.GetCount(); ++i) {
-		POSITION posIndex = list.FindIndex(statserverpos);
-		if (posIndex == NULL) {	//server delete operation could invalidate search position
-			posIndex = list.GetHeadPosition();
-			statserverpos = 0;
-		}
-		if (++statserverpos >= list.GetCount())
-			statserverpos = 0;
-		return list.GetAt(posIndex);
+	if (list.IsEmpty())
+		return NULL;
+	POSITION posIndex = list.FindIndex(statserverpos);
+	if (posIndex == NULL) {	//server delete operation had invalidated search position
+		posIndex = list.GetHeadPosition();
+		statserverpos = 0;
 	}
-	return NULL;
+	if (++statserverpos >= list.GetCount())
+		statserverpos = 0;
+	return list.GetAt(posIndex);
 }
 
 CServer* CServerList::GetSuccServer(const CServer *lastserver) const

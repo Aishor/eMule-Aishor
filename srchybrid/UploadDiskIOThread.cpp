@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 #include "UploadQueue.h"
 #include "sharedfilelist.h"
 #include "partfile.h"
-#include "knownfile.h"
 #include "log.h"
 #include "preferences.h"
 #include "safefile.h"
@@ -324,9 +323,9 @@ void CUploadDiskIOThread::ReadCompletionRoutine(DWORD dwRead, const OverlappedRe
 
 				lockUploadListRead.Unlock();
 
-				// now send out all packets we have made. By default, our socket object is not safe
-				// to use now either, because we have no lock on itself (to make sure it is not deleted)
-				// however the way we handle sockets, they cannot get deleted directly (takes 10s),
+				// Send out all packets we have made. By default, our socket object is not safe
+				// to use now either, because we have no lock on itself (to make sure it is not deleted).
+				// However the way we handle sockets, they cannot get deleted directly (takes 10s),
 				// so this isn't a problem in our case
 				while (!packetsList.IsEmpty() && pSocket != NULL) {
 					Packet *packet = packetsList.RemoveHead();
@@ -350,12 +349,19 @@ void CUploadDiskIOThread::ReadCompletionRoutine(DWORD dwRead, const OverlappedRe
 
 bool CUploadDiskIOThread::ShouldCompressBasedOnFilename(const CString &strFileName)
 {
-	LPCTSTR pDot = ::PathFindExtension(strFileName);
-	CString strExt(pDot + static_cast<int>(*pDot != _T('\0')));
+	LPCTSTR const pDot = ::PathFindExtension(strFileName);
+	if (!pDot[0] || !pDot[1])
+		return true; //no extension
+	CString strExt(&pDot[1]);
 	strExt.MakeLower();
 	if (strExt == _T("avi"))
 		return !thePrefs.GetDontCompressAvi();
-	return strExt != _T("zip") && strExt != _T("rar") && strExt != _T("7z") && strExt != _T("cbz") && strExt != _T("cbr") && strExt != _T("ace") && strExt != _T("ogm");
+
+	static LPCTSTR const exts[] = { _T("zip"), _T("rar"), _T("7z"), _T("cbz"), _T("cbr"), _T("ogm"), _T("ace"), NULL };
+	for (LPCTSTR ext = *exts; *ext; ++ext)
+		if (strExt == ext)
+			return false;
+	return true;
 }
 
 void CUploadDiskIOThread::CreateStandardPackets(const OverlappedRead_Struct &OverlappedRead, CPacketList &rOutPacketList)

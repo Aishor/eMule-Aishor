@@ -31,10 +31,10 @@ static char THIS_FILE[] = __FILE__;
 //-------------------------------------------------------------------
 
 CPropPageFrame::CPropPageFrame()
-	: m_bShowCaption(FALSE),
-	m_nCaptionHeight(0),
-	m_hCaptionIcon(NULL),
-	m_dwMsgFormat(DT_CENTER | DT_VCENTER | DT_NOPREFIX | DT_SINGLELINE)
+	: m_bShowCaption(FALSE)
+	, m_nCaptionHeight(0)
+	, m_hCaptionIcon(NULL)
+	, m_dwMsgFormat(DT_CENTER | DT_VCENTER | DT_NOPREFIX | DT_SINGLELINE)
 {
 }
 
@@ -45,11 +45,6 @@ void CPropPageFrame::ShowCaption(BOOL bEnable)
 {
 	m_bShowCaption = bEnable;
 	SafeUpdateWindow(CalcCaptionArea());
-}
-
-BOOL CPropPageFrame::GetShowCaption() const
-{
-	return m_bShowCaption;
 }
 
 void CPropPageFrame::SetCaption(LPCTSTR lpszCaption, HICON hIcon /*= NULL*/)
@@ -72,11 +67,6 @@ void CPropPageFrame::SetCaptionHeight(int nCaptionHeight)
 	SafeUpdateWindow(CalcCaptionArea());
 }
 
-int CPropPageFrame::GetCaptionHeight() const
-{
-	return m_nCaptionHeight;
-}
-
 void CPropPageFrame::SetMsgText(LPCTSTR lpszMsg)
 {
 	m_strMsg = lpszMsg;
@@ -92,11 +82,6 @@ void CPropPageFrame::SetMsgFormat(DWORD dwFormat)
 {
 	m_dwMsgFormat = dwFormat;
 	SafeUpdateWindow(CalcMsgArea());
-}
-
-DWORD CPropPageFrame::GetMsgFormat() const
-{
-	return m_dwMsgFormat;
 }
 
 
@@ -124,13 +109,13 @@ CRect CPropPageFrame::CalcMsgArea()
 
 void CPropPageFrame::DrawMsg(CDC *pDc, const CRect &rect, LPCTSTR /*lpszMsg*/, DWORD /*dwFormat*/)
 {
-	CFont *pPrevFont = pDc->SelectObject(AfxGetMainWnd()->GetFont());
-	int nPrevBkMode = pDc->SetBkMode(TRANSPARENT);
+	CFont *pOldFont = pDc->SelectObject(AfxGetMainWnd()->GetFont());
+	int iOldBkMode = pDc->SetBkMode(TRANSPARENT);
 
 	pDc->DrawText(GetMsgText(), const_cast<CRect&>(rect), GetMsgFormat());
 
-	pDc->SetBkMode(nPrevBkMode);
-	pDc->SelectObject(pPrevFont);
+	pDc->SetBkMode(iOldBkMode);
+	pDc->SelectObject(pOldFont);
 }
 
 CRect CPropPageFrame::CalcCaptionArea()

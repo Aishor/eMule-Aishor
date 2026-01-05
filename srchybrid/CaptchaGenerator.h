@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,21 +17,19 @@
 #pragma once
 #include "SafeFile.h"
 
-class CxImage;
-
 class CCaptchaGenerator
 {
 public:
 	explicit CCaptchaGenerator(uint32 nLetterCount = 4);
-	~CCaptchaGenerator();
+	~CCaptchaGenerator()								{ Clear(); }
 
 	void	ReGenerateCaptcha(uint32 nLetterCount = 4);
 	void	Clear();
 	const CString&	GetCaptchaText() const				{ return m_strCaptchaText; }
-	bool	WriteCaptchaImage(CFileDataIO &file);
+	bool	WriteCaptchaImage(CFileDataIO &file) const;
 
 
 private:
-	CxImage	*m_pimgCaptcha;
+	HBITMAP	m_hbmpCaptcha;
 	CString	m_strCaptchaText;
 };

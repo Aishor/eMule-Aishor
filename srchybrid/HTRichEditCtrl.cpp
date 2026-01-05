@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,6 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <richole.h>
 #include <share.h>
 #include "emule.h"
 #include "HTRichEditCtrl.h"
@@ -22,7 +23,6 @@
 #include "Preferences.h"
 #include "MenuCmds.h"
 #include "Log.h"
-#include <richole.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -76,7 +76,7 @@ CHTRichEditCtrl::~CHTRichEditCtrl()
 
 BOOL CHTRichEditCtrl::Create(DWORD dwStyle, const RECT &rect, CWnd *parent, UINT nID)
 {
-	return static_cast<CWnd*>(this)->Create(RICHEDIT_CLASS, NULL, dwStyle, rect, parent, nID);
+	return static_cast<CWnd*>(this)->Create(MSFTEDIT_CLASS, NULL, dwStyle, rect, parent, nID);
 }
 
 void CHTRichEditCtrl::Localize()
@@ -134,16 +134,6 @@ void CHTRichEditCtrl::PurgeSmileyCaches()
 	}
 	sm_aSmileyBitmaps.RemoveAll();
 	sm_pIStorageSmileys.Release();
-}
-
-void CHTRichEditCtrl::SetProfileSkinKey(LPCTSTR pszSkinKey)
-{
-	m_strSkinKey = pszSkinKey;
-}
-
-void CHTRichEditCtrl::SetTitle(LPCTSTR pszTitle)
-{
-	m_strTitle = pszTitle;
 }
 
 int CHTRichEditCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -329,17 +319,16 @@ void CHTRichEditCtrl::ScrollToFirstLine()
 
 void CHTRichEditCtrl::AddString(int nPos, LPCTSTR pszString, bool bLink, COLORREF cr, COLORREF bk, DWORD mask)
 {
-	bool bRestoreFormat = false;
-	m_bEnErrSpace = false;
 	SetSel(nPos, nPos);
 	if (bLink) {
-		CHARFORMAT2 cf = {};
-		cf.cbSize = (UINT)sizeof cf;
-		GetSelectionCharFormat(cf);
-		cf.dwMask |= CFM_LINK;
-		cf.dwEffects |= CFE_LINK;
-		SetSelectionCharFormat(cf);
-	} else if (cr != CLR_DEFAULT || bk != CLR_DEFAULT || (mask & (CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE)) != 0) {
+		SETTEXTEX stx = SETTEXTEX{ST_SELECTION, GetACP()};
+		SendMessage(EM_SETTEXTEX, (WPARAM)&stx, (LPARAM)(LPCSTR)CStringA(pszString));
+		return;
+	}
+
+	bool bRestoreFormat = false;
+	m_bEnErrSpace = false;
+	if (cr != CLR_DEFAULT || bk != CLR_DEFAULT || (mask & (CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE)) != 0) {
 		CHARFORMAT2 cf = {};
 		cf.cbSize = (UINT)sizeof cf;
 		GetSelectionCharFormat(cf);
@@ -525,7 +514,7 @@ void CHTRichEditCtrl::OnContextMenu(CWnd*, CPoint point)
 
 	int iTextLen = GetWindowTextLength();
 
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.AddMenuTitle(GetResString(IDS_LOGENTRY));
 	menu.AppendMenu(MF_STRING | (lSelEnd > lSelStart ? MF_ENABLED : MF_GRAYED), MP_COPYSELECTED, GetResString(IDS_COPY));
@@ -625,11 +614,6 @@ void CHTRichEditCtrl::SelectAllItems()
 	SetSel(0, -1);
 }
 
-void CHTRichEditCtrl::CopySelectedItems()
-{
-	Copy();
-}
-
 void CHTRichEditCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	if (GetKeyState(VK_CONTROL) < 0) { //Ctrl is down
@@ -684,13 +668,17 @@ void CHTRichEditCtrl::AppendText(LPCTSTR sText)
 
 void CHTRichEditCtrl::AppendHyperLink(LPCTSTR pszText, LPCTSTR pszTitle, const CString &sCommand, LPCTSTR pszDirectory)
 {
-	UNREFERENCED_PARAMETER(pszText);
 	UNREFERENCED_PARAMETER(pszTitle);
 	UNREFERENCED_PARAMETER(pszDirectory);
-	ASSERT(!pszText || !*pszText);
 	ASSERT(!pszTitle || !*pszTitle);
 	ASSERT(!pszDirectory || !*pszDirectory);
-	AddLine(sCommand, sCommand.GetLength(), true);
+	if (!pszText || !*pszText) //link only
+		AddLine(sCommand, sCommand.GetLength(), true);
+	else { //friendly name
+		CString sRTF;
+		sRTF.Format(_T("{\\rtf1{\\field{\\*\\fldinst{HYPERLINK \"%s\"}{\\fldrslt{\\ul %s}}}}}"), (LPCTSTR)sCommand, pszText);
+		AddLine(sRTF, sRTF.GetLength(), true);
+	}
 }
 
 void CHTRichEditCtrl::AppendColoredText(LPCTSTR pszText, COLORREF cr, COLORREF bk, DWORD mask)
@@ -710,8 +698,9 @@ BOOL CHTRichEditCtrl::OnEnLink(LPNMHDR pNMHDR, LRESULT *pResult)
 		CString strUrl;
 		GetTextRange(pEnLink->chrg.cpMin, pEnLink->chrg.cpMax, strUrl);
 
-		// check if that "URL" has a valid URL scheme. if it has not, pass that notification up to the
-		// parent window which may interpret that "URL" in some other way.
+		// Check if this link has a valid URL scheme.
+		// If it does not, pass that notification up to the parent window
+		// which may interpret this "URL" in some other way.
 		for (unsigned i = 0; s_apszSchemes[i].pszScheme; ++i)
 			if (_tcsncmp(strUrl, s_apszSchemes[i].pszScheme, s_apszSchemes[i].iLen) == 0) {
 				BrowserOpen(strUrl, NULL);
@@ -730,8 +719,8 @@ CString CHTRichEditCtrl::GetText() const
 
 void CHTRichEditCtrl::SetFont(CFont *pFont, BOOL bRedraw)
 {
-	// Use the 'ScrollInfo' only, if there is a scrollbar available, otherwise we would
-	// use a scrollinfo which points to the top and we would thus stay at the top.
+	// Use the 'ScrollInfo' only if there is a scrollbar available, otherwise
+	// this scrollinfo points to the top and we would thus stay at the top.
 	bool bAtEndOfScroll;
 	SCROLLINFO si;
 	si.cbSize = (UINT)sizeof si;
@@ -921,8 +910,8 @@ BEGIN_INTERFACE_MAP(CBitmapDataObject, CCmdTarget)
 END_INTERFACE_MAP()
 
 CBitmapDataObject::CBitmapDataObject(HBITMAP hBitmap)
+	:m_hBitmap(hBitmap)
 {
-	m_hBitmap = hBitmap;
 }
 
 #pragma warning(push)
@@ -1165,8 +1154,7 @@ HBITMAP IconToBitmap(HICON hIcon, COLORREF crBackground, int cx = 16, int cy = 1
 		// Do *not* create a transparent bitmap
 		//ULONG_PTR gdiplusToken = 0;
 		//Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		//if (Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) == Gdiplus::OK)
-		//{
+		//if (Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) == Gdiplus::OK) {
 		//	Gdiplus::Bitmap bmp(hIcon);
 		//	Gdiplus::Color colorBackground(255, GetRValue(crBackground), GetGValue(crBackground), GetBValue(crBackground));
 		//	bmp.GetHBITMAP(colorBackground, &hBitmap);
@@ -1180,7 +1168,7 @@ HBITMAP IconToBitmap(HICON hIcon, COLORREF crBackground, int cx = 16, int cy = 1
 			int iHeightMM = ::GetDeviceCaps(hdc, VERTSIZE);
 			int iWidthPels = ::GetDeviceCaps(hdc, HORZRES);
 			int iHeightPels = ::GetDeviceCaps(hdc, VERTRES);
-			RECT rcMF = { 0, 0, ((cx + 1) * iWidthMM * 100) / iWidthPels, ((cy + 1) * iHeightMM * 100) / iHeightPels };
+			RECT rcMF{0, 0, ((cx + 1) * iWidthMM * 100) / iWidthPels, ((cy + 1) * iHeightMM * 100) / iHeightPels};
 			HDC hdcEnhMF = ::CreateEnhMetaFile(NULL, NULL, &rcMF, NULL);
 			if (hdcEnhMF) {
 				::SetBkColor(hdcEnhMF, crBackground);
@@ -1302,7 +1290,7 @@ bool CHTRichEditCtrl::InsertSmiley(LPCTSTR pszSmileyID, COLORREF bk)
 #endif
 
 	CComPtr<IOleObject> pIOleObject;
-	if (S_OK != OleCreateStaticFromData(pIDataObject, __uuidof(pIOleObject), OLERENDER_FORMAT, &FormatEtc, pIOleClientSite, sm_pIStorageSmileys, (void **)&pIOleObject))
+	if (S_OK != OleCreateStaticFromData(pIDataObject, __uuidof(pIOleObject), OLERENDER_FORMAT, &FormatEtc, pIOleClientSite, sm_pIStorageSmileys, (void**)&pIOleObject))
 		return false;
 	OleSetContainedObject(pIOleObject, TRUE);
 
@@ -1364,7 +1352,7 @@ bool CHTRichEditCtrl::AddCaptcha(HBITMAP hbmp)
 #endif
 
 	CComPtr<IOleObject> pIOleObject;
-	if (OleCreateStaticFromData(pIDataObject, __uuidof(pIOleObject), OLERENDER_FORMAT, &FormatEtc, pIOleClientSite, m_pIStorageCaptchas, (void **)&pIOleObject) != S_OK)
+	if (OleCreateStaticFromData(pIDataObject, __uuidof(pIOleObject), OLERENDER_FORMAT, &FormatEtc, pIOleClientSite, m_pIStorageCaptchas, (void**)&pIOleObject) != S_OK)
 		return false;
 	OleSetContainedObject(pIOleObject, TRUE);
 

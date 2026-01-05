@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 #include "SafeFile.h"
 #include "Opcodes.h"
 #include "ServerConnect.h"
-#include "emuledlg.h"
 #include "Log.h"
 #include "cryptopp/base64.h"
 #include "cryptopp/osrng.h"
@@ -177,8 +176,8 @@ void CClientCreditsList::LoadList()
 
 		BOOL bCreateBackup = TRUE;
 
-		HANDLE hBakFile = ::CreateFile(strBakFileName, GENERIC_READ, FILE_SHARE_READ, NULL,
-			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE hBakFile = ::CreateFile(strBakFileName, GENERIC_READ, FILE_SHARE_READ, NULL
+									, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hBakFile != INVALID_HANDLE_VALUE) {
 			// OK, the backup exist, get the size
 			DWORD dwBakFileSize = ::GetFileSize(hBakFile, NULL); //debug
@@ -208,13 +207,13 @@ void CClientCreditsList::LoadList()
 		uint32 count = file.ReadUInt32();
 		m_mapClients.InitHashTable(count + 5000); // TODO: should be prime number... and 20% larger
 
-		const time_t dwExpired = time(NULL) - DAY2S(150); // today - 150 days
+		const time_t tExpired = time(NULL) - DAY2S(150); // today - 150 days
 		uint32 cDeleted = 0;
 		for (uint32 i = 0; i < count; ++i) {
 			CreditStruct newcstruct{};
 			file.Read(&newcstruct, (version == CREDITFILE_VERSION_29) ? sizeof(CreditStruct_29a) : sizeof(CreditStruct));
 
-			if (newcstruct.nLastSeen < (uint32)dwExpired)
+			if (newcstruct.tLastSeen < (uint32)tExpired)
 				++cDeleted;
 			else {
 				CClientCredits *newcredits = new CClientCredits(newcstruct);

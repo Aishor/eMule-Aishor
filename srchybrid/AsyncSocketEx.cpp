@@ -62,7 +62,6 @@ to tim.kosse@filezilla-project.org
 */
 
 #include "stdafx.h"
-#include "DebugHelpers.h"
 #include "AsyncSocketEx.h"
 
 #include "AsyncSocketExLayer.h"
@@ -563,7 +562,7 @@ public:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 
-	HWND GetHwnd()
+	HWND GetHwnd() const
 	{
 		return m_hWnd;
 	}
@@ -1014,7 +1013,7 @@ BOOL CAsyncSocketEx::GetPeerName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen)
 	return !getpeername(m_SocketData.hSocket, lpSockAddr, lpSockAddrLen);
 }
 
-bool CAsyncSocketEx::GetSockName(CString &rSocketAddress, UINT &rSocketPort)
+bool CAsyncSocketEx::GetSockName(CString &rSocketAddress, UINT &rSocketPort) const
 {
 	if (m_SocketData.nFamily != AF_INET6 && m_SocketData.nFamily != AF_INET)
 		return false;
@@ -1035,7 +1034,7 @@ bool CAsyncSocketEx::GetSockName(CString &rSocketAddress, UINT &rSocketPort)
 	return bResult;
 }
 
-BOOL CAsyncSocketEx::GetSockName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen)
+BOOL CAsyncSocketEx::GetSockName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen) const
 {
 	return !getsockname(m_SocketData.hSocket, lpSockAddr, lpSockAddrLen);
 }
@@ -1186,12 +1185,7 @@ int CAsyncSocketEx::OnLayerCallback(std::vector<t_callbackMsg> &callbacks)
 	return 0;
 }
 
-bool CAsyncSocketEx::IsLayerAttached() const
-{
-	return m_pFirstLayer != NULL;
-}
-
-BOOL CAsyncSocketEx::GetSockOpt(int nOptionName, void *lpOptionValue, int *lpOptionLen, int nLevel /*=SOL_SOCKET*/)
+BOOL CAsyncSocketEx::GetSockOpt(int nOptionName, void *lpOptionValue, int *lpOptionLen, int nLevel /*=SOL_SOCKET*/) const
 {
 	return !getsockopt(m_SocketData.hSocket, nLevel, nOptionName, (LPSTR)lpOptionValue, lpOptionLen);
 }
@@ -1266,6 +1260,7 @@ void CAsyncSocketEx::ResendCloseNotify()
 			::SetTimer(m_pLocalAsyncSocketExThreadData->m_pHelperWindow->GetHwnd(), 1, 10, NULL);
 	}
 }
+
 #ifdef _DEBUG
 void CAsyncSocketEx::AssertValid() const
 {
@@ -1281,9 +1276,7 @@ void CAsyncSocketEx::AssertValid() const
 	(void)m_pFirstLayer;
 	(void)m_pLastLayer;
 }
-#endif
 
-#ifdef _DEBUG
 void CAsyncSocketEx::Dump(CDumpContext &dc) const
 {
 	CObject::Dump(dc);

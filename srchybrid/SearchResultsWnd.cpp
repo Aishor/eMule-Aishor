@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -27,12 +27,13 @@
 #include "ServerConnect.h"
 #include "ServerList.h"
 #include "Server.h"
+#include "UpDownClient.h"
+#include "ClientList.h"
 #include "SafeFile.h"
 #include "DownloadQueue.h"
 #include "Statistics.h"
 #include "emuledlg.h"
 #include "opcodes.h"
-#include "ED2KLink.h"
 #include "Kademlia/Kademlia/Kademlia.h"
 #include "kademlia/kademlia/SearchManager.h"
 #include "kademlia/kademlia/search.h"
@@ -137,13 +138,10 @@ void CSearchResultsWnd::OnInitialUpdate()
 	searchlistctrl.Init(theApp.searchlist);
 	searchlistctrl.SetPrefsKey(_T("SearchListCtrl"));
 
-	static const RECT rc =
-	{
-		SEARCH_LIST_MENU_BUTTON_XOFF
+	static const RECT rc{SEARCH_LIST_MENU_BUTTON_XOFF
 		, SEARCH_LIST_MENU_BUTTON_YOFF
 		, SEARCH_LIST_MENU_BUTTON_XOFF + SEARCH_LIST_MENU_BUTTON_WIDTH
-		, SEARCH_LIST_MENU_BUTTON_YOFF + SEARCH_LIST_MENU_BUTTON_HEIGHT
-	};
+		, SEARCH_LIST_MENU_BUTTON_YOFF + SEARCH_LIST_MENU_BUTTON_HEIGHT};
 	m_btnSearchListMenu.Init(true, true);
 	m_btnSearchListMenu.MoveWindow(&rc);
 	m_btnSearchListMenu.AddBtnStyle(IDC_SEARCHLST_ICO, TBSTYLE_AUTOSIZE);
@@ -244,7 +242,7 @@ void CSearchResultsWnd::OnTimer(UINT_PTR nIDEvent)
 		// start the global search
 		if (m_globsearch) {
 			if (global_search_timer == 0)
-				VERIFY((global_search_timer = SetTimer(TimerGlobalSearch, 750, NULL)) != 0);
+				VERIFY((global_search_timer = SetTimer(TimerGlobalSearch, SEC2MS(3) / 4, NULL)) != 0);
 		} else
 			CancelEd2kSearch();
 	} else if (nIDEvent == global_search_timer) {
@@ -420,11 +418,6 @@ void CSearchResultsWnd::CancelEd2kSearch()
 	SearchCancelled(m_nEd2kSearchID);
 }
 
-void CSearchResultsWnd::CancelKadSearch(uint32 uSearchID)
-{
-	SearchCancelled(uSearchID);
-}
-
 void CSearchResultsWnd::SearchStarted()
 {
 	const CWnd *pWndFocus = GetFocus();
@@ -465,7 +458,7 @@ void CSearchResultsWnd::LocalEd2kSearchEnd(UINT count, bool bMoreResultsAvailabl
 		if (!m_globsearch)
 			SearchCancelled(m_nEd2kSearchID);
 		else if (!global_search_timer)
-			VERIFY((global_search_timer = SetTimer(TimerGlobalSearch, 750, NULL)) != 0);
+			VERIFY((global_search_timer = SetTimer(TimerGlobalSearch, SEC2MS(3) / 4, NULL)) != 0);
 	}
 	m_pwndParams->m_ctlMore.EnableWindow(bMoreResultsAvailable && m_iSentMoreReq < MAX_MORE_SEARCH_REQ);
 }
@@ -1018,7 +1011,7 @@ bool GetSearchPacket(CSafeMemFile &data, SSearchParams *pParams, bool bTargetSup
 		}
 	}
 	//TRACE(_T("Parsed search expr:\n"));
-	//for (INT_PTR i = 0; i < s_SearchExpr.m_aExpr.GetCount(); ++i){
+	//for (INT_PTR i = 0; i < s_SearchExpr.m_aExpr.GetCount(); ++i) {
 	//	TRACE(_T("%hs"), s_SearchExpr.m_aExpr[i]);
 	//	TRACE(_T("  %s\n"), (LPCTSTR)DbgGetHexDump((uchar*)(LPCSTR)s_SearchExpr.m_aExpr[i], s_SearchExpr.m_aExpr[i].GetLength()*sizeof(CHAR)));
 	//}
@@ -1396,7 +1389,7 @@ void CSearchResultsWnd::DeleteSelectedSearch()
 }
 
 #pragma warning(push)
-#pragma warning(disable:4701) // potentially uninitialized local variable 'item' used
+#pragma warning(disable:4701) //local variable 'ti'
 void CSearchResultsWnd::DeleteSearch(uint32 uSearchID)
 {
 	Kademlia::CSearchManager::StopSearch(uSearchID, false);
@@ -1551,8 +1544,13 @@ LRESULT CSearchResultsWnd::OnCloseTab(WPARAM wParam, LPARAM)
 	ti.mask = TCIF_PARAM;
 	if (searchselect.GetItem((int)wParam, &ti) && ti.lParam != NULL) {
 		uint32 uSearchID = reinterpret_cast<SSearchParams*>(ti.lParam)->dwSearchID;
-		if (!m_cancelled && uSearchID == m_nEd2kSearchID)
+		if (uSearchID == m_nEd2kSearchID && !m_cancelled)
 			CancelEd2kSearch();
+		else if (reinterpret_cast<SSearchParams*>(ti.lParam)->bClientSharedFiles) {
+			CUpDownClient *client = theApp.clientlist->FindClientBySearchID(uSearchID);
+			if (client)
+				client->SetFileListRequested(0); //if data is still coming - discard
+		}
 		DeleteSearch(uSearchID);
 	}
 	return TRUE;
@@ -1727,7 +1725,7 @@ void CSearchResultsSelector::OnContextMenu(CWnd*, CPoint point)
 		ScreenToClient(&m_ptCtxMenu);
 	}
 
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.AddMenuTitle(GetResString(IDS_SW_RESULT));
 	menu.AppendMenu(MF_STRING, MP_RESTORESEARCHPARAMS, GetResString(IDS_RESTORESEARCHPARAMS));
@@ -1776,7 +1774,7 @@ LRESULT CSearchResultsWnd::OnChangeFilter(WPARAM wParam, LPARAM lParam)
 
 void CSearchResultsWnd::OnSearchListMenuBtnDropDown(LPNMHDR, LRESULT*)
 {
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 
 	menu.AppendMenu(MF_STRING | (searchselect.GetItemCount() > 0 ? MF_ENABLED : MF_GRAYED), MP_REMOVEALL, GetResString(IDS_REMOVEALLSEARCH));

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,20 +22,15 @@
 #include "KadLookupGraph.h"
 #include "KadSearchListCtrl.h"
 #include "Kademlia/Kademlia/kademlia.h"
-#include "Kademlia/Kademlia/prefs.h"
 #include "kademlia/utils/LookupHistory.h"
-#include "Kademlia/net/kademliaudplistener.h"
 #include "kademlia/kademlia/search.h"
-#include "Ini2.h"
 #include "CustomAutoComplete.h"
 #include "OtherFunctions.h"
 #include "emuledlg.h"
-#include "clientlist.h"
 #include "log.h"
 #include "HttpDownloadDlg.h"
 #include "Kademlia/routing/RoutingZone.h"
 #include "HelpIDs.h"
-#include "kademliawnd.h"
 #include "DropDownButton.h"
 #include "MenuCmds.h"
 

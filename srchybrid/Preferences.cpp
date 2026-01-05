@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,7 +15,6 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <io.h>
 #include <share.h>
 #include <iphlpapi.h>
 #include "emule.h"
@@ -32,7 +31,6 @@
 #include "ListenSocket.h"
 #include "ServerList.h"
 #include "SharedFileList.h"
-#include "SafeFile.h"
 #include "emuledlg.h"
 #include "StatisticsDlg.h"
 #include "Log.h"
@@ -52,10 +50,10 @@ LPCTSTR const strDefaultToolbar = _T("0099010203040506070899091011");
 CPreferences thePrefs;
 
 CString CPreferences::m_astrDefaultDirs[13];
+CString	CPreferences::strNick;
 bool	CPreferences::m_abDefaultDirsCreated[13] = {};
 int		CPreferences::m_nCurrentUserDirMode = -1;
 int		CPreferences::m_iDbgHeap;
-CString	CPreferences::strNick;
 uint32	CPreferences::m_minupload;
 uint32	CPreferences::m_maxupload;
 uint32	CPreferences::m_maxdownload;
@@ -652,6 +650,8 @@ void CPreferences::SetStandardValues()
 	versioncheckLastAutomatic = 0;
 }
 
+#pragma warning(push)
+#pragma warning(disable:4774)
 bool CPreferences::IsTempFile(const CString &rstrDirectory, const CString &rstrName)
 {
 	bool bFound = false;
@@ -684,6 +684,7 @@ bool CPreferences::IsTempFile(const CString &rstrDirectory, const CString &rstrN
 
 	return false;
 }
+#pragma warning(pop)
 
 uint32 CPreferences::GetMaxDownload()
 {
@@ -1808,7 +1809,6 @@ void CPreferences::SavePreferences()
 	ini.WriteBool(_T("SkipWANPPPSetup"), m_bSkipWANPPPSetup);
 	ini.WriteBool(_T("CloseUPnPOnExit"), m_bCloseUPnPOnExit);
 	ini.WriteInt(_T("LastWorkingImplementation"), m_nLastWorkingImpl);
-
 }
 
 void CPreferences::ResetStatsColor(int index)
@@ -1819,7 +1819,7 @@ void CPreferences::ResetStatsColor(int index)
 		RGB(255, 128, 128),	RGB(200, 0, 0),		RGB(140, 0, 0),		RGB(150, 150, 255),	RGB(192, 0, 192),
 		RGB(255, 255, 128),	RGB(0, 0, 0), /**/	RGB(255, 255, 255),	RGB(255, 255, 255),	RGB(255, 190, 190)
 	};
-	if (index >= 0 && index < _countof(defcol)) {
+	if (index >= 0 && index < (int)_countof(defcol)) {
 		m_adwStatsColors[index] = defcol[index];
 		if (index == 11) /**/
 			m_bHasCustomTaskIconColor = false;
@@ -2367,7 +2367,6 @@ void CPreferences::LoadPreferences()
 	m_nWebPort = (uint16)ini.GetInt(_T("Port"), 4711);
 	m_bWebUseUPnP = ini.GetBool(_T("WebUseUPnP"), false);
 	m_bWebEnabled = ini.GetBool(_T("Enabled"), false);
-	m_bWebUseGzip = ini.GetBool(_T("UseGzip"), true);
 	m_bWebLowEnabled = ini.GetBool(_T("UseLowRightsUser"), false);
 	m_nWebPageRefresh = ini.GetInt(_T("PageRefreshTime"), 120);
 	m_iWebTimeoutMins = ini.GetInt(_T("WebTimeoutMins"), 5);
@@ -2384,6 +2383,7 @@ void CPreferences::LoadPreferences()
 		}
 	}
 	m_bWebUseHttps = ini.GetBool(_T("UseHTTPS"), false);
+	m_bWebUseGzip = m_bWebUseHttps ? false : ini.GetBool(_T("UseGzip"), true); //allow only for HTTP
 	m_sWebHttpsCertificate = ini.GetString(_T("HTTPSCertificate"), _T(""));
 	m_sWebHttpsKey = ini.GetString(_T("HTTPSKey"), _T(""));
 
@@ -2615,11 +2615,6 @@ void CPreferences::SetMaxDownload(uint32 val)
 	m_maxdownload = val ? val : UNLIMITED;
 }
 
-void CPreferences::SetNetworkKademlia(bool val)
-{
-	networkkademlia = val;
-}
-
 CString CPreferences::GetHomepageBaseURLForLevel(int nLevel)
 {
 	CString tmp;
@@ -2736,7 +2731,7 @@ void CPreferences::EstimateMaxUploadCap(uint32 nCurrentUpload)
 
 void CPreferences::SetMaxGraphUploadRate(uint32 in)
 {
-	maxGraphUploadRate = (in ? in : UNLIMITED);
+	maxGraphUploadRate = in ? in : UNLIMITED;
 }
 
 bool CPreferences::IsDynUpEnabled()
@@ -2886,30 +2881,27 @@ CString CPreferences::GetDefaultDirectory(EDefaultDirectory eDirectory, bool bCr
 			nRegistrySetting = _UI32_MAX;
 
 		// Do we need to get SystemFolders, or do we use our old Default anyway? (Executable Dir)
+		bool bVista = (GetWindowsVersion() >= _WINVER_VISTA_);
 		if (nRegistrySetting == 0
-			|| (nRegistrySetting == 1 && GetWindowsVersion() >= _WINVER_VISTA_)
-			|| (nRegistrySetting == _UI32_MAX && (!bConfigAvailableExecutable || GetWindowsVersion() >= _WINVER_VISTA_)))
+			|| (nRegistrySetting == 1 && bVista)
+			|| (nRegistrySetting == _UI32_MAX && (!bConfigAvailableExecutable || bVista)))
 		{
-			HMODULE hShell32 = LoadLibrary(_T("shell32.dll"));
-			if (hShell32) {
-				if (GetWindowsVersion() >= _WINVER_VISTA_) {
-
+			if (bVista) {
+				// function unavailable before WinVista
+				HRESULT(WINAPI *pfnSHGetKnownFolderPath)(REFKNOWNFOLDERID, DWORD, HANDLE, PWSTR*);
+				HMODULE hShell32 = ::GetModuleHandle(_T("shell32.dll"));
+				(FARPROC&)pfnSHGetKnownFolderPath = hShell32 ? ::GetProcAddress(hShell32, "SHGetKnownFolderPath") : NULL;
+				if (pfnSHGetKnownFolderPath) {
 					PWSTR pszLocalAppData = NULL;
 					PWSTR pszPersonalDownloads = NULL;
 					PWSTR pszPublicDownloads = NULL;
 					PWSTR pszProgramData = NULL;
-
-					// function not available before WinVista
-					HRESULT(WINAPI *pfnSHGetKnownFolderPath)(REFKNOWNFOLDERID, DWORD, HANDLE, PWSTR*);
-					(FARPROC&)pfnSHGetKnownFolderPath = GetProcAddress(hShell32, "SHGetKnownFolderPath");
-
-					if (pfnSHGetKnownFolderPath != NULL
-						&& (*pfnSHGetKnownFolderPath)(FOLDERID_LocalAppData, 0, NULL, &pszLocalAppData) == S_OK
+					if (   (*pfnSHGetKnownFolderPath)(FOLDERID_LocalAppData, 0, NULL, &pszLocalAppData) == S_OK
 						&& (*pfnSHGetKnownFolderPath)(FOLDERID_Downloads, 0, NULL, &pszPersonalDownloads) == S_OK
 						&& (*pfnSHGetKnownFolderPath)(FOLDERID_PublicDownloads, 0, NULL, &pszPublicDownloads) == S_OK
 						&& (*pfnSHGetKnownFolderPath)(FOLDERID_ProgramData, 0, NULL, &pszProgramData) == S_OK)
 					{
-						if (_tcsclen(pszLocalAppData) < MAX_PATH - 30
+						if (   _tcsclen(pszLocalAppData) < MAX_PATH - 30
 							&& _tcsclen(pszPersonalDownloads) < MAX_PATH - 40
 							&& _tcsclen(pszProgramData) < MAX_PATH - 30
 							&& _tcsclen(pszPublicDownloads) < MAX_PATH - 40)
@@ -2954,42 +2946,35 @@ CString CPreferences::GetDefaultDirectory(EDefaultDirectory eDirectory, bool bCr
 						} else
 							ASSERT(0);
 					}
-
 					::CoTaskMemFree(pszLocalAppData);
 					::CoTaskMemFree(pszPersonalDownloads);
 					::CoTaskMemFree(pszPublicDownloads);
 					::CoTaskMemFree(pszProgramData);
 				} else {
-					// GetWindowsVersion() < _WINVER_VISTA_
-					CString strAppData(ShellGetFolderPath(CSIDL_APPDATA));
-					CString strPersonal(ShellGetFolderPath(CSIDL_PERSONAL));
-					if (!strAppData.IsEmpty() && !strPersonal.IsEmpty()) {
-						if (strAppData.GetLength() < MAX_PATH - 30 && strPersonal.GetLength() < MAX_PATH - 40) {
-							slosh(strPersonal);
-							slosh(strAppData);
-							if (nRegistrySetting == 0) {
-								// registry setting overwrites, use these folders
-								strSelectedDataBaseDirectory = strPersonal + _T("eMule Downloads\\");
-								strSelectedConfigBaseDirectory = strAppData + _T("eMule\\");
-								m_nCurrentUserDirMode = 0;
-								// strSelectedExpansionBaseDirectory stays default
-							} else if (nRegistrySetting == _UI32_MAX && !bConfigAvailableExecutable) {
-								if (::PathFileExists(strAppData + _T("eMule\\") CONFIGFOLDER _T("preferences.ini"))) {
-									// preferences.ini found, so we use this as default
-									strSelectedDataBaseDirectory = strPersonal + _T("eMule Downloads\\");
-									strSelectedConfigBaseDirectory = strAppData + _T("eMule\\");
-									m_nCurrentUserDirMode = 0;
-								}
-							} else
-								ASSERT(0);
+					DebugLogError(_T("Unable to retrieve system folders' location with shell32.dll; using fallbacks"));
+					ASSERT(0);
+				}
+			} else { //pre-Vista
+				const CString &strAppData(ShellGetFolderPath(CSIDL_APPDATA));
+				const CString &strPersonal(ShellGetFolderPath(CSIDL_PERSONAL));
+				if (!strAppData.IsEmpty() && !strPersonal.IsEmpty()) {
+					if (strAppData.GetLength() < MAX_PATH - 30 && strPersonal.GetLength() < MAX_PATH - 40) {
+						if (nRegistrySetting == 0	// registry setting overwrites, use these folders
+							|| (nRegistrySetting == _UI32_MAX
+								&& !bConfigAvailableExecutable
+								&& ::PathFileExists(strAppData + _T("eMule\\") CONFIGFOLDER _T("preferences.ini"))))
+						{
+							slosh(const_cast<CString&>(strAppData));
+							slosh(const_cast<CString&>(strPersonal));
+							strSelectedDataBaseDirectory = strPersonal + _T("eMule Downloads\\");
+							strSelectedConfigBaseDirectory = strAppData + _T("eMule\\");
+							// strSelectedExpansionBaseDirectory stays unchanged
+							m_nCurrentUserDirMode = 0;
 						} else
 							ASSERT(0);
-					}
+					} else
+						ASSERT(0);
 				}
-				FreeLibrary(hShell32);
-			} else {
-				DebugLogError(_T("Unable to load shell32.dll to retrieve the system folder locations, using fallbacks"));
-				ASSERT(0);
 			}
 		}
 
@@ -3117,15 +3102,15 @@ bool CPreferences::IsRunningAeroGlassTheme()
 		bAeroAlreadyDetected = true;
 		m_bIsRunningAeroGlass = FALSE;
 		if (GetWindowsVersion() >= _WINVER_VISTA_) {
-			HMODULE hDWMAPI = LoadLibrary(_T("dwmapi.dll"));
+			HMODULE hDWMAPI = ::LoadLibrary(_T("dwmapi.dll"));
 			if (hDWMAPI) {
 				HRESULT(WINAPI *pfnDwmIsCompositionEnabled)(BOOL*);
-				(FARPROC&)pfnDwmIsCompositionEnabled = GetProcAddress(hDWMAPI, "DwmIsCompositionEnabled");
+				(FARPROC&)pfnDwmIsCompositionEnabled = ::GetProcAddress(hDWMAPI, "DwmIsCompositionEnabled");
 				if (pfnDwmIsCompositionEnabled != NULL)
 					pfnDwmIsCompositionEnabled(&m_bIsRunningAeroGlass);
-				FreeLibrary(hDWMAPI);
+				::FreeLibrary(hDWMAPI);
 			}
 		}
 	}
-	return (m_bIsRunningAeroGlass != FALSE);
+	return m_bIsRunningAeroGlass != FALSE;
 }

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 #include "SafeFile.h"
 #include "StringConversion.h"
 #include "preferences.h"
-#include "ATLComTime.h"
 
 
 #ifdef _DEBUG
@@ -340,6 +339,11 @@ void CED2KFileLink::GetLink(CString &lnk) const
 		, (LPCTSTR)EncodeUrlUtf8(m_name)
 		, (LPCTSTR)m_size
 		, (LPCTSTR)EncodeBase16(m_hash, 16));
+}
+
+EMFileSize CED2KFileLink::GetSize() const
+{
+	return (EMFileSize)(uint64)_tstoi64(m_size);
 }
 
 CED2KLink* CED2KLink::CreateLinkFromUrl(LPCTSTR uri)

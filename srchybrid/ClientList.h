@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ public:
 	uint32				m_cBadRequest;
 };
 
-enum buddyState
+enum buddyState : uint8
 {
 	Disconnected,
 	Connecting,
@@ -81,22 +81,24 @@ public:
 	// Clients
 	void	AddClient(CUpDownClient *toadd, bool bSkipDupTest = false);
 	void	RemoveClient(CUpDownClient *toremove, LPCTSTR pszReason = NULL);
-	void	GetStatistics(uint32 &ruTotalClients, int stats[NUM_CLIENTLIST_STATS],
-						  CClientVersionMap &clientVersionEDonkey,
-						  CClientVersionMap &clientVersionEDonkeyHybrid,
-						  CClientVersionMap &clientVersionEMule,
-						  CClientVersionMap &clientVersionAMule);
+	void	GetStatistics(uint32 &ruTotalClients
+						, int stats[NUM_CLIENTLIST_STATS]
+						, CClientVersionMap &clientVersionEDonkey
+						, CClientVersionMap &clientVersionEDonkeyHybrid
+						, CClientVersionMap &clientVersionEMule
+						, CClientVersionMap &clientVersionAMule);
 	INT_PTR	GetClientCount()							{ return list.GetCount(); }
 	void	DeleteAll();
 	bool	AttachToAlreadyKnown(CUpDownClient **client, CClientReqSocket *sender);
 	CUpDownClient* FindClientByConnIP(uint32 clientip, UINT port) const;
-	CUpDownClient* FindClientByIP(uint32 clientip, UINT port) const;
-	CUpDownClient* FindClientByUserHash(const uchar *clienthash, uint32 dwIP = 0, uint16 nTCPPort = 0) const;
 	CUpDownClient* FindClientByIP(uint32 clientip) const;
-	CUpDownClient* FindClientByIP_UDP(uint32 clientip, UINT nUDPport) const;
-	CUpDownClient* FindClientByServerID(uint32 uServerIP, uint32 uED2KUserID) const;
-	CUpDownClient* FindClientByUserID_KadPort(uint32 clientID, uint16 kadPort) const;
+	CUpDownClient* FindClientByIP(uint32 clientip, UINT port) const;
 	CUpDownClient* FindClientByIP_KadPort(uint32 ip, uint16 port) const;
+	CUpDownClient* FindClientByIP_UDP(uint32 clientip, UINT nUDPport) const;
+	CUpDownClient* FindClientBySearchID(uint32 dwSearchID) const;
+	CUpDownClient* FindClientByServerID(uint32 uServerIP, uint32 uED2KUserID) const;
+	CUpDownClient* FindClientByUserHash(const uchar *clienthash, uint32 dwIP = 0, uint16 nTCPPort = 0) const;
+	CUpDownClient* FindClientByUserID_KadPort(uint32 clientID, uint16 kadPort) const;
 
 	// Banned clients
 	void	AddBannedClient(uint32 dwIP);
@@ -106,7 +108,7 @@ public:
 	void	RemoveAllBannedClients();
 
 	// Tracked clients
-	void	AddTrackClient(CUpDownClient *toadd);
+	void	AddTrackClient(const CUpDownClient *toadd);
 	bool	ComparePriorUserhash(uint32 dwIP, uint16 nPort, const void *pNewHash);
 	INT_PTR	GetClientsFromIP(uint32 dwIP) const;
 	void	TrackBadRequest(const CUpDownClient *upcClient, int nIncreaseCounter);
@@ -115,9 +117,9 @@ public:
 	void	RemoveAllTrackedClients();
 
 	// Kad client list, buddy handling
-	bool	RequestTCP(Kademlia::CContact *contact, uint8 byConnectOptions);
-	void	RequestBuddy(Kademlia::CContact *contact, uint8 byConnectOptions);
-	bool	IncomingBuddy(Kademlia::CContact *contact, Kademlia::CUInt128 *buddyID);
+	bool	RequestTCP(const Kademlia::CContact *contact, uint8 byConnectOptions);
+	void	RequestBuddy(const Kademlia::CContact *contact, uint8 byConnectOptions);
+	bool	IncomingBuddy(const Kademlia::CContact *contact, const Kademlia::CUInt128 &buddyID);
 	void	RemoveFromKadList(CUpDownClient *torem);
 	void	AddToKadList(CUpDownClient *toadd);
 	bool	DoRequestFirewallCheckUDP(const Kademlia::CContact &contact);

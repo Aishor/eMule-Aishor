@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,7 +16,6 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
 #include "emule.h"
-#include "HTRichEditCtrl.h"
 #include "emuledlg.h"
 #include "UpDownClient.h"
 #include "HelpIDs.h"
@@ -457,16 +456,9 @@ void CChatWnd::ScrollHistory(bool down)
 	else
 		--ci->history_pos;
 
-	LPCTSTR pTxt;
-	DWORD len;
-	if (ci->history_pos >= last) {
-		pTxt = (LPCTSTR)ci->history[last];
-		len = ci->history[last].GetLength();
-	} else {
-		pTxt = _T("");
-		len = 0;
-	}
-	m_wndMessage.SetWindowText(pTxt);
+	const CString &sTxt = (ci->history_pos < last) ? ci->history[ci->history_pos] : CString();
+	m_wndMessage.SetWindowText(sTxt);
+	int len = sTxt.GetLength();
 	m_wndMessage.SetSel(len, len);
 }
 
@@ -476,10 +468,10 @@ void CChatWnd::OnSysColorChange()
 	SetAllIcons();
 }
 
-void CChatWnd::UpdateFriendlistCount(INT_PTR count)
+void CChatWnd::UpdateFriendlistCount()
 {
 	CString sCount;
-	sCount.Format(_T("%s (%u)"), (LPCTSTR)GetResString(IDS_CW_FRIENDS), (unsigned)count);
+	sCount.Format(_T("%s (%u)"), (LPCTSTR)GetResString(IDS_CW_FRIENDS), (unsigned)theApp.friendlist->GetCount());
 	SetDlgItemText(IDC_FRIENDS_LBL, sCount);
 }
 

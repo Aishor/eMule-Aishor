@@ -127,7 +127,7 @@ public:
 	The specified text can contains a single "%s" placeholder which
 	will be replaced with the title of the empty page.
 	*/
-	void SetEmptyPageText(LPCTSTR lpszEmptyPageText)	{ m_strEmptyPageMessage = lpszEmptyPageText; };
+	void SetEmptyPageText(LPCTSTR lpszEmptyPageText)	{ m_strEmptyPageMessage = lpszEmptyPageText; }
 
 	/**
 	Allows you to specify, how the empty page message (see

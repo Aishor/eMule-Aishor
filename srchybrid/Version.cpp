@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@ const UINT CemuleApp::m_nVersionMjr = VERSION_MJR;
 const UINT CemuleApp::m_nVersionMin = VERSION_MIN;
 const UINT CemuleApp::m_nVersionUpd = VERSION_UPDATE;
 const UINT CemuleApp::m_nVersionBld = VERSION_BUILD;
-const TCHAR *CemuleApp::m_sPlatform = VERSION_X64;
+const TCHAR *CemuleApp::m_sPlatform = VERSION_PLATFORM;

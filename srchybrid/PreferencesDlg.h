@@ -49,7 +49,7 @@ public:
 #endif
 
 	void Localize();
-	void SetStartPage(UINT uStartPageID)	{ m_pPshStartPage = MAKEINTRESOURCE(uStartPageID); };
+	void SetStartPage(UINT uStartPageID)	{ m_pPshStartPage = MAKEINTRESOURCE(uStartPageID); }
 
 protected:
 	LPCTSTR m_pPshStartPage;

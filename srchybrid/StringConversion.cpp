@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -59,7 +59,7 @@ int utf8towc(LPCSTR pcUtf8, UINT uUtf8Size, LPWSTR pwc, UINT uWideCharSize)
 					return -1; // Invalid UTF-8 string.
 
 				if (uExpectedBytes == 2) {
-					//if (uWideChar == 0x0D && ((BYTE)*pcUtf8 & 0x20))
+					//if (uWideChar == 0x0D && ((byte)*pcUtf8 & 0x20))
 					//    return -1;
 				} else if (uExpectedBytes == 3) {
 					if (uWideChar > 4)
@@ -192,8 +192,8 @@ CString EncodeUrlUtf8(const CString &rstr)
 		// NOTE: The purpose of that function is to encode non-ASCII characters only for being used within
 		// an ED2K URL. An ED2K URL is not conforming to any RFC, thus any unsafe URI characters are kept
 		// as they are. The space character is though special and gets encoded as well.
-		if ((BYTE)utf8[i] == '%' || (BYTE)utf8[i] == ' ' || (BYTE)utf8[i] >= 0x7F)
-			url.AppendFormat(_T("%%%02X"), (BYTE)utf8[i]);
+		if ((byte)utf8[i] == '%' || (byte)utf8[i] == ' ' || (byte)utf8[i] >= 0x7F)
+			url.AppendFormat(_T("%%%02X"), (byte)utf8[i]);
 		else
 			url += utf8[i];
 	}

@@ -64,14 +64,14 @@ public:
 	virtual void	GetHash(CAICHHash &rHash);
 
 	void	Finish();
-	void	GetHash(SHA1 *pHash) const;
+	void	GetHash(SHA1 *pHash) const				{ *pHash = m_hash; }
 	CString	GetHashString(bool bURN = false) const;
 
 	static CString	HashToString(const SHA1 *pHashIn, bool bURN = false);
 	static CString	HashToHexString(const SHA1 *pHashIn, bool bURN = false);
 	static bool		HashFromString(LPCTSTR pszHash, SHA1 *pHashIn);
 	static bool		HashFromURN(LPCTSTR pszHash, SHA1 *pHashIn);
-	static bool		IsNull(SHA1 *pHash);
+	static bool		IsNull(const SHA1 *pHash);
 };
 
 inline bool operator==(const SHA1 &sha1a, const SHA1 &sha1b)

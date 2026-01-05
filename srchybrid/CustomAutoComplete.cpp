@@ -133,11 +133,6 @@ bool CCustomAutoComplete::AddItem(const CString &p_sItem, int iPos)
 	return false;
 }
 
-int CCustomAutoComplete::GetItemCount()
-{
-	return (int)m_asList.GetCount();
-}
-
 bool CCustomAutoComplete::RemoveItem(const CString &p_sItem)
 {
 	if (!p_sItem.IsEmpty()) {
@@ -182,11 +177,6 @@ bool CCustomAutoComplete::Disable()
 bool CCustomAutoComplete::Enable()
 {
 	return !m_bBound && m_pac && SUCCEEDED(EnDisable(true));
-}
-
-const CStringArray& CCustomAutoComplete::GetList() const
-{
-	return m_asList;
 }
 
 //

@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "tabctrl.hpp"
 #include <algorithm>
+#include <uxtheme.h>
+#include "tabctrl.hpp"
 #include "UserMsgs.h"
 #include "emule.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -388,7 +388,7 @@ void TabControl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		// TCS_OWNERDRAWFIXED style.
 		bVistaHotTracked = pDC->GetTextColor() == ::GetSysColor(COLOR_HOTLIGHT);
 
-		hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"TAB");
+		hTheme = ::OpenThemeData(m_hWnd, L"TAB");
 		if (hTheme) {
 			if (bSelected) {
 				// get the real tab item rect
@@ -429,9 +429,9 @@ void TabControl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 				else
 					iPartId = TABP_TABITEM;
 			}
-			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
-				g_xpStyle.DrawThemeParentBackground(m_hWnd, *pDC, &rcFullItem);
-			g_xpStyle.DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, &rcBk, NULL);
+			if (::IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
+				::DrawThemeParentBackground(m_hWnd, *pDC, &rcFullItem);
+			::DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, &rcBk, NULL);
 		}
 	}
 
@@ -459,7 +459,7 @@ void TabControl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	//
 	// Vista: "DrawThemeText" can not be used in case we need a certain foreground color. Thus we always us
 	// "DrawText" to always get the same font and metrics (just for safety).
-	pDC->DrawText(szLabel, &rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
+	pDC->DrawText(szLabel, -1, &rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
 
 	if (crOldColor != CLR_NONE)
 		pDC->SetTextColor(crOldColor);
@@ -473,7 +473,7 @@ void TabControl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		} else
 			rcClip.top += 2;
 		pDC->ExcludeClipRect(&rcClip);
-		g_xpStyle.CloseThemeData(hTheme);
+		::CloseThemeData(hTheme);
 	}
 }
 

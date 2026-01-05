@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,24 +17,24 @@
 #pragma once
 
 // MOD Note: Do not change this part - Merkur
-#define	EMULE_PROTOCOL					0x01
+#define	EMULE_PROTOCOL				0x01
 // MOD Note: end
-#define	EDONKEYVERSION					0x3C
-#define KADEMLIA_VERSION1_46c			0x01 /*45b - 46c*/
-#define KADEMLIA_VERSION2_47a			0x02 /*47a*/
-#define KADEMLIA_VERSION3_47b			0x03 /*47b*/
-#define KADEMLIA_VERSION4_47c			0x04 /*47c*/
-#define KADEMLIA_VERSION5_48a			0x05 // -0.48a
-#define KADEMLIA_VERSION6_49aBETA		0x06 // -0.49aBETA1, needs to support: OP_FWCHECKUDPREQ (!), obfuscation, direct callbacks, source type 6, UDP firewall check
-#define KADEMLIA_VERSION7_49a			0x07 // -0.49a needs to support OP_KAD_FWTCPCHECK_ACK, KADEMLIA_FIREWALLED2_REQ
-#define KADEMLIA_VERSION8_49b			0x08 // TAG_KADMISCOPTIONS, KADEMLIA2_HELLO_RES_ACK
-#define KADEMLIA_VERSION9_50a			0x09 // handling AICH hashes on keyword storage
-#define KADEMLIA_VERSION				0x0a // -Change CT_EMULE_MISCOPTIONS2 if Kad version becomes >= 15 (0x0F)
-#define PREFFILE_VERSION				0x14 //<<-- last change: reduced .dat, by using .ini
-#define PARTFILE_VERSION				0xe0
-#define PARTFILE_SPLITTEDVERSION		0xe1
-#define PARTFILE_VERSION_LARGEFILE		0xe2
-#define SOURCEEXCHANGE2_VERSION			4	 // replaces the version sent in MISC_OPTIONS flag from SX1
+#define	EDONKEYVERSION				0x3C
+#define KADEMLIA_VERSION1_46c		0x01 /*45b - 46c*/
+#define KADEMLIA_VERSION2_47a		0x02 /*47a*/
+#define KADEMLIA_VERSION3_47b		0x03 /*47b*/
+#define KADEMLIA_VERSION4_47c		0x04 /*47c*/
+#define KADEMLIA_VERSION5_48a		0x05 // -0.48a
+#define KADEMLIA_VERSION6_49aBETA	0x06 // -0.49aBETA1, needs to support: OP_FWCHECKUDPREQ (!), obfuscation, direct callbacks, source type 6, UDP firewall check
+#define KADEMLIA_VERSION7_49a		0x07 // -0.49a needs to support OP_KAD_FWTCPCHECK_ACK, KADEMLIA_FIREWALLED2_REQ
+#define KADEMLIA_VERSION8_49b		0x08 // TAG_KADMISCOPTIONS, KADEMLIA2_HELLO_RES_ACK
+#define KADEMLIA_VERSION9_50a		0x09 // handling AICH hashes on keyword storage
+#define KADEMLIA_VERSION			0x0a // -Change CT_EMULE_MISCOPTIONS2 if Kad version becomes >= 15 (0x0F)
+#define PREFFILE_VERSION			0x14 //<<-- last change: reduced .dat, by using .ini
+#define PARTFILE_VERSION			0xe0
+#define PARTFILE_SPLITTEDVERSION	0xe1
+#define PARTFILE_VERSION_LARGEFILE	0xe2
+#define SOURCEEXCHANGE2_VERSION		4	 // replaces the version sent in MISC_OPTIONS flag from SX1
 
 #define CREDITFILE_VERSION		0x12
 #define CREDITFILE_VERSION_29	0x11
@@ -334,7 +334,7 @@
 //#define TAG_PART_PATH			"\x06"	// <string>
 //#define TAG_PART_HASH			"\x07"
 #define  FT_TRANSFERRED			 0x08	// <uint32>
-//#define	TAG_TRANSFERRED			"\x08"	// <uint32>
+//#define	TAG_TRANSFERRED		"\x08"	// <uint32>
 #define  FT_GAPSTART			 0x09	// <uint32>
 #define	TAG_GAPSTART			"\x09"	// <uint32>
 #define  FT_GAPEND				 0x0A	// <uint32>
@@ -381,9 +381,10 @@
 #define  FT_LASTSHARED			 0x34	// <uint32>
 #define  FT_AICHHASHSET			 0x35	// <uint32>
 #define	TAG_KADAICHHASHPUB		"\x36"	// <AICH Hash>
+#define  FT_KADAICHHASHRESULT	 0x37	// <Count 1>{<Publishers 1><AICH Hash> Count}
 #define TAG_KADAICHHASHRESULT	"\x37"	// <Count 1>{<Publishers 1><AICH Hash> Count}
 #define	 FT_FOLDERNAME			 0x38	// <string> in reply to View files request
-// statistic
+// statistics
 #define  FT_ATTRANSFERRED		 0x50	// <uint32>
 #define  FT_ATREQUESTED			 0x51	// <uint32>
 #define  FT_ATACCEPTED			 0x52	// <uint32>
@@ -403,6 +404,7 @@
 #define	 FT_MEDIA_CODEC			 0xD5	// <string>
 #define	TAG_MEDIA_CODEC			"\xD5"	// <string>
 #define TAG_KADMISCOPTIONS		"\xF2"	// <uint8>
+#define  FT_ENCRYPTION			 0xF3	// <uint8>
 #define TAG_ENCRYPTION			"\xF3"	// <uint8>
 #define TAG_USER_COUNT			"\xF4"	// <uint32>
 #define TAG_FILE_COUNT			"\xF5"	// <uint32>
@@ -410,13 +412,20 @@
 #define TAG_FILECOMMENT			"\xF6"	// <string>
 #define  FT_FILERATING			 0xF7	// <uint8>
 #define TAG_FILERATING			"\xF7"	// <uint8>
+#define  FT_BUDDYHASH			 0xF8	// <string>
 #define TAG_BUDDYHASH			"\xF8"	// <string>
 #define TAG_CLIENTLOWID			"\xF9"	// <uint32>
+#define  FT_SERVERPORT			 0xFA	// <uint16>
 #define TAG_SERVERPORT			"\xFA"	// <uint16>
+#define  FT_SERVERIP			 0xFB	// <uint32>
 #define TAG_SERVERIP			"\xFB"	// <uint32>
+#define  FT_SOURCEUPORT			 0xFC	// <uint16>
 #define TAG_SOURCEUPORT			"\xFC"	// <uint16>
+#define  FT_SOURCEPORT			 0xFD	// <uint16>
 #define TAG_SOURCEPORT			"\xFD"	// <uint16>
+#define  FT_SOURCEIP			 0xFE	// <uint32>
 #define TAG_SOURCEIP			"\xFE"	// <uint32>
+#define  FT_SOURCETYPE			 0xFF	// <uint8>
 #define TAG_SOURCETYPE			"\xFF"	// <uint8>
 
 #define	TAGTYPE_NONE			0x00
@@ -596,14 +605,14 @@
 
 #define KADEMLIA_PUBLISH_REQ			0x40	// <HASH (key) [16]> <CNT1 [2]> (<HASH (target) [16]> <CNT2 [2]> <META>*(CNT2))*(CNT1)
 //#define UNUSED						0x41	// Old Opcode, don't use.
-#define KADEMLIA_PUBLISH_NOTES_REQ_DEPRECATED		0x42	// <HASH (key) [16]> <HASH (target) [16]> <CNT2 [2]> <META>*(CNT2))*(CNT1)
+#define KADEMLIA_PUBLISH_NOTES_REQ_DEPRECATED	0x42	// <HASH (key) [16]> <HASH (target) [16]> <CNT2 [2]> <META>*(CNT2))*(CNT1)
 #define	KADEMLIA2_PUBLISH_KEY_REQ		0x43	//
 #define	KADEMLIA2_PUBLISH_SOURCE_REQ	0x44	//
 #define KADEMLIA2_PUBLISH_NOTES_REQ		0x45	//
 
 #define KADEMLIA_PUBLISH_RES			0x48	// <HASH (key) [16]>
 //#define UNUSED						0x49	// Old Opcode, don't use.
-#define KADEMLIA_PUBLISH_NOTES_RES_DEPRECATED		0x4A	// <HASH (key) [16]>
+#define KADEMLIA_PUBLISH_NOTES_RES_DEPRECATED	0x4A	// <HASH (key) [16]>
 #define	KADEMLIA2_PUBLISH_RES			0x4B	//
 #define	KADEMLIA2_PUBLISH_RES_ACK		0x4C	// null
 

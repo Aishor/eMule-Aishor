@@ -41,14 +41,14 @@ public:
 		CZIPFile *m_pZIP;
 	public:
 		//CBuffer*	Decompress();
-		BOOL	Extract(LPCTSTR pszFile);
+		bool	Extract(LPCTSTR pszFile);
 		CString	m_sName;
 		uint64	m_nSize;
 	protected:
+		bool	PrepareToDecompress(LPVOID pStream);
 		uint64	m_nLocalOffset;
 		uint64	m_nCompressedSize;
 		int		m_nCompression;
-		BOOL	PrepareToDecompress(LPVOID pStream);
 	};
 
 // Attributes
@@ -56,20 +56,20 @@ protected:
 	HANDLE	m_hFile;
 	File	*m_pFile;
 	int		m_nFile;
-	BOOL	m_bAttach;
+	bool	m_bAttach;
 
 // Operations
 public:
-	BOOL	Open(LPCTSTR pszFile);
-	BOOL	Attach(HANDLE hFile);
-	BOOL	IsOpen() const;
+	bool	Open(LPCTSTR pszFile);
+	bool	Attach(HANDLE hFile);
+	bool	IsOpen() const;
 	void	Close();
 public:
-	int		GetCount() const;
+	int		GetCount() const						{ return m_nFile; } //get the file count
 	File*	GetFile(int nFile) const;
 	File*	GetFile(LPCTSTR pszFile, BOOL bPartial = FALSE) const;
 protected:
-	BOOL	LocateCentralDirectory();
-	BOOL	ParseCentralDirectory(BYTE *pDirectory, DWORD nDirectory);
-	BOOL	SeekToFile(File *pFile);
+	bool	LocateCentralDirectory();
+	bool	ParseCentralDirectory(BYTE *pDirectory, DWORD nDirectory);
+	bool	SeekToFile(const File *pFile);
 };

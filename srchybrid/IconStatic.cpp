@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,9 +15,9 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "IconStatic.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -114,11 +114,11 @@ void CIconStatic::SetIcon(LPCTSTR lpszIconID)
 
 	rcCaption.left += 22;
 
-	if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-		HTHEME hTheme = g_xpStyle.OpenThemeData(NULL, L"BUTTON");
-		g_xpStyle.DrawThemeText(hTheme, MemDC.m_hDC, BP_GROUPBOX, GBS_NORMAL, m_strText, m_strText.GetLength(),
-			DT_WORDBREAK | DT_CENTER | DT_WORD_ELLIPSIS, NULL, &rcCaption);
-		g_xpStyle.CloseThemeData(hTheme);
+	if (::IsThemeActive() && ::IsAppThemed()) {
+		HTHEME hTheme = ::OpenThemeData(NULL, L"BUTTON");
+		::DrawThemeText(hTheme, MemDC.m_hDC, BP_GROUPBOX, GBS_NORMAL, m_strText, m_strText.GetLength()
+								, DT_WORDBREAK | DT_CENTER | DT_WORD_ELLIPSIS, NULL, &rcCaption);
+		::CloseThemeData(hTheme);
 	} else {
 		MemDC.SetTextColor(::GetSysColor(COLOR_WINDOWTEXT));
 		MemDC.DrawText(m_strText, rcCaption, DT_SINGLELINE | DT_LEFT | DT_END_ELLIPSIS);

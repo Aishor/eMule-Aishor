@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -20,7 +20,6 @@
 #include "SharedFilesWnd.h"
 #include "OtherFunctions.h"
 #include "SharedFileList.h"
-#include "KnownFileList.h"
 #include "KnownFile.h"
 #include "UserMsgs.h"
 #include "HelpIDs.h"

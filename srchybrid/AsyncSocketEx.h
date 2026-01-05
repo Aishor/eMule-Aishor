@@ -151,11 +151,11 @@ public:
 	BOOL GetPeerName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen);
 
 	//Gets the local name for a socket.
-	bool GetSockName(CString &rSocketAddress, UINT &rSocketPort);
-	BOOL GetSockName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen);
+	bool GetSockName(CString &rSocketAddress, UINT &rSocketPort) const;
+	BOOL GetSockName(LPSOCKADDR lpSockAddr, int *lpSockAddrLen) const;
 
 	//Retrieves a socket option.
-	BOOL GetSockOpt(int nOptionName, void *lpOptionValue, int *lpOptionLen, int nLevel = SOL_SOCKET);
+	BOOL GetSockOpt(int nOptionName, void *lpOptionValue, int *lpOptionLen, int nLevel = SOL_SOCKET) const;
 
 	//Sets a socket option.
 	BOOL SetSockOpt(int nOptionName, const void *lpOptionValue, int nOptionLen, int nLevel = SOL_SOCKET);
@@ -232,7 +232,7 @@ public:
 	BOOL AddLayer(CAsyncSocketExLayer *pLayer);
 
 	//Is a layer attached to the socket?
-	bool IsLayerAttached() const;
+	bool IsLayerAttached() const					{ return m_pFirstLayer != NULL; }
 
 	//Returns the handle of the socket.
 	SOCKET GetSocketHandle() const					{ return m_SocketData.hSocket; }
@@ -293,7 +293,7 @@ protected:
 	void AddCallbackNotification(const t_callbackMsg &msg);
 
 	//AsyncGetHostByName
-	char* m_pAsyncGetHostByNameBuffer; //Buffer for hostend structure
+	char *m_pAsyncGetHostByNameBuffer; //Buffer for hostend structure
 	HANDLE m_hAsyncGetHostByNameHandle; //TaskHandle
 	USHORT m_nAsyncGetHostByNamePort; //Port to connect to
 

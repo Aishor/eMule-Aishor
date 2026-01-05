@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -37,7 +37,6 @@
 #include "DownloadQueue.h"
 #include "server.h"
 #include "IrcSocket.h"
-#include "MenuCmds.h"
 #include "ServerConnect.h"
 #include "FriendList.h"
 #include "emuleDlg.h"
@@ -1532,20 +1531,10 @@ int CIrcMain::SendString(const CString &sSend)
 	return m_pIRCSocket->SendString(sSend);
 }
 
-void CIrcMain::SetIRCWnd(CIrcWnd *pwndIRC)
-{
-	m_pwndIRC = pwndIRC;
-}
-
 uint32 CIrcMain::SetVerify()
 {
 	m_uVerify = GetRandomUInt32();
 	return m_uVerify;
-}
-
-CString CIrcMain::GetNick() const
-{
-	return m_sNick;
 }
 
 void CIrcMain::PerformString(const CString &sPerform)

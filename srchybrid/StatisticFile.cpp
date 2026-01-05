@@ -1,6 +1,6 @@
 // parts of this file are based on work from pan One (http://home-3.tiscali.nl/~meost/pms/)
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-void CStatisticFile::MergeFileStats(CStatisticFile *toMerge)
+void CStatisticFile::MergeFileStats(const CStatisticFile *toMerge)
 {
 	requested += toMerge->GetRequests();
 	accepted += toMerge->GetAccepts();
@@ -59,19 +59,4 @@ void CStatisticFile::AddTransferred(uint64 bytes)
 	alltimetransferred += bytes;
 	theApp.knownfiles->transferred += bytes;
 	theApp.sharedfiles->UpdateFile(fileParent);
-}
-
-void CStatisticFile::SetAllTimeRequests(uint32 nVal)
-{
-	alltimerequested = nVal;
-}
-
-void CStatisticFile::SetAllTimeAccepts(uint32 nVal)
-{
-	alltimeaccepted = nVal;
-}
-
-void CStatisticFile::SetAllTimeTransferred(uint64 nVal)
-{
-	alltimetransferred = nVal;
 }

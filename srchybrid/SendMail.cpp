@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,19 +22,14 @@
 #include "StringConversion.h"
 #include "Log.h"
 #include "Preferences.h"
-#include "TLSthreading.h"
 #include <atlenc.h>
 #include <wincrypt.h>
 
 #include "mbedtls/base64.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/error.h"
 #include "mbedtls/net_sockets.h"
-#include "mbedtls/platform.h"
 #include "mbedtls/ssl_cache.h"
-#include "mbedtls/ssl_cookie.h"
 #include "mbedtls/ssl_ticket.h"
-#include "mbedtls/x509.h"
+#include "TLSthreading.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -264,40 +259,28 @@ BOOL CNotifierMailThread::InitInstance()
 
 void CNotifierMailThread::sendmail()
 {
-	static const unsigned char pers[] = "eMule_mail";
 	CStringA sBodyA, sReceiverA, sSenderA, sServerA, sTmpA, sBufA;
 
-	mbedtls_entropy_context entropy;
-	mbedtls_ctr_drbg_context ctr_drbg;
 	mbedtls_net_context server_fd;
 	mbedtls_pk_context pkey;
 	mbedtls_ssl_context ssl;
 	mbedtls_ssl_config conf;
 	mbedtls_ssl_cache_context cache;
-	mbedtls_ssl_cookie_ctx cookie_ctx;
 	mbedtls_ssl_ticket_context ticket_ctx;
 	LPCTSTR pmsg = NULL;
 	int ret;
 
-	mbedtls_threading_set_alt(threading_mutex_init_alt, threading_mutex_free_alt, threading_mutex_lock_alt, threading_mutex_unlock_alt);
+	mbedtls_threading_set_alt(threading_mutex_init_alt, threading_mutex_destroy_alt, threading_mutex_lock_alt, threading_mutex_unlock_alt
+							, cond_init_alt, cond_destroy_alt, cond_signal_alt, cond_broadcast_alt, cond_wait_alt);
 	mbedtls_net_init(&server_fd);
 	mbedtls_ssl_init(&ssl);
 	mbedtls_ssl_config_init(&conf);
-	mbedtls_ctr_drbg_init(&ctr_drbg);
-	mbedtls_entropy_init(&entropy);
 	mbedtls_pk_init(&pkey);
 	mbedtls_ssl_cache_init(&cache);
 	mbedtls_ssl_ticket_init(&ticket_ctx);
-	mbedtls_ssl_cookie_init(&cookie_ctx);
 	ret = (int)psa_crypto_init();
 	if (ret) { //PSA_SUCCESS is 0
 		pmsg = _T("psa_crypto_init");
-		goto exit;
-	}
-
-	ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, pers, sizeof pers -1);
-	if (ret != 0) {
-		pmsg = _T("mbedtls_ctr_drbg_seed");
 		goto exit;
 	}
 
@@ -316,7 +299,6 @@ void CNotifierMailThread::sendmail()
 	}
 
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
-	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 	ret = mbedtls_ssl_setup(&ssl, &conf);
 	if (ret != 0) {
 		pmsg = _T("mbedtls_ssl_setup");
@@ -324,7 +306,7 @@ void CNotifierMailThread::sendmail()
 	}
 
 	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
-	ret = mbedtls_ssl_ticket_setup(&ticket_ctx, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_CIPHER_AES_256_GCM, 86400);
+	ret = mbedtls_ssl_ticket_setup(&ticket_ctx, PSA_ALG_GCM, PSA_KEY_TYPE_AES, 256, 86400);
 	if (ret != 0) {
 		pmsg = _T("mbedtls_ssl_ticket_setup");
 		goto exit;
@@ -521,15 +503,14 @@ failed:
 
 exit:
 	mbedtls_net_free(&server_fd);
-	mbedtls_ssl_cookie_free(&cookie_ctx);
-	mbedtls_ssl_ticket_free(&ticket_ctx);
-	mbedtls_ssl_cache_free(&cache);
-	mbedtls_psa_crypto_free();
-	mbedtls_pk_free(&pkey);
-	mbedtls_entropy_free(&entropy);
-	mbedtls_ctr_drbg_free(&ctr_drbg);
-	mbedtls_ssl_config_free(&conf);
 	mbedtls_ssl_free(&ssl);
+	mbedtls_ssl_config_free(&conf);
+	mbedtls_ssl_cache_free(&cache);
+	mbedtls_ssl_ticket_free(&ticket_ctx);
+	mbedtls_pk_free(&pkey);
+	mbedtls_psa_crypto_free();
+	mbedtls_threading_free_alt();
+
 	if (pmsg)
 		DebugLogError(_T("Error: %s returned -0x%04x - %s"), pmsg, -ret, (LPCTSTR)SSLerror(ret));
 }

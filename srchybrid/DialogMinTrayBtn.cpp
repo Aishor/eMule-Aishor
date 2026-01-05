@@ -7,8 +7,8 @@
 //  zegzav - 2002,2003 - eMule project (https://www.emule-project.net)
 // ------------------------------------------------------------
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "DialogMinTrayBtn.h"
-#include "VisualStylesXP.h"
 #include "ResizableLib\ResizableDialog.h"
 #include "OtherFunctions.h"
 #include "MenuCmds.h"
@@ -43,7 +43,7 @@ static char THIS_FILE[] = __FILE__;
 #define CAPTION_MINHEIGHT        (8)
 
 #define TIMERMINTRAYBTN_ID       0x76617a67
-#define TIMERMINTRAYBTN_PERIOD   200    // ms
+#define TIMERMINTRAYBTN_PERIOD   300    // ms
 
 #define WP_TRAYBUTTON WP_MINBUTTON
 
@@ -117,20 +117,20 @@ TEMPLATE CDialogMinTrayBtn<BASE>::CDialogMinTrayBtn(UINT nIDTemplate, CWnd *pPar
 
 TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnInit()
 {
-	m_bMinTrayBtnVisible = TRUE;
-	m_bMinTrayBtnEnabled = TRUE;
-	m_bMinTrayBtnUp = TRUE;
-	m_bMinTrayBtnCapture = FALSE;
-	m_bMinTrayBtnActive = FALSE;
-	m_bMinTrayBtnHitTest = FALSE;
 	m_nMinTrayBtnTimerId = 0;
+	m_bMinTrayBtnActive = false;
+	m_bMinTrayBtnCapture = false;
+	m_bMinTrayBtnEnabled = true;
+	m_bMinTrayBtnHitTest = false;
+	m_bMinTrayBtnUp = true;
+	m_bMinTrayBtnVisible = true;
+	MinTrayBtnInitBitmap();
 }
 
 TEMPLATE BOOL CDialogMinTrayBtn<BASE>::OnInitDialog()
 {
 	BOOL bReturn = BASE::OnInitDialog();
 	InitWindowStyles(this);
-	m_nMinTrayBtnTimerId = SetTimer(TIMERMINTRAYBTN_ID, TIMERMINTRAYBTN_PERIOD, NULL);
 	return bReturn;
 }
 
@@ -152,7 +152,7 @@ TEMPLATE BOOL CDialogMinTrayBtn<BASE>::OnNcActivate(BOOL bActive)
 
 TEMPLATE LRESULT CDialogMinTrayBtn<BASE>::OnNcHitTest(CPoint point)
 {
-	BOOL bPreviousHitTest = m_bMinTrayBtnHitTest;
+	bool bPreviousHitTest = m_bMinTrayBtnHitTest;
 	m_bMinTrayBtnHitTest = MinTrayBtnHitTest(point);
 	if (!IsWindowsClassicStyle() && m_bMinTrayBtnHitTest != bPreviousHitTest)
 		MinTrayBtnDraw(); // Windows XP Style (hot button)
@@ -210,11 +210,11 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::OnLButtonUp(UINT nFlags, CPoint point)
 
 TEMPLATE void CDialogMinTrayBtn<BASE>::OnTimer(UINT_PTR nIDEvent)
 {
-	if (!IsWindowsClassicStyle() && nIDEvent == m_nMinTrayBtnTimerId) {
+	if (nIDEvent == m_nMinTrayBtnTimerId) {
 		// Visual XP Style (hot button)
 		POINT point;
 		if (::GetCursorPos(&point)) {
-			BOOL bHitTest = MinTrayBtnHitTest(point);
+			bool bHitTest = MinTrayBtnHitTest(point);
 			if (m_bMinTrayBtnHitTest != bHitTest) {
 				m_bMinTrayBtnHitTest = bHitTest;
 				MinTrayBtnDraw();
@@ -227,15 +227,15 @@ TEMPLATE LRESULT CDialogMinTrayBtn<BASE>::_OnThemeChanged()
 {
 	// BASE::OnThemeChanged();
 	MinTrayBtnInitBitmap();
+	if (!IsWindowsClassicStyle() && !m_nMinTrayBtnTimerId)
+		m_nMinTrayBtnTimerId = SetTimer(TIMERMINTRAYBTN_ID, TIMERMINTRAYBTN_PERIOD, NULL);
 	return 0;
 }
 
 TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnUpdatePosAndSize()
 {
-	DWORD dwStyle = GetStyle();
 	DWORD dwExStyle = GetExStyle();
-
-	INT cyCaption = ((dwExStyle & WS_EX_TOOLWINDOW) == 0) ? ::GetSystemMetrics(SM_CYCAPTION) - 1 : ::GetSystemMetrics(SM_CYSMCAPTION) - 1;
+	int cyCaption = (((dwExStyle & WS_EX_TOOLWINDOW) == 0) ? ::GetSystemMetrics(SM_CYCAPTION) : ::GetSystemMetrics(SM_CYSMCAPTION)) - 1;
 	if (cyCaption < CAPTION_MINHEIGHT)
 		cyCaption = CAPTION_MINHEIGHT;
 
@@ -244,31 +244,25 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnUpdatePosAndSize()
 
 	// get Windows' frame window button width/height (this may not always be a square!)
 	CSize szBtn;
-	szBtn.cy = cyCaption - (CAPTION_BUTTONSPACE * 2);
 	szBtn.cx = ::GetSystemMetrics(SM_CXSIZE) - (IsWindowsClassicStyle() ? 2 : 4);
+	szBtn.cy = cyCaption - (CAPTION_BUTTONSPACE * 2);
 
 	// set our frame window button width/height...
-	if (IsWindowsClassicStyle()) {
-		// ...this is same as Windows' buttons for non WinXP
-		m_MinTrayBtnSize = szBtn;
-	} else {
-		// ...this is a square for WinXP
-		m_MinTrayBtnSize.cx = szBtn.cy;
-		m_MinTrayBtnSize.cy = szBtn.cy;
-	}
+	if (IsWindowsClassicStyle())
+		m_MinTrayBtnSize = szBtn; //the same as Windows' buttons for non WinXP
+	else
+		m_MinTrayBtnSize.cx = m_MinTrayBtnSize.cy = szBtn.cy; //a square for WinXP
 
 	m_MinTrayBtnPos.x = rcWnd.Width() - (CAPTION_BUTTONSPACE + m_MinTrayBtnSize.cx + CAPTION_BUTTONSPACE + szBtn.cx);
 	m_MinTrayBtnPos.y = CAPTION_BUTTONSPACE;
 
-	if ((dwStyle & WS_THICKFRAME) != 0) {
+	DWORD dwStyle = GetStyle();
+	if ((dwStyle & WS_THICKFRAME) != 0)
 		// resizable window
-		CSize bordersize(-::GetSystemMetrics(SM_CXSIZEFRAME), ::GetSystemMetrics(SM_CYSIZEFRAME));
-		m_MinTrayBtnPos += bordersize;
-	} else {
+		m_MinTrayBtnPos += CSize(-::GetSystemMetrics(SM_CXSIZEFRAME), ::GetSystemMetrics(SM_CYSIZEFRAME));
+	else
 		// fixed window
-		CSize borderfixed(-::GetSystemMetrics(SM_CXFIXEDFRAME), ::GetSystemMetrics(SM_CYFIXEDFRAME));
-		m_MinTrayBtnPos += borderfixed;
-	}
+		m_MinTrayBtnPos += CSize(-::GetSystemMetrics(SM_CXFIXEDFRAME), ::GetSystemMetrics(SM_CYFIXEDFRAME));
 
 	if (((dwExStyle & WS_EX_TOOLWINDOW) == 0) && (((dwStyle & WS_MINIMIZEBOX) != 0) || ((dwStyle & WS_MAXIMIZEBOX) != 0)))
 		if (IsWindowsClassicStyle())
@@ -282,7 +276,7 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnShow()
 	if (MinTrayBtnIsVisible())
 		return;
 
-	if (!m_nMinTrayBtnTimerId)
+	if (!IsWindowsClassicStyle() && !m_nMinTrayBtnTimerId)
 		m_nMinTrayBtnTimerId = SetTimer(TIMERMINTRAYBTN_ID, TIMERMINTRAYBTN_PERIOD, NULL);
 	m_bMinTrayBtnVisible = TRUE;
 	if (IsWindowVisible())
@@ -336,18 +330,12 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnDraw()
 		return; // panic!
 
 	if (IsWindowsClassicStyle()) {
-		COLORREF black(::GetSysColor(COLOR_BTNTEXT));
-		COLORREF gray(::GetSysColor(COLOR_GRAYTEXT));
-		COLORREF gray2(::GetSysColor(COLOR_BTNHILIGHT));
-
 		// button
-		if (m_bMinTrayBtnUp)
-			pDC->DrawFrameControl(MinTrayBtnGetRect(), DFC_BUTTON, DFCS_BUTTONPUSH);
-		else
-			pDC->DrawFrameControl(MinTrayBtnGetRect(), DFC_BUTTON, DFCS_BUTTONPUSH | DFCS_PUSHED);
+		pDC->DrawFrameControl(MinTrayBtnGetRect(), DFC_BUTTON
+							, m_bMinTrayBtnUp ? DFCS_BUTTONPUSH : DFCS_BUTTONPUSH | DFCS_PUSHED);
 
 		 // dot
-		CRect btn = MinTrayBtnGetRect();
+		CRect btn(MinTrayBtnGetRect());
 		btn.DeflateRect(2, 2);
 		UINT caption = MinTrayBtnGetSize().cy + (CAPTION_BUTTONSPACE * 2);
 		UINT pixratio = (caption >= 14) ? ((caption >= 20) ? 2 + ((caption - 20) / 8) : 2) : 1;
@@ -360,12 +348,12 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnDraw()
 		dot += btn.BottomRight();
 		dot -= spc;
 		if (!m_bMinTrayBtnUp)
-			dot += SIZE{ 1, 1 };
+			dot += SIZE{1, 1};
 		if (m_bMinTrayBtnEnabled)
-			pDC->FillSolidRect(dot, black);
+			pDC->FillSolidRect(dot, ::GetSysColor(COLOR_BTNTEXT)); //black
 		else {
-			pDC->FillSolidRect(dot + SIZE{ 1, 1 }, gray2);
-			pDC->FillSolidRect(dot, gray);
+			pDC->FillSolidRect(dot + SIZE{1, 1}, ::GetSysColor(COLOR_BTNHILIGHT)); //grey
+			pDC->FillSolidRect(dot, ::GetSysColor(COLOR_GRAYTEXT));	//grey
 		}
 	} else {
 		// VisualStylesXP
@@ -395,11 +383,11 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnDraw()
 			}
 		} else {
 			// unknown theme (ThemeData)
-			HTHEME hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"Window");
+			HTHEME hTheme = ::OpenThemeData(m_hWnd, L"Window");
 			if (hTheme) {
 				btn.top += btn.Height() / 8;
-				g_xpStyle.DrawThemeBackground(hTheme, pDC->m_hDC, WP_TRAYBUTTON, iState, &btn, NULL);
-				g_xpStyle.CloseThemeData(hTheme);
+				::DrawThemeBackground(hTheme, pDC->m_hDC, WP_TRAYBUTTON, iState, &btn, NULL);
+				::CloseThemeData(hTheme);
 			}
 		}
 	}
@@ -407,7 +395,7 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnDraw()
 	ReleaseDC(pDC);
 }
 
-TEMPLATE BOOL CDialogMinTrayBtn<BASE>::MinTrayBtnHitTest(CPoint ptScreen) const
+TEMPLATE bool CDialogMinTrayBtn<BASE>::MinTrayBtnHitTest(CPoint ptScreen) const
 {
 	CRect rcWnd;
 	GetWindowRect(&rcWnd);
@@ -441,11 +429,6 @@ TEMPLATE void CDialogMinTrayBtn<BASE>::MinTrayBtnSetDown()
 	MinTrayBtnDraw();
 }
 
-TEMPLATE BOOL CDialogMinTrayBtn<BASE>::IsWindowsClassicStyle() const
-{
-	return m_bMinTrayBtnWindowsClassicStyle;
-}
-
 TEMPLATE void CDialogMinTrayBtn<BASE>::SetWindowText(LPCTSTR lpszString)
 {
 	BASE::SetWindowText(lpszString);
@@ -459,7 +442,7 @@ TEMPLATE INT CDialogMinTrayBtn<BASE>::GetVisualStylesXPColor() const
 
 	WCHAR szwThemeFile[MAX_PATH];
 	WCHAR szwThemeColor[256];
-	if (g_xpStyle.GetCurrentThemeName(szwThemeFile, MAX_PATH, szwThemeColor, _countof(szwThemeColor), NULL, 0) != S_OK)
+	if (::GetCurrentThemeName(szwThemeFile, MAX_PATH, szwThemeColor, _countof(szwThemeColor), NULL, 0) != S_OK)
 		return -1;
 	WCHAR *p = wcsrchr(szwThemeFile, _T('\\'));
 	if (p == NULL)
@@ -475,9 +458,9 @@ TEMPLATE INT CDialogMinTrayBtn<BASE>::GetVisualStylesXPColor() const
 	return -1;
 }
 
-TEMPLATE BOOL CDialogMinTrayBtn<BASE>::MinTrayBtnInitBitmap()
+TEMPLATE bool CDialogMinTrayBtn<BASE>::MinTrayBtnInitBitmap()
 {
-	m_bMinTrayBtnWindowsClassicStyle = !(g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed());
+	m_bMinTrayBtnWindowsClassicStyle = !(::IsThemeActive() && ::IsAppThemed());
 
 	m_bmMinTrayBtnBitmap.DeleteObject();
 	INT iColor = GetVisualStylesXPColor();

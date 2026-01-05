@@ -249,7 +249,7 @@ number			{num1}|{num2}
 <LENGTH>{digit}+":"{digit}+ {
 					BEGIN(INITIAL);
 					UINT m, s;
-					if (sscanf(yytext, "%u:%u", &m, &s) != 2) {
+					if (sscanf_s(yytext, "%u:%u", &m, &s) != 2) {
 						yyerrorf(GetResString(IDS_SEARCH_ATTRERR), _T("@length"));
 						yyterminate();
 						/*NOT REACHED*/
@@ -261,7 +261,7 @@ number			{num1}|{num2}
 <LENGTH>{digit}+":"{digit}+":"{digit}+ {
 					BEGIN(INITIAL);
 					UINT h, m, s;
-					if (sscanf(yytext, "%u:%u:%u", &h, &m, &s) != 3) {
+					if (sscanf_s(yytext, "%u:%u:%u", &h, &m, &s) != 3) {
 						yyerrorf(GetResString(IDS_SEARCH_ATTRERR), _T("@length"));
 						yyterminate();
 						/*NOT REACHED*/

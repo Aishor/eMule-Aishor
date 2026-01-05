@@ -46,7 +46,7 @@ public:
 
 	void Localize();
 	void ResetHistory();
-	void SaveSettings();
+	void SaveSettings()				{ SaveSearchStrings(); }
 
 	SSearchParams* GetParameters();
 	void SetParameters(const SSearchParams *pParams);

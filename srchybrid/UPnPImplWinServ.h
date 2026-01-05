@@ -5,7 +5,7 @@
 // This file is part of SHAREAZA (www.shareaza.com)
 //
 // this file is part of eMule
-// Copyright (C)2007-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+// Copyright (C)2007-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -165,8 +165,8 @@ private:
 
 	CString m_sLocalIP;
 	CString m_sExternalIP;
-	DWORD m_tLastEvent;	// When the last event was received?
 	LONG m_nAsyncFindHandle;
+	DWORD m_tLastEvent;	// When the last event was received?
 	bool m_bCOM;
 	bool m_bPortIsFree;
 	bool m_bADSL;	// Is the device ADSL?

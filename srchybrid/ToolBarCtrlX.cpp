@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ DWORD CToolBarCtrlX::GetBtnStyle(int id)
 	TBBUTTONINFO tbbi;
 	tbbi.cbSize = (UINT)sizeof tbbi;
 	tbbi.dwMask = TBIF_STYLE;
-	return (GetButtonInfo(id, &tbbi) < 0 ? 0 : tbbi.fsStyle);
+	return (GetButtonInfo(id, &tbbi) < 0) ? 0 : tbbi.fsStyle;
 }
 
 DWORD CToolBarCtrlX::AddBtnStyle(int id, DWORD dwStyle)
@@ -74,7 +74,7 @@ int CToolBarCtrlX::GetBtnWidth(int nID)
 	TBBUTTONINFO tbbi;
 	tbbi.cbSize = (UINT)sizeof tbbi;
 	tbbi.dwMask = TBIF_SIZE;
-	return (GetButtonInfo(nID, &tbbi) < 0 ? 0 : tbbi.cx);
+	return (GetButtonInfo(nID, &tbbi) < 0) ? 0 : tbbi.cx;
 }
 
 void CToolBarCtrlX::SetBtnWidth(int nID, int iWidth)

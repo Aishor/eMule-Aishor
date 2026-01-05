@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -46,11 +46,11 @@ bool CFirewallOpener::Init(bool bPreInit)
 {
 	if (!m_bInited) {
 		ASSERT(m_liAddedRules.IsEmpty());
-		if (thePrefs.GetWindowsVersion() != _WINVER_XP_ || !SUCCEEDED(CoInitialize(NULL)))
+		if (thePrefs.GetWindowsVersion() != _WINVER_XP_ || !SUCCEEDED(::CoInitialize(NULL)))
 			return false;
-		HRESULT hr = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_PKT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
-		if (!SUCCEEDED(hr) || !SUCCEEDED(CoCreateInstance(__uuidof(NetSharingManager), NULL, CLSCTX_ALL, __uuidof(INetSharingManager), (void**)&m_pINetSM))) {
-			CoUninitialize();
+		HRESULT hr = ::CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_PKT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
+		if (!SUCCEEDED(hr) || !SUCCEEDED(::CoCreateInstance(__uuidof(NetSharingManager), NULL, CLSCTX_ALL, __uuidof(INetSharingManager), (LPVOID*)&m_pINetSM))) {
+			::CoUninitialize();
 			return false;
 		}
 	}
@@ -63,7 +63,7 @@ bool CFirewallOpener::Init(bool bPreInit)
 	}
 
 	if (m_pINetSM == NULL) {
-		if (!SUCCEEDED(CoCreateInstance(__uuidof(NetSharingManager), NULL, CLSCTX_ALL, __uuidof(INetSharingManager), (void**)&m_pINetSM))) {
+		if (!SUCCEEDED(::CoCreateInstance(__uuidof(NetSharingManager), NULL, CLSCTX_ALL, __uuidof(INetSharingManager), (LPVOID*)&m_pINetSM))) {
 			UnInit();
 			return false;
 		}
@@ -88,7 +88,7 @@ void CFirewallOpener::UnInit()
 		m_pINetSM = NULL;
 	} else
 		ASSERT(0);
-	CoUninitialize();
+	::CoUninitialize();
 }
 
 bool CFirewallOpener::DoAction(const EFOCAction eAction, const CICSRuleInfo &riPortRule)
@@ -256,7 +256,7 @@ bool CFirewallOpener::FindRule(const EFOCAction eAction, const CICSRuleInfo &riP
 		var.Clear();
 	}
 
-	return (eAction == FOC_DELETERULEBYNAME || eAction == FOC_DELETERULEEXCACT);
+	return eAction == FOC_DELETERULEBYNAME || eAction == FOC_DELETERULEEXCACT;
 }
 
 bool CFirewallOpener::RemoveRule(const CString &strName)

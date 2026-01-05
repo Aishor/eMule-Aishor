@@ -28,7 +28,6 @@ Any mod that changes anything within the Kademlia side will not be allowed to ad
 their client on the eMule forum.
 */
 #include "stdafx.h"
-#include <atlenc.h>
 #include "Log.h"
 #include "resource.h"
 #include "StringConversion.h"
@@ -220,7 +219,8 @@ CKadTag* CDataIO::ReadTag(bool bOptACP)
 			throw new CNotSupportedException();
 		}
 	} catch (...) {
-		DebugLogError(_T("Invalid Kad tag; type=0x%02x  lenName=%u  name=0x%02x"), byType, uLenName, pcName != NULL ? (BYTE)pcName[0] : 0);
+		//Note: pcName[0] may be random if ReadArray() had failed
+		DebugLogError(_T("Invalid Kad tag; type=0x%02x  lenName=%u  name=0x%02x"), byType, uLenName, pcName ? (byte)*pcName : 0);
 		delete[] pcName;
 		delete pRetVal;
 		throw;
@@ -299,7 +299,7 @@ void CDataIO::WriteTag(const CKadTag &Tag)
 
 		WriteByte(uType);
 
-		const CKadTagNameString &name = Tag.m_name;
+		const CKadTagNameString &name(Tag.m_name);
 		WriteUInt16((uint16)name.GetLength());
 		WriteArray((LPCSTR)name, name.GetLength());
 
@@ -496,8 +496,8 @@ namespace Kademlia
 		// Possible solution: use a pre-computed static character map.
 		int iLen = rwstr.GetLength();
 		LPWSTR pwsz = rwstr.GetBuffer(iLen);
-		int iSize = LCMapStringW(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT),
-			LCMAP_LOWERCASE, pwsz, -1, pwsz, iLen + 1);
+		int iSize = LCMapStringW(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT)
+			, LCMAP_LOWERCASE, pwsz, -1, pwsz, iLen + 1);
 		ASSERT(iSize - 1 == iLen);
 		rwstr.ReleaseBuffer(iLen);
 #else
@@ -528,6 +528,6 @@ namespace Kademlia
 			d = s_awcLowerMap[*dst++];
 			s = s_awcLowerMap[*src++];
 		} while (d != L'\0' && d == s);
-		return (d == s);
+		return d == s;
 	}
 }

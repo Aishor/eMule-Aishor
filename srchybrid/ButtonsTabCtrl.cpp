@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,11 +15,9 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "ButtonsTabCtrl.h"
-#include "MenuCmds.h"
-#include "UserMsgs.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -103,7 +101,7 @@ void CButtonsTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 		// TCS_OWNERDRAWFIXED style.
 		bVistaHotTracked = pDC->GetTextColor() == ::GetSysColor(COLOR_HOTLIGHT);
 
-		hTheme = g_xpStyle.OpenThemeData(m_hWnd, L"BUTTON");
+		hTheme = ::OpenThemeData(m_hWnd, L"BUTTON");
 		if (hTheme) {
 			rcFullItem.InflateRect(2, 2); // get the real tab item rect
 
@@ -118,9 +116,9 @@ void CButtonsTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 			rcTopBorder.bottom = rcTopBorder.top + 2;
 			pDC->FillSolidRect(&rcTopBorder, ::GetSysColor(COLOR_BTNFACE));
 
-			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
-				g_xpStyle.DrawThemeParentBackground(m_hWnd, *pDC, rcFullItem);
-			g_xpStyle.DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, rcFullItem, NULL);
+			if (::IsThemeBackgroundPartiallyTransparent(hTheme, iPartId, iStateId))
+				::DrawThemeParentBackground(m_hWnd, *pDC, rcFullItem);
+			::DrawThemeBackground(hTheme, *pDC, iPartId, iStateId, rcFullItem, NULL);
 		}
 	} else
 		bVistaHotTracked = false;
@@ -128,7 +126,7 @@ void CButtonsTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	// Following background clearing is needed for:
 	//	WinXP/Vista (when used without an application theme)
 	//	Vista (when used with an application theme but without a theme for the tab control)
-	if (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed() || (hTheme == NULL && bVistaThemeActive))
+	if (!::IsThemeActive() || !::IsAppThemed() || (hTheme == NULL && bVistaThemeActive))
 		pDC->FillSolidRect(&lpDIS->rcItem, ::GetSysColor(COLOR_BTNFACE));
 
 	int iOldBkMode = pDC->SetBkMode(TRANSPARENT);
@@ -143,7 +141,7 @@ void CButtonsTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	//
 	// Vista: "DrawThemeText" can not be used in case we need a certain foreground color. Thus we always us
 	// "DrawText" to always get the same font and metrics (just for safety).
-	pDC->DrawText(szLabel, &rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
+	pDC->DrawText(szLabel, -1, &rcItem, DT_SINGLELINE | DT_TOP | DT_CENTER /*| DT_NOPREFIX*/);
 
 	if (crOldColor != CLR_NONE)
 		pDC->SetTextColor(crOldColor);
@@ -151,7 +149,7 @@ void CButtonsTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 
 	if (hTheme) {
 		pDC->ExcludeClipRect(&rcFullItem);
-		g_xpStyle.CloseThemeData(hTheme);
+		::CloseThemeData(hTheme);
 	}
 }
 

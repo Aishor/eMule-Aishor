@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,7 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 
 enum ESpecialDirectoryItems
 {
@@ -36,7 +36,7 @@ class CShareableFile;
 //**********************************************************************************
 // CDirectoryItem
 
-class CDirectoryItem{
+class CDirectoryItem {
 public:
 	explicit CDirectoryItem(const CString &strFullPath, HTREEITEM htItem = TVI_ROOT, ESpecialDirectoryItems eItemType = SDI_NO, int nCatFilter = -1);
 	~CDirectoryItem();
@@ -97,8 +97,8 @@ protected:
 	afx_msg void	OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void	OnCancelMode();
 
-	CTitleMenu		m_SharedFilesMenu;
-	CTitleMenu		m_ShareDirsMenu;
+	CTitledMenu		m_SharedFilesMenu;
+	CTitledMenu		m_ShareDirsMenu;
 	CMenu			m_PrioMenu;
 	CDirectoryItem	*m_pRootDirectoryItem;
 	CDirectoryItem	*m_pRootUnsharedDirectries;

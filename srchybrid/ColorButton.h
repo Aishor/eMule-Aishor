@@ -55,7 +55,7 @@ public:
 	// Return:		COLORREF
 	// Notes:		None.
 	//***********************************************************************
-	COLORREF GetColor() const;
+	COLORREF GetColor() const				{ return m_Color; }
 
 	//***********************************************************************
 	// Name:		SetColor
@@ -74,7 +74,7 @@ public:
 	// Return:		COLORREF
 	// Notes:		None.
 	//***********************************************************************
-	COLORREF GetDefaultColor() const;
+	COLORREF GetDefaultColor() const		{ return m_DefaultColor; }
 
 	//***********************************************************************
 	// Name:		SetDefaultColor
@@ -84,7 +84,7 @@ public:
 	// Return:		None.
 	// Notes:		None.
 	//***********************************************************************
-	void SetDefaultColor(COLORREF dwColor);
+	void SetDefaultColor(COLORREF dwColor)	{ m_DefaultColor = dwColor; }
 
 	//***********************************************************************
 	// Name:		SetCustomText
@@ -94,7 +94,7 @@ public:
 	// Return:		None.
 	// Notes:		None.
 	//***********************************************************************
-	void SetCustomText(LPCTSTR tszText);
+	void SetCustomText(LPCTSTR tszText)		{ m_strCustomText = tszText; }
 
 	//***********************************************************************
 	// Name:		SetDefaultText
@@ -106,7 +106,7 @@ public:
 	// Return:		None.
 	// Notes:		None.
 	//***********************************************************************
-	void SetDefaultText(LPCTSTR tszText);
+	void SetDefaultText(LPCTSTR tszText)	{ m_strDefaultText = tszText; }
 
 	//***********************************************************************
 	// Name:		SetTrackSelection
@@ -116,7 +116,7 @@ public:
 	// Return:		None.
 	// Notes:		None.
 	//***********************************************************************
-	void SetTrackSelection(BOOL bTrack);
+	void SetTrackSelection(BOOL bTrack)		{ m_bTrackSelection = bTrack; }
 
 	//***********************************************************************
 	// Name:		GetTrackSelection
@@ -125,7 +125,7 @@ public:
 	// Return:		BOOL
 	// Notes:		None.
 	//***********************************************************************
-	BOOL GetTrackSelection() const;
+	BOOL GetTrackSelection() const			{ return m_bTrackSelection; }
 
 	//{{AFX_VIRTUAL(CColorButton)
 public:
@@ -156,10 +156,10 @@ protected:
 	// Return:		static None.
 	// Notes:		None.
 	//***********************************************************************
-	static void DrawArrow(CDC *pDC,
-						  LPRECT pRect,
-						  int iDirection = 0,
-						  COLORREF clrArrow = RGB(0, 0, 0));
+	static void DrawArrow(CDC *pDC
+						  , LPRECT pRect
+						  , int iDirection = 0
+						  , COLORREF clrArrow = RGB(0, 0, 0));
 
 
 	DECLARE_MESSAGE_MAP()

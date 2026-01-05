@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ public:
 
 	void StartSession(CUpDownClient *client);
 	void Localize();
-	void UpdateFriendlistCount(INT_PTR count);
+	void UpdateFriendlistCount();
 	void UpdateSelectedFriendMsgDetails();
 	void ScrollHistory(bool down);
 	void EnableClose()						{ GetDlgItem(IDC_CCLOSE)->EnableWindow(chatselector.GetCurrentChatItem() != NULL); }

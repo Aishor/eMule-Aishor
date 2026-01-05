@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -237,7 +237,7 @@ void CEditDelayed::OnLButtonDown(UINT nFlags, CPoint point)
 			// draw the menu on a fixed position so it doesn't hide the input text
 			RECT editRect;
 			GetClientRect(&editRect);
-			POINT pointMenu = { 2, editRect.bottom };
+			POINT pointMenu{2, editRect.bottom};
 			ClientToScreen(&pointMenu);
 			menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pointMenu.x, pointMenu.y, this);
 			return;
@@ -376,7 +376,7 @@ void CIconWnd::OnPaint()
 	GetClientRect(&rect);
 	CPaintDC dc(this);
 	dc.FillSolidRect(&rect, ::GetSysColor(COLOR_WINDOW));
-	m_pImageList->Draw(&dc, m_nCurrentIcon, POINT{ 2, (rect.bottom - 16) / 2 }, ILD_NORMAL);
+	m_pImageList->Draw(&dc, m_nCurrentIcon, POINT{2, (rect.bottom - 16) / 2}, ILD_NORMAL);
 }
 
 BOOL CIconWnd::OnEraseBkgnd(CDC*)

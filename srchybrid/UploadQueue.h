@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,6 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
+#include "ring.h"
 
 struct Requested_Block_Struct;
 class CUpDownClient;
@@ -38,6 +39,20 @@ struct UploadingToClient_Struct
 	bool												m_bDisableCompression;
 };
 typedef CTypedPtrList<CPtrList, UploadingToClient_Struct*> CUploadingPtrList;
+
+typedef struct
+{
+	uint64	upBytes;
+	uint64	upFriendBytes;
+	DWORD	timestamp;
+} AverageUploadRate;
+
+typedef struct
+{
+	INT_PTR	slots;
+	DWORD	timestamp;
+} ActiveClientsData;
+
 
 class CUploadQueue
 {
@@ -81,7 +96,6 @@ public:
 
 	const CUploadingPtrList& GetUploadListTS(CCriticalSection **outUploadListReadLock);
 
-
 	void	DeleteAll();
 	UINT	GetWaitingPosition(CUpDownClient *client);
 
@@ -111,33 +125,26 @@ private:
 	void InsertInUploadingList(UploadingToClient_Struct *pNewClientUploadStruct, bool bNoLocking);
 	float GetAverageCombinedFilePrioAndCredit();
 
-	// By BadWolf - Accurate Speed Measurement
-	typedef struct
-	{
-		uint32	datalen;
-		DWORD	timestamp;
-	} TransferredData;
-
 	CUploadingPtrList	uploadinglist;
-	// this lock ensures that only the main thread writes the uploading list, other threads need to fetch the lock if they want to read (but are not allowed to write)
-	CCriticalSection	m_csUploadListMainThrdWriteOtherThrdsRead; // don't acquire other locks while having this one in any thread other than UploadDiskIOThread or make sure deadlocks are impossible
+	// This lock ensures that only the main thread writes the uploading list,
+	// other threads need to fetch the lock if they want to read (but are not allowed to write).
+	// Don't acquire other locks while having this one in any thread
+	// other than UploadDiskIOThread or make sure deadlocks are impossible
+	CCriticalSection	m_csUploadListMainThrdWriteOtherThrdsRead;
 
-	CList<uint64> average_dr_list;
-	CList<uint64> average_friend_dr_list;
-	CList<DWORD, DWORD> average_tick_list;
-	CList<int, int> activeClients_list;
-	CList<DWORD, DWORD> activeClients_tick_list;
-	uint32	datarate;   //data rate sent to network (including friends)
-	uint32  friendDatarate; // data rate of sent to friends (included in above total)
+	// By BadWolf - Accurate Speed Measurement
+	CRing<AverageUploadRate> average_ur_hist;
+	CRing<ActiveClientsData> activeClients_hist;
+	uint32	datarate;		//data rate sent to network (including friends)
+	uint32  friendDatarate;	//data rate sent to friends (included in above total)
 	// By BadWolf - Accurate Speed Measurement
 
-	UINT_PTR h_timer;
+	UINT_PTR h_timer; //100 ms
 	uint32	successfullupcount;
 	uint32	failedupcount;
 	uint32	totaluploadtime;
 	DWORD	m_nLastStartUpload;
 	uint32	m_dwRemovedClientByScore;
-
 	uint32	m_imaxscore;
 
 	DWORD	m_dwLastCalculatedAverageCombinedFilePrioAndCredit;
@@ -146,8 +153,9 @@ private:
 	INT_PTR	m_MaxActiveClients;
 	INT_PTR	m_MaxActiveClientsShortTime;
 
+	uint64	m_sendingBytes;
+	uint64	m_average_ur_sum;
 	DWORD	m_lastCalculatedDataRateTick;
-	uint64	m_average_dr_sum;
 
 	DWORD	m_dwLastResortedUploadSlots;
 	bool	m_bStatisticsWaitingListDirty;

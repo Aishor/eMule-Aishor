@@ -1,6 +1,6 @@
 /*
 Copyright (C)2003 Barry Dunne (https://www.emule-project.net)
-Copyright (C)2007-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+Copyright (C)2007-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -46,7 +46,6 @@ their client on the eMule forum.
  */
 
 #include "stdafx.h"
-#include <math.h>
 #include "emule.h"
 #include "emuledlg.h"
 #include "ipfilter.h"
@@ -62,7 +61,6 @@ their client on the eMule forum.
 #include "kademlia/net/KademliaUDPListener.h"
 #include "kademlia/routing/RoutingZone.h"
 #include "kademlia/routing/RoutingBin.h"
-#include "kademlia/utils/MiscUtils.h"
 #include "kademlia/utils/KadUDPKey.h"
 
 #ifdef _DEBUG
@@ -444,7 +442,7 @@ bool CRoutingZone::CanSplit() const
 		return false;
 
 	// Check if this zone is allowed to split.
-	return ((m_uZoneIndex < KK || m_uLevel < KBASE) && m_pBin->GetSize() == K);
+	return (m_uZoneIndex < KK || m_uLevel < KBASE) && m_pBin->GetSize() == K;
 }
 
 // Returns true if a contact was added or updated, false if the routing table was not touched
@@ -603,7 +601,7 @@ CContact* CRoutingZone::GetContact(uint32 uIP, uint16 nPort, bool bTCPPort) cons
 		return m_pBin->GetContact(uIP, nPort, bTCPPort);
 
 	CContact *pContact = m_pSubZones[0]->GetContact(uIP, nPort, bTCPPort);
-	return (pContact != NULL) ? pContact : m_pSubZones[1]->GetContact(uIP, nPort, bTCPPort);
+	return pContact ? pContact : m_pSubZones[1]->GetContact(uIP, nPort, bTCPPort);
 }
 
 CContact* CRoutingZone::GetRandomContact(uint32 nMaxType, uint32 nMinKadVersion) const
@@ -613,7 +611,7 @@ CContact* CRoutingZone::GetRandomContact(uint32 nMaxType, uint32 nMinKadVersion)
 
 	int nZone = rand() & 1;
 	CContact *pContact = m_pSubZones[nZone]->GetRandomContact(nMaxType, nMinKadVersion);
-	return (pContact != NULL) ? pContact : m_pSubZones[nZone ^ 1]->GetRandomContact(nMaxType, nMinKadVersion);
+	return pContact ? pContact : m_pSubZones[nZone ^ 1]->GetRandomContact(nMaxType, nMinKadVersion);
 }
 
 void CRoutingZone::GetClosestTo(uint32 uMaxType, const CUInt128 &uTarget, const CUInt128 &uDistance, uint32 uMaxRequired, ContactMap &rmapResult, bool bEmptyFirst, bool bInUse) const

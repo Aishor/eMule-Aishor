@@ -1,20 +1,15 @@
 #include <stdafx.h>
-#include "emule.h"
 #include "OtherFunctions.h"
 #include "WebSocket.h"
 #include "WebServer.h"
 #include "Preferences.h"
 #include "StringConversion.h"
 #include "Log.h"
-#include "TLSthreading.h"
 
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/error.h"
 #include "mbedtls/net_sockets.h"
-#include "mbedtls/sha1.h"
 #include "mbedtls/ssl_cache.h"
-#include "mbedtls/ssl_cookie.h"
 #include "mbedtls/ssl_ticket.h"
+#include "TLSthreading.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -25,13 +20,10 @@ static char THIS_FILE[] = __FILE__;
 static HANDLE s_hTerminate = NULL;
 static CWinThread *s_pSocketThread = NULL;
 
-mbedtls_entropy_context entropy;
-mbedtls_ctr_drbg_context ctr_drbg;
 mbedtls_ssl_config conf;
 mbedtls_x509_crt srvcert;
 mbedtls_pk_context pkey;
 mbedtls_ssl_cache_context cache;
-mbedtls_ssl_cookie_ctx cookie_ctx;
 mbedtls_ssl_ticket_context ticket_ctx;
 
 typedef struct
@@ -40,11 +32,6 @@ typedef struct
 	SOCKET	hSocket;
 	in_addr incomingaddr;
 } SocketData;
-
-void CWebSocket::SetParent(CWebServer *pParent)
-{
-	m_pParent = pParent;
-}
 
 void CWebSocket::OnRequestReceived(const char *pHeader, DWORD dwHeaderLen, const char *pData, DWORD dwDataLen, const in_addr inad)
 {
@@ -83,7 +70,7 @@ void CWebSocket::OnRequestReceived(const char *pHeader, DWORD dwHeaderLen, const
 	Disconnect();
 }
 
-void CWebSocket::OnReceived(void *pData, DWORD dwSize, const in_addr inad)
+void CWebSocket::OnReceived(const void *pData, DWORD dwSize, const in_addr inad)
 {
 	static const DWORD SIZE_PRESERVE = 0x1000u;
 
@@ -123,7 +110,7 @@ void CWebSocket::OnReceived(void *pData, DWORD dwSize, const in_addr inad)
 					// try to find now the 'Content-Length' header
 					for (dwPos = 0; dwPos < m_dwHttpHeaderLen;) {
 						// Elandal: pPtr is actually a char*, not a void*
-						char *pPtr = (char*)memchr(&m_pBuf[dwPos], '\n', m_dwHttpHeaderLen - dwPos);
+						const char *pPtr = (char*)memchr(&m_pBuf[dwPos], '\n', m_dwHttpHeaderLen - dwPos);
 						if (!pPtr)
 							break;
 						// Elandal: And thus now the pointer subtraction works as it should
@@ -174,30 +161,30 @@ void CWebSocket::SendData(const void *pData, DWORD dwDataSize)
 		if (!m_pHead) {
 			if (thePrefs.GetWebUseHttps()) {
 				for (;;) {
-					int nRes = mbedtls_ssl_write(m_ssl, (unsigned char*)pData, dwDataSize);
+					int nRes = mbedtls_ssl_write((mbedtls_ssl_context*)m_ssl, (unsigned char*)pData, dwDataSize);
 					if (nRes > 0) {
-						reinterpret_cast<const char *&>(pData) += nRes;
+						reinterpret_cast<const char*&>(pData) += nRes;
 						dwDataSize -= nRes;
 						if (dwDataSize)
 							continue;
 					}
 					if (!dwDataSize)
 						break;
-					if (nRes == MBEDTLS_ERR_NET_CONN_RESET || (nRes != MBEDTLS_ERR_SSL_WANT_READ && nRes != MBEDTLS_ERR_SSL_WANT_WRITE)) {
+					if (nRes == MBEDTLS_ERR_NET_CONN_RESET || !inSet(nRes, MBEDTLS_ERR_SSL_WANT_READ, MBEDTLS_ERR_SSL_WANT_WRITE)) {
 						m_bValid = false;
 						break;
 					}
 				}
 			} else {
 				// try to send it directly
-				//-- remember: in "nRes" could be "-1" after "send" call
+				//-- remember: "nRes" could be "-1" after "send" call
 				int nRes = send(m_hSocket, (char*)pData, dwDataSize, 0);
 
 				if (nRes < (int)dwDataSize && WSAEWOULDBLOCK != WSAGetLastError())
 					m_bValid = false;
 
 				if (nRes > 0) {
-					reinterpret_cast<const char *&>(pData) += nRes;
+					reinterpret_cast<const char*&>(pData) += nRes;
 					dwDataSize -= nRes;
 				}
 			}
@@ -337,7 +324,7 @@ UINT AFX_CDECL WebSocketAcceptedFunc(LPVOID pD)
 								char pBuf[0x1000];
 								int nRes;
 								if (thePrefs.GetWebUseHttps())
-									nRes = mbedtls_ssl_read(stWebSocket.m_ssl, (unsigned char*)pBuf, sizeof pBuf);
+									nRes = mbedtls_ssl_read((mbedtls_ssl_context*)stWebSocket.m_ssl, (unsigned char*)pBuf, sizeof pBuf);
 								else
 									nRes = recv(hSocket, pBuf, sizeof pBuf, 0);
 								if (nRes == MBEDTLS_ERR_SSL_WANT_READ || nRes == MBEDTLS_ERR_SSL_WANT_WRITE)
@@ -362,7 +349,7 @@ UINT AFX_CDECL WebSocketAcceptedFunc(LPVOID pD)
 								if (stWebSocket.m_pHead->m_pToSend) {
 									if (thePrefs.GetWebUseHttps()) {
 										for (;;) {
-											int nRes = mbedtls_ssl_write(stWebSocket.m_ssl, (unsigned char*)stWebSocket.m_pHead->m_pToSend, stWebSocket.m_pHead->m_dwSize);
+											int nRes = mbedtls_ssl_write((mbedtls_ssl_context*)stWebSocket.m_ssl, (unsigned char*)stWebSocket.m_pHead->m_pToSend, stWebSocket.m_pHead->m_dwSize);
 											if (nRes > 0) {
 												stWebSocket.m_pHead->m_pToSend += nRes;
 												stWebSocket.m_pHead->m_dwSize -= nRes;
@@ -415,10 +402,10 @@ thread_exit:
 			delete[] stWebSocket.m_pBuf;
 			if (thePrefs.GetWebUseHttps()) {
 				int ret;
-				while ((ret = mbedtls_ssl_close_notify(stWebSocket.m_ssl)) < 0)
+				while ((ret = mbedtls_ssl_close_notify((mbedtls_ssl_context*)stWebSocket.m_ssl)) < 0)
 					if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
 						break;
-				mbedtls_ssl_free(stWebSocket.m_ssl);
+				mbedtls_ssl_free((mbedtls_ssl_context*)stWebSocket.m_ssl);
 			}
 		}
 		VERIFY(::CloseHandle(hEvent));
@@ -501,39 +488,30 @@ UINT AFX_CDECL WebSocketListeningFunc(LPVOID pThis)
 
 int StartSSL()
 {
-	static const char pers[] = "eMule_WebSrv";
 	if (!thePrefs.GetWebUseHttps())
 		return 0; //success
-	mbedtls_threading_set_alt(threading_mutex_init_alt, threading_mutex_free_alt, threading_mutex_lock_alt, threading_mutex_unlock_alt);
+	mbedtls_threading_set_alt(threading_mutex_init_alt, threading_mutex_destroy_alt, threading_mutex_lock_alt, threading_mutex_unlock_alt
+							, cond_init_alt, cond_destroy_alt, cond_signal_alt, cond_broadcast_alt, cond_wait_alt);
 	mbedtls_ssl_config_init(&conf);
-	mbedtls_ctr_drbg_init(&ctr_drbg);
-	mbedtls_entropy_init(&entropy);
 	mbedtls_x509_crt_init(&srvcert);
 	mbedtls_pk_init(&pkey);
 	mbedtls_ssl_cache_init(&cache);
 	mbedtls_ssl_ticket_init(&ticket_ctx);
-	mbedtls_ssl_cookie_init(&cookie_ctx);
 	int ret = (int)psa_crypto_init();
 	if (!ret) { // PSA_SUCCESS is 0
-		ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (unsigned char*)pers, strlen(pers));
+		ret = mbedtls_x509_crt_parse_file(&srvcert, thePrefs.GetWebCertPath());
 		if (!ret) {
-			ret = mbedtls_x509_crt_parse_file(&srvcert, thePrefs.GetWebCertPath());
+			ret = mbedtls_pk_parse_keyfile(&pkey, thePrefs.GetWebKeyPath(), NULL);
 			if (!ret) {
-				ret = mbedtls_pk_parse_keyfile(&pkey, thePrefs.GetWebKeyPath(), NULL, mbedtls_ctr_drbg_random, &ctr_drbg);
+				ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
 				if (!ret) {
-					ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+					mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
+					ret = mbedtls_ssl_ticket_setup(&ticket_ctx, PSA_ALG_GCM, PSA_KEY_TYPE_AES, 256, 86400);
 					if (!ret) {
-						mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
-						mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
-						ret = mbedtls_ssl_ticket_setup(&ticket_ctx, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_CIPHER_AES_256_GCM, 86400);
-						if (!ret) {
-							mbedtls_ssl_conf_session_tickets_cb(&conf, mbedtls_ssl_ticket_write, mbedtls_ssl_ticket_parse, &ticket_ctx);
-							mbedtls_ssl_conf_new_session_tickets(&conf, 1);
-							mbedtls_ssl_conf_tls13_key_exchange_modes(&conf, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL);
-							//mbedtls_ssl_conf_legacy_renegotiation(&conf, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION); //default
-							//mbedtls_ssl_conf_renegotiation(&conf, MBEDTLS_SSL_RENEGOTIATION_DISABLED); //default
-							ret = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey);
-						}
+						mbedtls_ssl_conf_session_tickets_cb(&conf, mbedtls_ssl_ticket_write, mbedtls_ssl_ticket_parse, &ticket_ctx);
+						mbedtls_ssl_conf_new_session_tickets(&conf, 1);
+						mbedtls_ssl_conf_tls13_key_exchange_modes(&conf, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL);
+						ret = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey);
 					}
 				}
 			}
@@ -552,15 +530,13 @@ int StartSSL()
 void StopSSL()
 {
 	if (thePrefs.GetWebUseHttps()) {
-		mbedtls_ssl_cookie_free(&cookie_ctx);
-		mbedtls_ssl_ticket_free(&ticket_ctx);
+		mbedtls_ssl_config_free(&conf);
 		mbedtls_ssl_cache_free(&cache);
+		mbedtls_ssl_ticket_free(&ticket_ctx);
+		mbedtls_x509_crt_free(&srvcert);
 		mbedtls_pk_free(&pkey);
 		mbedtls_psa_crypto_free();
-		mbedtls_x509_crt_free(&srvcert);
-		mbedtls_entropy_free(&entropy);
-		mbedtls_ctr_drbg_free(&ctr_drbg);
-		mbedtls_ssl_config_free(&conf);
+		mbedtls_threading_free_alt();
 	}
 }
 

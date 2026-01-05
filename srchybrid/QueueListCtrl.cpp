@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -21,19 +21,15 @@
 #include "MenuCmds.h"
 #include "ClientDetailDialog.h"
 #include "Exceptions.h"
-#include "KademliaWnd.h"
 #include "emuledlg.h"
 #include "FriendList.h"
 #include "UploadQueue.h"
 #include "TransferDlg.h"
 #include "MemDC.h"
 #include "SharedFileList.h"
-#include "ClientCredits.h"
 #include "PartFile.h"
 #include "ChatWnd.h"
 #include "Kademlia/Kademlia/Kademlia.h"
-#include "Kademlia/Kademlia/Prefs.h"
-#include "kademlia/net/KademliaUDPListener.h"
 #include "Log.h"
 
 #ifdef _DEBUG
@@ -156,14 +152,14 @@ void CQueueListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					UINT uOverlayImage;
 					client->GetDisplayImage(iImage, uOverlayImage);
 
-					const POINT point = { rcItem.left, rcItem.top + iIconY };
+					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
 					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
 				rcItem.right -= sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 				break;
 			case 9: //obtained parts
 				if (client->GetUpPartCount()) {
@@ -401,7 +397,7 @@ void CQueueListCtrl::OnContextMenu(CWnd*, CPoint point)
 	const CUpDownClient *client = reinterpret_cast<CUpDownClient*>(iSel >= 0 ? GetItemData(iSel) : NULL);
 	const bool is_ed2k = client && client->IsEd2kClient();
 
-	CTitleMenu ClientMenu;
+	CTitledMenu ClientMenu;
 	ClientMenu.CreatePopupMenu();
 	ClientMenu.AddMenuTitle(GetResString(IDS_CLIENTS), true);
 	ClientMenu.AppendMenu(MF_STRING | (client ? MF_ENABLED : MF_GRAYED), MP_DETAIL, GetResString(IDS_SHOWDETAILS), _T("CLIENTDETAILS"));
@@ -495,8 +491,8 @@ void CQueueListCtrl::RemoveClient(const CUpDownClient *client)
 void CQueueListCtrl::RefreshClient(const CUpDownClient *client)
 {
 	if (theApp.emuledlg->activewnd == theApp.emuledlg->transferwnd
-		&& !theApp.IsClosing()
-		&& theApp.emuledlg->transferwnd->GetQueueList()->IsWindowVisible())
+		&& theApp.emuledlg->transferwnd->GetQueueList()->IsWindowVisible()
+		&& !theApp.IsClosing())
 	{
 		LVFINDINFO find;
 		find.flags = LVFI_PARAM;
@@ -542,8 +538,8 @@ void CALLBACK CQueueListCtrl::QueueUpdateTimer(HWND /*hwnd*/, UINT /*uiMsg*/, UI
 	try {
 		if (thePrefs.GetUpdateQueueList()
 			&& theApp.emuledlg->activewnd == theApp.emuledlg->transferwnd
-			&& !theApp.IsClosing() // Don't do anything if the app is shutting down - can cause unhandled exceptions
-			&& theApp.emuledlg->transferwnd->GetQueueList()->IsWindowVisible())
+			&& theApp.emuledlg->transferwnd->GetQueueList()->IsWindowVisible()
+			&& !theApp.IsClosing()) // Don't do anything if the app is shutting down - can cause unhandled exceptions
 		{
 			const CUpDownClient *update = NULL;
 			while ((update = theApp.uploadqueue->GetNextClient(update)) != NULL)

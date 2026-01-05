@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,7 +15,6 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <io.h>
 #include "emule.h"
 #include "UpDownClient.h"
 #include "DownloadQueue.h"
@@ -48,6 +47,7 @@ static char THIS_FILE[] = __FILE__;
 
 CDownloadQueue::CDownloadQueue()
 	: cur_udpserver()
+	, average_dr_hist(512, 512)
 	, m_datarateMS()
 	, m_lastfile()
 	, m_dwLastA4AFtime()
@@ -295,7 +295,7 @@ void CDownloadQueue::AddFileLinkToDownload(const CED2KFileLink &Link, int cat)
 		}
 }
 
-void CDownloadQueue::AddToResolved(CPartFile *pFile, SUnresolvedHostname *pUH)
+void CDownloadQueue::AddToResolved(const CPartFile *pFile, SUnresolvedHostname *pUH)
 {
 	if (pFile && pUH)
 		m_srcwnd.AddToResolve(pFile->GetFileHash(), pUH->strHostname, pUH->nPort, pUH->strURL);
@@ -341,6 +341,7 @@ bool CDownloadQueue::IsFileExisting(const uchar *fileid, bool bLogWarnings) cons
 	return true;
 }
 
+//This method is called every 100 ms
 void CDownloadQueue::Process()
 {
 	ProcessLocalRequests(); // send src requests to local server
@@ -356,12 +357,13 @@ void CDownloadQueue::Process()
 	} else
 		downspeed = 0;
 
-	DWORD curTick = ::GetTickCount() - SEC2MS(10);
-	while (!average_dr_list.IsEmpty() && curTick >= average_dr_list.GetHead().timestamp)
-		m_datarateMS -= average_dr_list.RemoveHead().datalen;
-
-	if (average_dr_list.GetCount() > 1)
-		m_datarate = (uint32)(m_datarateMS / average_dr_list.GetCount());
+	const DWORD curTick = ::GetTickCount();
+	while (!average_dr_hist.IsEmpty() && curTick >= average_dr_hist.Head().timestamp + SEC2MS(10)) {
+		m_datarateMS -= average_dr_hist.Head().datalen;
+		average_dr_hist.RemoveHead();
+	}
+	if (average_dr_hist.Count() > 1)
+		m_datarate = (uint32)(m_datarateMS / average_dr_hist.Count());
 	else
 		m_datarate = 0;
 
@@ -384,15 +386,14 @@ void CDownloadQueue::Process()
 		if (cur_file->GetStatus() == PS_ERROR)
 			theStats.m_dwOverallStatus |= STATE_ERROROUS;
 
-		if (cur_file->GetStatus() == PS_READY || cur_file->GetStatus() == PS_EMPTY)
+		if (inSet(cur_file->GetStatus(), PS_READY, PS_EMPTY))
 			datarateX += cur_file->Process(downspeed, m_udcounter);
 		else
-			//This will ensure we don't keep old sources for paused and stopped files.
+			//this will drop sources for paused and stopped files
 			cur_file->StopPausedFile();
 	}
 
-	curTick = ::GetTickCount();
-	average_dr_list.AddTail(TransferredData{ datarateX, curTick });
+	average_dr_hist.AddTail(TransferredData{datarateX, curTick});
 	m_datarateMS += datarateX;
 
 	if (m_udcounter == 5) {
@@ -713,7 +714,7 @@ bool CDownloadQueue::IsMaxFilesPerUDPServerPacketReached(uint32 nFiles, uint32 n
 			ASSERT(cur_udpserver->SupportsLargeFilesUDP());
 			ASSERT(cur_udpserver->GetUDPFlags() & SRV_UDPFLG_EXT_GETSOURCES2);
 		}
-		return (m_cRequestsSentToServer >= MAX_REQUESTS_PER_SERVER) || (nUsedBytes >= MAX_UDP_PACKET_DATA);
+		return m_cRequestsSentToServer >= MAX_REQUESTS_PER_SERVER || nUsedBytes >= MAX_UDP_PACKET_DATA;
 	}
 	ASSERT(nIncludedLargeFiles == 0);
 	return nFiles != 0;
@@ -1223,8 +1224,7 @@ UINT CDownloadQueue::GetDownloadingFileCount() const
 	UINT result = 0;
 	for (POSITION pos = filelist.GetHeadPosition(); pos != NULL;) {
 		const EPartFileStatus uStatus = filelist.GetNext(pos)->GetStatus();
-		if (uStatus == PS_READY || uStatus == PS_EMPTY)
-			++result;
+		result += static_cast<UINT>(uStatus == PS_READY || uStatus == PS_EMPTY);
 	}
 	return result;
 }
@@ -1233,8 +1233,8 @@ UINT CDownloadQueue::GetPausedFileCount() const
 {
 	UINT result = 0;
 	for (POSITION pos = filelist.GetHeadPosition(); pos != NULL;)
-		if (filelist.GetNext(pos)->GetStatus() == PS_PAUSED)
-			++result;
+		result += static_cast<UINT>(filelist.GetNext(pos)->GetStatus() == PS_PAUSED);
+
 	return result;
 }
 
@@ -1503,7 +1503,7 @@ LRESULT CSourceHostnameResolveWnd::OnHostnameResolved(WPARAM, LPARAM lParam)
 
 bool CDownloadQueue::DoKademliaFileRequest() const
 {
-	return (::GetTickCount() >= m_lastkademliafilerequest + KADEMLIAASKTIME);
+	return ::GetTickCount() >= m_lastkademliafilerequest + KADEMLIAASKTIME;
 }
 
 void CDownloadQueue::KademliaSearchFile(uint32 nSearchID, const Kademlia::CUInt128 *pcontactID, const Kademlia::CUInt128 *pbuddyID, uint8 type, uint32 ip, uint16 tcp, uint16 udp, uint32 dwBuddyIP, uint16 dwBuddyPort, uint8 byCryptOptions)
@@ -1612,7 +1612,7 @@ void CDownloadQueue::ExportPartMetFilesOverview() const
 	const CString &strFileListPath(thePrefs.GetMuleDirectory(EMULE_CONFIGDIR) + _T("downloads.txt"));
 
 	CString strTmpFileListPath(strFileListPath);
-	PathRenameExtension(strTmpFileListPath.GetBuffer(MAX_PATH), _T(".tmp"));
+	::PathRenameExtension(strTmpFileListPath.GetBuffer(MAX_PATH), _T(".tmp"));
 	strTmpFileListPath.ReleaseBuffer();
 
 	CSafeBufferedFile file;
@@ -1648,7 +1648,7 @@ void CDownloadQueue::ExportPartMetFilesOverview() const
 		CommitAndClose(file);
 
 		CString strBakFileListPath(strFileListPath);
-		PathRenameExtension(strBakFileListPath.GetBuffer(MAX_PATH), _T(".bak"));
+		::PathRenameExtension(strBakFileListPath.GetBuffer(MAX_PATH), _T(".bak"));
 		strBakFileListPath.ReleaseBuffer();
 
 		if (_taccess(strBakFileListPath, 0) == 0)

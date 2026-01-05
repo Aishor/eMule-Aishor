@@ -56,11 +56,6 @@ CByteIO::CByteIO(const byte *pbyBuffer, uint32 uAvailable)
 {
 }
 
-UINT CByteIO::GetAvailable() const
-{
-	return m_uAvailable;
-}
-
 void CByteIO::ReadArray(LPVOID lpResult, uint32 uByteCount)
 {
 	if (m_uAvailable < uByteCount)

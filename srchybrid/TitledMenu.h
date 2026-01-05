@@ -1,17 +1,17 @@
-// TitleMenu.h: interface for the CTitleMenu class.
+// TitledMenu.h: interface for the CTitledMenu class.
 // Based on the code of Per Fikse(1999/06/16) on codeguru.earthweb.com
 // Author: Arthur Westerman
-// Bug reports by : Brian Pearson
+// Bug reports by: Brian Pearson
 //////////////////////////////////////////////////////////////////////
 #pragma once
 
-class CTitleMenu : public CMenu
+class CTitledMenu : public CMenu
 {
 public:
-	CTitleMenu();
-	virtual	~CTitleMenu();
-	CTitleMenu(const CTitleMenu&) = delete;
-	CTitleMenu& operator=(const CTitleMenu&) = delete;
+	CTitledMenu();
+	virtual	~CTitledMenu();
+	CTitledMenu(const CTitledMenu&) = delete;
+	CTitledMenu& operator=(const CTitledMenu&) = delete;
 
 	BOOL CreateMenu();
 	BOOL DestroyMenu();
@@ -54,6 +54,5 @@ protected:
 	bool m_bDrawEdge;
 	bool m_bIconMenu;
 
-	void DrawMonoIcon(int nIconPos, CPoint nDrawPos, CDC *dc);
 	void SetMenuBitmap(UINT nFlags, UINT nIDNewItem, LPCTSTR lpszNewItem, LPCTSTR lpszIconName);
 };

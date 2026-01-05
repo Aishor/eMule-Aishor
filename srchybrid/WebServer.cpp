@@ -7,7 +7,6 @@
 #include "ClientCredits.h"
 #include "ClientList.h"
 #include "DownloadQueue.h"
-#include "ED2KLink.h"
 #include "emuledlg.h"
 #include "FriendList.h"
 #include "MD5Sum.h"
@@ -19,7 +18,6 @@
 #include "KnownFileList.h"
 #include "ListenSocket.h"
 #include "Log.h"
-#include "MenuCmds.h"
 #include "Preferences.h"
 #include "Server.h"
 #include "ServerList.h"
@@ -35,6 +33,7 @@
 #include "TransferDlg.h"
 #include "UploadQueue.h"
 #include "UpDownClient.h"
+#include "PartFile.h"
 #include "UserMsgs.h"
 
 #ifdef _DEBUG
@@ -58,20 +57,20 @@ static char THIS_FILE[] = __FILE__;
 //SyruS CQArray-Sorting operators
 bool operator > (QueueUsers &first, QueueUsers &second)
 {
-	return (first.sIndex.CompareNoCase(second.sIndex) > 0);
+	return first.sIndex.CompareNoCase(second.sIndex) > 0;
 }
 bool operator < (QueueUsers &first, QueueUsers &second)
 {
-	return (first.sIndex.CompareNoCase(second.sIndex) < 0);
+	return first.sIndex.CompareNoCase(second.sIndex) < 0;
 }
 
 bool operator > (SearchFileStruct &first, SearchFileStruct &second)
 {
-	return (first.m_strIndex.CompareNoCase(second.m_strIndex) > 0);
+	return first.m_strIndex.CompareNoCase(second.m_strIndex) > 0;
 }
 bool operator < (SearchFileStruct &first, SearchFileStruct &second)
 {
-	return (first.m_strIndex.CompareNoCase(second.m_strIndex) < 0);
+	return first.m_strIndex.CompareNoCase(second.m_strIndex) < 0;
 }
 
 static BOOL	WSdownloadColumnHidden[8];
@@ -361,9 +360,9 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 	// Here we are in real trouble! We are accessing the entire emule main thread
 	// data without any synchronization!! Either we use the message pump for m_pdlgEmule
 	// or use some hundreds of critical sections... For now, an exception handler
-	// should avoid the worse things.
+	// should prevent the worst things.
 	//////////////////////////////////////////////////////////////////////////
-	(void)CoInitialize(NULL);
+	(void)::CoInitialize(NULL);
 
 #ifndef _DEBUG
 	try {
@@ -377,16 +376,15 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 		// check for being banned
 		int myfaults = 0;
 		const DWORD curTick = ::GetTickCount();
-		for (INT_PTR i = pThis->m_Params.badlogins.GetCount(); --i >= 0;) {
+		for (INT_PTR i = pThis->m_Params.badlogins.GetCount(); --i >= 0;)
 			if (curTick >= pThis->m_Params.badlogins[i].timestamp + MIN2MS(15))
 				pThis->m_Params.badlogins.RemoveAt(i); // remove outdated entries
 			else
-				if (pThis->m_Params.badlogins[i].datalen == myip)
-					++myfaults;
-		}
+				myfaults += static_cast<int>(pThis->m_Params.badlogins[i].ip == myip);
+
 		if (myfaults > 4) {
 			Data.pSocket->SendContent(HTTPInit, _GetPlainResString(IDS_ACCESSDENIED));
-			CoUninitialize();
+			::CoUninitialize();
 			return;
 		}
 
@@ -431,18 +429,18 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 			} else {
 				LogWarning(LOG_STATUSBAR, GetResString(IDS_WEB_BADLOGINATTEMPT) + _T(" (%s)"), (LPCTSTR)ip);
 
-				BadLogin newban = {myip, curTick};	// save failed attempt (ip,time)
+				BadLogin newban = BadLogin{myip, curTick};	// remember the failed attempt
 				pThis->m_Params.badlogins.Add(newban);
 				if (++myfaults > 4) {
 					Data.pSocket->SendContent(HTTPInit, _GetPlainResString(IDS_ACCESSDENIED));
-					CoUninitialize();
+					::CoUninitialize();
 					return;
 				}
 			}
 			isUseGzip = false; // [Julien]
 			if (login)	// on login, forget previous failed attempts
 				for (INT_PTR i = pThis->m_Params.badlogins.GetCount(); --i >= 0;)
-					if (pThis->m_Params.badlogins[i].datalen == myip)
+					if (pThis->m_Params.badlogins[i].ip == myip)
 						pThis->m_Params.badlogins.RemoveAt(i);
 		}
 
@@ -465,7 +463,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 
 				SendMessage(theApp.emuledlg->m_hWnd, WM_CLOSE, 0, 0);
 
-				CoUninitialize();
+				::CoUninitialize();
 				return;
 			}
 
@@ -477,7 +475,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 
 				SendMessage(theApp.emuledlg->m_hWnd, WEB_GUI_INTERACTION, WEBGUIIA_WINFUNC, 1);
 
-				CoUninitialize();
+				::CoUninitialize();
 				return;
 			}
 
@@ -490,7 +488,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 
 				SendMessage(theApp.emuledlg->m_hWnd, WEB_GUI_INTERACTION, WEBGUIIA_WINFUNC, 2);
 
-				CoUninitialize();
+				::CoUninitialize();
 				return;
 			}
 
@@ -500,7 +498,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 				if (!Out1.IsEmpty()) {
 					Data.pSocket->SendContent(HTTPInit, Out1);
 
-					CoUninitialize();
+					::CoUninitialize();
 					return;
 				}
 			} else if (_ParseURL(Data.sURL, _T("w")) == _T("getfile") && bAdmin) {
@@ -511,7 +509,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 					if (thePrefs.GetMaxWebUploadFileSizeMB() != 0 && kf->GetFileSize() > (uint64)thePrefs.GetMaxWebUploadFileSizeMB() * 1024 * 1024) {
 						Data.pSocket->SendReply("HTTP/1.1 403 Forbidden\r\n");
 
-						CoUninitialize();
+						::CoUninitialize();
 						return;
 					}
 
@@ -523,7 +521,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 						char *buffer = (char*)malloc(SENDFILEBUFSIZE);
 						if (!buffer) {
 							Data.pSocket->SendReply("HTTP/1.1 500 Internal Server Error\r\n");
-							CoUninitialize();
+							::CoUninitialize();
 							return;
 						}
 
@@ -547,7 +545,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 						free(buffer);
 					} else
 						Data.pSocket->SendReply("HTTP/1.1 404 File not found\r\n");
-					CoUninitialize();
+					::CoUninitialize();
 					return;
 				}
 			}
@@ -625,7 +623,7 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 	}
 #endif
 
-	CoUninitialize();
+	::CoUninitialize();
 }
 
 CString CWebServer::_ParseURLArray(CString URL, CString fieldname)
@@ -1220,7 +1218,7 @@ CString CWebServer::_GetServerList(const ThreadData &Data)
 		ServerArray.Add(Entry);
 	}
 
-	SortParams prm{ (int)pThis->m_Params.ServerSort, pThis->m_Params.bServerSortReverse };
+	SortParams prm{(int)pThis->m_Params.ServerSort, pThis->m_Params.bServerSortReverse};
 	qsort_s(ServerArray.GetData(), ServerArray.GetCount(), sizeof(ServerEntry), &_ServerCmp, &prm);
 
 	// Displaying
@@ -1938,7 +1936,7 @@ CString CWebServer::_GetTransferList(const ThreadData &Data)
 		}
 	}
 
-	SortParams dprm{ (int)pThis->m_Params.DownloadSort, pThis->m_Params.bDownloadSortReverse };
+	SortParams dprm{(int)pThis->m_Params.DownloadSort, pThis->m_Params.bDownloadSortReverse};
 	qsort_s(FilesArray.GetData(), FilesArray.GetCount(), sizeof(DownloadFiles), &_DownloadCmp, &dprm);
 
 	CArray<UploadUsers> UploadArray;
@@ -1988,7 +1986,7 @@ CString CWebServer::_GetTransferList(const ThreadData &Data)
 		UploadArray.Add(dUser);
 	}
 
-	SortParams uprm{ (int)pThis->m_Params.UploadSort, pThis->m_Params.bUploadSortReverse };
+	SortParams uprm{(int)pThis->m_Params.UploadSort, pThis->m_Params.bUploadSortReverse};
 	qsort_s(UploadArray.GetData(), UploadArray.GetCount(), sizeof(UploadUsers), &_UploadCmp, &uprm);
 
 	_MakeTransferList(Out, pThis, Data, &FilesArray, &UploadArray, bAdmin);
@@ -2233,10 +2231,10 @@ void CWebServer::_MakeTransferList(CString &Out, CWebServer *pThis, const Thread
 		if (WSdownloadColumnHidden[5])
 			pcTmp = _T("");
 		else if (downf.lSourceCount > 0) {
-			HTTPTemp.Format(_T("%li&nbsp;/&nbsp;%8li&nbsp;(%li)"),
-				downf.lSourceCount - downf.lNotCurrentSourceCount,
-				downf.lSourceCount,
-				downf.lTransferringSourceCount);
+			HTTPTemp.Format(_T("%li&nbsp;/&nbsp;%8li&nbsp;(%li)")
+						, downf.lSourceCount - downf.lNotCurrentSourceCount
+						, downf.lSourceCount
+						, downf.lTransferringSourceCount);
 			pcTmp = HTTPTemp;
 		} else
 			pcTmp = _T("-");
@@ -2900,7 +2898,7 @@ CString CWebServer::_GetSharedFilesList(const ThreadData &Data)
 		}
 	} //for
 
-	SortParams prm{ (int)pThis->m_Params.SharedSort, pThis->m_Params.bSharedSortReverse };
+	SortParams prm{(int)pThis->m_Params.SharedSort, pThis->m_Params.bSharedSortReverse};
 	qsort_s(SharedArray.GetData(), SharedArray.GetCount(), sizeof(SharedFiles), &_SharedCmp, &prm);
 
 	// Displaying
@@ -3626,7 +3624,7 @@ CString CWebServer::_GetDownloadGraph(const ThreadData &Data, const CString &fil
 	};
 
 	const CPartFile *pPartFile = theApp.downloadqueue->GetFileByID(fileid);
-	const LPCTSTR *barcolours = (pPartFile && (pPartFile->GetStatus() == PS_PAUSED)) ? styles_paused : styles_active;
+	LPCTSTR const *barcolours = (pPartFile && (pPartFile->GetStatus() == PS_PAUSED)) ? styles_paused : styles_active;
 
 	CString Out;
 	if (pPartFile == NULL || !pPartFile->IsPartFile()) {
@@ -3822,8 +3820,10 @@ CString CWebServer::_GetSearch(const ThreadData &Data)
 		strFilename.Replace(_T("'"), _T("\\'"));
 
 		CString strLink;
-		strLink.Format(_T("ed2k://|file|%s|%I64u|%s|/"),
-			(LPCTSTR)_SpecialChars(strFilename), structFile.m_uFileSize, (LPCTSTR)structFile.m_strFileHash);
+		strLink.Format(_T("ed2k://|file|%s|%I64u|%s|/")
+					, (LPCTSTR)_SpecialChars(strFilename)
+					, structFile.m_uFileSize
+					, (LPCTSTR)structFile.m_strFileHash);
 
 		CString s0, s1, s2, s3;
 		if (!WSsearchColumnHidden[0])
@@ -4116,9 +4116,9 @@ void CWebServer::_ProcessFileReq(const ThreadData &Data)
 	CString contenttype;
 
 	CString filename(Data.sURL);
-	LPCTSTR pDot = ::PathFindExtension(filename);
-	if (CPTR(filename, filename.GetLength()) > pDot + 2) { //at least 2 characters
-		CString ext(pDot + 1); //skip the dot
+	LPCTSTR const pDot = ::PathFindExtension(filename);
+	if (CPTR(filename, filename.GetLength()) > &pDot[2]) { //at least 2 characters
+		CString ext(&pDot[1]); //skip the dot
 		ext.MakeLower();
 		if (ext == _T("bmp") || ext == _T("gif") || ext == _T("jpeg") || ext == _T("jpg") || ext == _T("png"))
 			contenttype.Format(_T("Content-Type: image/%s\r\n"), (LPCTSTR)ext);

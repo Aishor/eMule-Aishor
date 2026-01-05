@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -27,7 +27,6 @@
 #include "MenuCmds.h"
 #include "ClientDetailDialog.h"
 #include "FriendList.h"
-#include "ClientList.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -162,10 +161,11 @@ CChatItem* CChatSelector::StartSession(CUpDownClient *client, bool show)
 
 	if (thePrefs.GetIRCAddTimeStamp())
 		AddTimeStamp(chatitem);
-	chatitem->log->AppendKeyWord(GetResString(IDS_CHAT_START) + client->GetUserName() + _T('\n'), STATUS_MSG_COLOR);
+	CString name;
+	name.Format(_T("%s%s\n"), (LPCTSTR)GetResString(IDS_CHAT_START), (LPCTSTR)client->GetUserName());
+	chatitem->log->AppendKeyWord(name, STATUS_MSG_COLOR);
 	client->SetChatState(MS_CHATTING);
 
-	CString name;
 	if (client->GetUserName() != NULL)
 		name = client->GetUserName();
 	else
@@ -234,17 +234,16 @@ void CChatSelector::ProcessMessage(CUpDownClient *sender, const CString &message
 	if (thePrefs.GetIRCAddTimeStamp())
 		AddTimeStamp(ci);
 	ci->log->AppendKeyWord(sender->GetUserName(), RECV_SOURCE_MSG_COLOR);
-	ci->log->AppendText(_T(": "));
-	ci->log->AppendText(message);
-	ci->log->AppendText(_T("\n"));
+	CString s;
+	s.Format(_T(": %s\n"), (LPCTSTR)message);
+	ci->log->AppendText(s);
 	bool isCurTab = (GetTabByClient(sender) == GetCurSel());
 	if (!isCurTab || !GetParent()->IsWindowVisible()) {
 		ci->notify = true;
 		if (isCurTab && (isNewChatWindow || thePrefs.GetNotifierOnEveryChatMsg())) {
-			CString str;
-			str.Format(_T("%s %s:'%s'\n"), (LPCTSTR)GetResString(IDS_TBN_NEWCHATMSG)
+			s.Format(_T("%s %s:'%s'\n"), (LPCTSTR)GetResString(IDS_TBN_NEWCHATMSG)
 				, sender->GetUserName(), (LPCTSTR)message);
-			theApp.emuledlg->ShowNotifier(str, TBN_CHAT);
+			theApp.emuledlg->ShowNotifier(s, TBN_CHAT);
 		}
 	}
 }
@@ -255,7 +254,9 @@ void CChatSelector::ShowCaptchaRequest(CUpDownClient *sender, HBITMAP bmpCaptcha
 	if (ci != NULL) {
 		if (thePrefs.GetIRCAddTimeStamp())
 			AddTimeStamp(ci);
-		ci->log->AppendKeyWord(_T("*** ") + GetResString(IDS_CAPTCHAREQUEST), STATUS_MSG_COLOR);
+		CString s;
+		s.Format(_T("*** %s"), (LPCTSTR)GetResString(IDS_CAPTCHAREQUEST));
+		ci->log->AppendKeyWord(s, STATUS_MSG_COLOR);
 		ci->log->AddCaptcha(bmpCaptcha);
 		ci->log->AddLine(_T("\n"));
 	}
@@ -267,7 +268,9 @@ void CChatSelector::ShowCaptchaResult(CUpDownClient *sender, const CString &strR
 	if (ci != NULL) {
 		if (thePrefs.GetIRCAddTimeStamp())
 			AddTimeStamp(ci);
-		ci->log->AppendKeyWord(_T("*** ") + strResult + _T('\n'), STATUS_MSG_COLOR);
+		CString s;
+		s.Format(_T("*** %s\n"), (LPCTSTR)strResult);
+		ci->log->AppendKeyWord(s, STATUS_MSG_COLOR);
 	}
 }
 
@@ -277,7 +280,7 @@ bool CChatSelector::SendText(const CString &rstrText)
 	if (!ci)
 		return false;
 
-	if (ci->history.GetCount() == thePrefs.GetMaxChatHistoryLines())
+	if (ci->history.GetCount() >= thePrefs.GetMaxChatHistoryLines())
 		ci->history.RemoveAt(0);
 	ci->history.Add(rstrText);
 	ci->history_pos = ci->history.GetCount();
@@ -297,26 +300,28 @@ bool CChatSelector::SendText(const CString &rstrText)
 
 	// there are three cases on connecting/sending the message:
 	if (ci->client->socket && ci->client->socket->IsConnected()) {
-		// 1.) the client is connected already - this is simple, just send it
+		// 1. the client is connected already - this is simple, just send
 		ci->client->SendChatMessage(rstrText);
 		if (thePrefs.GetIRCAddTimeStamp())
 			AddTimeStamp(ci);
 		ci->log->AppendKeyWord(thePrefs.GetUserNick(), SENT_TARGET_MSG_COLOR);
-		ci->log->AppendText(_T(": "));
-		ci->log->AppendText(rstrText);
-		ci->log->AppendText(_T("\n"));
+		CString s;
+		s.Format(_T(": %s\n"), (LPCTSTR)rstrText);
+		ci->log->AppendText(s);
 	} else if (ci->client->GetFriend() != NULL) {
-		// We are not connected and this client is a friend - friends have additional ways to connect and additional
-		// checks to make sure they are really friends; let the friend class handle it
+		// 2. We are not connected and this client is a friend - friends have additional ways to connect and
+		// additional checks to make sure they are really friends; let the friend class handle it
 		ci->strMessagePending = rstrText;
 		ci->client->SetChatState(MS_CONNECTING);
 		ci->client->GetFriend()->TryToConnect(this);
 	} else {
-		// this is a normal client, who is not connected right now. just try to connect to the given IP, without any
-		// additional checks or searchings.
+		// 3. This is a normal client, who is not connected right now. Just try to
+		// connect to the given IP without any additional checks or searches.
 		if (thePrefs.GetIRCAddTimeStamp())
 			AddTimeStamp(ci);
-		ci->log->AppendKeyWord(_T("*** ") + GetResString(IDS_CONNECTING), STATUS_MSG_COLOR);
+		CString s;
+		s.Format(_T("*** %s"), (LPCTSTR)GetResString(IDS_CONNECTING));
+		ci->log->AppendKeyWord(s, STATUS_MSG_COLOR);
 		ci->strMessagePending = rstrText;
 		ci->client->SetChatState(MS_CONNECTING);
 		ci->client->TryToConnect(true);
@@ -337,15 +342,16 @@ void CChatSelector::ConnectingResult(CUpDownClient *sender, bool success)
 				AddTimeStamp(ci);
 			ci->log->AppendKeyWord(_T("*** Connected\n"), STATUS_MSG_COLOR);
 		} else {
-			ci->log->AppendKeyWord(_T(" ...") + GetResString(IDS_TREEOPTIONS_OK) + _T('\n'), STATUS_MSG_COLOR);
+			CString s;
+			s.Format(_T(" ...%s\n"), (LPCTSTR)GetResString(IDS_TREEOPTIONS_OK));
+			ci->log->AppendKeyWord(s, STATUS_MSG_COLOR);
 			ci->client->SendChatMessage(ci->strMessagePending);
 
 			if (thePrefs.GetIRCAddTimeStamp())
 				AddTimeStamp(ci);
 			ci->log->AppendKeyWord(thePrefs.GetUserNick(), SENT_TARGET_MSG_COLOR);
-			ci->log->AppendText(_T(": "));
-			ci->log->AppendText(ci->strMessagePending);
-			ci->log->AppendText(_T("\n"));
+			s.Format(_T(": %s\n"), (LPCTSTR)ci->strMessagePending);
+			ci->log->AppendText(s);
 
 			ci->strMessagePending.Empty();
 		}
@@ -355,7 +361,9 @@ void CChatSelector::ConnectingResult(CUpDownClient *sender, bool success)
 				AddTimeStamp(ci);
 			ci->log->AppendKeyWord(GetResString(IDS_CHATDISCONNECTED) + _T('\n'), STATUS_MSG_COLOR);
 		} else {
-			ci->log->AppendKeyWord(_T(" ...") + GetResString(IDS_FAILED) + _T('\n'), STATUS_MSG_COLOR);
+			CString s;
+			s.Format(_T(" ...%s\n"), (LPCTSTR)GetResString(IDS_FAILED));
+			ci->log->AppendKeyWord(s, STATUS_MSG_COLOR);
 			ci->strMessagePending.Empty();
 		}
 }
@@ -590,7 +598,7 @@ void CChatSelector::OnContextMenu(CWnd*, CPoint point)
 
 	CFriend *pFriend = theApp.friendlist->SearchFriend(ci->client->GetUserHash(), 0, 0);
 
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.AddMenuTitle(GetResString(IDS_CLIENT), true);
 

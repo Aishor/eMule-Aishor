@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -20,7 +20,6 @@
 #include "preferences.h"
 #include "otherfunctions.h"
 #include "SharedFilesCtrl.h"
-#include "Knownfile.h"
 #include "MenuCmds.h"
 #include "partfile.h"
 #include "emuledlg.h"
@@ -542,6 +541,8 @@ void CSharedDirsTreeCtrl::OnRButtonDown(UINT, CPoint point)
 	}
 }
 
+#pragma warning(push)
+#pragma warning(disable:4701) //local variable 'pri'
 BOOL CSharedDirsTreeCtrl::OnCommand(WPARAM wParam, LPARAM)
 {
 	CTypedPtrList<CPtrList, CShareableFile*> selectedList;
@@ -686,6 +687,7 @@ BOOL CSharedDirsTreeCtrl::OnCommand(WPARAM wParam, LPARAM)
 	}
 	return TRUE;
 }
+#pragma warning(pop)
 
 void CSharedDirsTreeCtrl::ShowFileDialog(CTypedPtrList<CPtrList, CShareableFile*> &aFiles, UINT uInvokePage)
 {
@@ -1044,7 +1046,7 @@ void CSharedDirsTreeCtrl::OnTvnBeginDrag(LPNMHDR pNMHDR, LRESULT *pResult)
 		/* item rect doesn't include the image */
 		int nX, nY;
 		::ImageList_GetIconSize(piml->GetSafeHandle(), &nX, &nY);
-		ptOffset = CPoint(lpnmtv->ptDrag) - rcItem.BottomRight() + POINT{ nX, nY };
+		ptOffset = CPoint(lpnmtv->ptDrag) - rcItem.BottomRight() + POINT{nX, nY};
 
 		/* convert the item rect to screen co-ords for later use */
 		MapWindowPoints(NULL, &rcItem);
@@ -1054,7 +1056,7 @@ void CSharedDirsTreeCtrl::OnTvnBeginDrag(LPNMHDR pNMHDR, LRESULT *pResult)
 	}
 
 	if (piml->BeginDrag(0, ptOffset)) {
-		CPoint ptDragEnter = lpnmtv->ptDrag;
+		CPoint ptDragEnter(lpnmtv->ptDrag);
 		ClientToScreen(&ptDragEnter);
 		piml->DragEnter(NULL, ptDragEnter);
 	}
@@ -1075,7 +1077,7 @@ void CSharedDirsTreeCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
 	if (m_pDraggingItem != NULL) {
 		/* drag the item to the current position */
-		CPoint pt = point;
+		CPoint pt(point);
 		ClientToScreen(&pt);
 
 		CImageList::DragMove(pt);
@@ -1106,7 +1108,7 @@ void CSharedDirsTreeCtrl::OnMouseMove(UINT nFlags, CPoint point)
 void CSharedDirsTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	if (m_pDraggingItem != NULL) {
-		CPoint pt = point;
+		CPoint pt(point);
 		ClientToScreen(&pt);
 
 		TVHITTESTINFO tvhti;

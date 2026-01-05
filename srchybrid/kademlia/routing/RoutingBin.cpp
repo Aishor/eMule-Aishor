@@ -114,7 +114,7 @@ bool CRoutingBin::AddContact(CContact *pContact)
 	return false;
 }
 
-void CRoutingBin::SetAlive(CContact *pContact)
+void CRoutingBin::SetAlive(const CContact *pContact)
 {
 	ASSERT(pContact != NULL);
 	// Check if we already have a contact with this ID in the list.
@@ -158,7 +158,7 @@ CContact* CRoutingBin::GetContact(uint32 uIP, uint16 nPort, bool bTCPPort)
 	return NULL;
 }
 
-void CRoutingBin::RemoveContact(CContact *pContact, bool bNoTrackingAdjust)
+void CRoutingBin::RemoveContact(CContact *const pContact, bool bNoTrackingAdjust)
 {
 	if (!bNoTrackingAdjust)
 		AdjustGlobalTracking(pContact->GetIPAddress(), false);

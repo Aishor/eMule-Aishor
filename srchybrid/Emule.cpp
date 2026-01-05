@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,15 +15,14 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-//#ifdef _DEBUG
-//#define _CRTDBG_MAP_ALLOC
-//#include <crtdbg.h>
-//#endif
-#include <locale.h>
-#include <io.h>
-#include <share.h>
-#include <Mmsystem.h>
+/* #ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif */
 #include <atlimage.h>
+#include <sockimpl.h> //for *m_pfnSockTerm()
+#include <timeapi.h>
+#include <uxtheme.h>
 #include "emule.h"
 #include "opcodes.h"
 #include "mdump.h"
@@ -34,7 +33,6 @@
 #include "kademlia/kademlia/Prefs.h"
 #include "kademlia/utils/UInt128.h"
 #include "PerfLog.h"
-#include <sockimpl.h> //for *m_pfnSockTerm()
 #include "LastCommonRouteFinder.h"
 #include "UploadBandwidthThrottler.h"
 #include "ClientList.h"
@@ -58,16 +56,12 @@
 #include "secrunasuser.h"
 #include "SafeFile.h"
 #include "emuleDlg.h"
-#include "SearchDlg.h"
 #include "enbitmap.h"
 #include "FirewallOpener.h"
 #include "StringConversion.h"
 #include "Log.h"
 #include "Collection.h"
-#include "LangIDs.h"
-#include "HelpIDs.h"
 #include "UPnPImplWrapper.h"
-#include "VisualStylesXP.h"
 #include "UploadDiskIOThread.h"
 #include "PartFileWriteThread.h"
 
@@ -85,6 +79,8 @@ static char THIS_FILE[] = __FILE__;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #elif defined _M_X64
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_ARM64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='arm64' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #else
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
@@ -129,7 +125,7 @@ static TCHAR s_szCrtDebugReportFilePath[MAX_PATH] = APP_CRT_DEBUG_LOG_FILE;
 extern "C" PVOID __safe_se_handler_table[];
 extern "C" BYTE  __safe_se_handler_count;
 
-void InitSafeSEH()
+static void InitSafeSEH()
 {
 	// Need to workaround the optimizer of the C-compiler...
 	volatile PVOID safe_se_handler_table = __safe_se_handler_table;
@@ -155,16 +151,16 @@ void InitSafeSEH()
 #define	PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION	0x00000002
 #endif//!PROCESS_DEP_ENABLE
 
-void InitDEP()
+static void InitDEP()
 {
 	BOOL(WINAPI *pfnGetProcessDEPPolicy)(HANDLE hProcess, LPDWORD lpFlags, PBOOL lpPermanent);
 	BOOL(WINAPI *pfnSetProcessDEPPolicy)(DWORD dwFlags);
-	(FARPROC&)pfnGetProcessDEPPolicy = GetProcAddress(GetModuleHandle(_T("kernel32")), "GetProcessDEPPolicy");
-	(FARPROC&)pfnSetProcessDEPPolicy = GetProcAddress(GetModuleHandle(_T("kernel32")), "SetProcessDEPPolicy");
+	(FARPROC&)pfnGetProcessDEPPolicy = ::GetProcAddress(::GetModuleHandle(_T("kernel32")), "GetProcessDEPPolicy");
+	(FARPROC&)pfnSetProcessDEPPolicy = ::GetProcAddress(::GetModuleHandle(_T("kernel32")), "SetProcessDEPPolicy");
 	if (pfnGetProcessDEPPolicy && pfnSetProcessDEPPolicy) {
 		DWORD dwFlags;
 		BOOL bPermanent;
-		if ((*pfnGetProcessDEPPolicy)(GetCurrentProcess(), &dwFlags, &bPermanent)) {
+		if ((*pfnGetProcessDEPPolicy)(::GetCurrentProcess(), &dwFlags, &bPermanent)) {
 			// Vista SP1
 			// ===============================================================
 			//
@@ -231,10 +227,10 @@ void InitDEP()
 #define HeapEnableTerminationOnCorruption (HEAP_INFORMATION_CLASS)1
 #endif//!HeapEnableTerminationOnCorruption
 
-void InitHeapCorruptionDetection()
+static void InitHeapCorruptionDetection()
 {
 	BOOL(WINAPI *pfnHeapSetInformation)(HANDLE HeapHandle, HEAP_INFORMATION_CLASS HeapInformationClass, PVOID HeapInformation, SIZE_T HeapInformationLength);
-	(FARPROC &)pfnHeapSetInformation = GetProcAddress(GetModuleHandle(_T("kernel32")), "HeapSetInformation");
+	(FARPROC &)pfnHeapSetInformation = ::GetProcAddress(::GetModuleHandle(_T("kernel32")), "HeapSetInformation");
 	if (pfnHeapSetInformation)
 		(*pfnHeapSetInformation)(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 }
@@ -246,7 +242,7 @@ struct SLogItem
 	CString line;
 };
 
-void CALLBACK myErrHandler(Kademlia::CKademliaError *error)
+static void CALLBACK myErrHandler(const Kademlia::CKademliaError *error)
 {
 	CString msg;
 	msg.Format(_T("\r\nError 0x%08X : %hs\r\n"), error->m_iErrorCode, error->m_szErrorDescription);
@@ -254,13 +250,13 @@ void CALLBACK myErrHandler(Kademlia::CKademliaError *error)
 		theApp.QueueDebugLogLine(false, _T("%s"), (LPCTSTR)msg);
 }
 
-void CALLBACK myDebugAndLogHandler(LPCSTR lpMsg)
+static void CALLBACK myDebugAndLogHandler(LPCSTR lpMsg)
 {
 	if (!theApp.IsClosing())
 		theApp.QueueDebugLogLine(false, _T("%hs"), lpMsg);
 }
 
-void CALLBACK myLogHandler(LPCSTR lpMsg)
+static void CALLBACK myLogHandler(LPCSTR lpMsg)
 {
 	if (!theApp.IsClosing())
 		theApp.QueueLogLine(false, _T("%hs"), lpMsg);
@@ -280,8 +276,8 @@ END_MESSAGE_MAP()
 CemuleApp::CemuleApp(LPCTSTR lpszAppName)
 	: CWinApp(lpszAppName)
 	, emuledlg()
-	, m_iDfltImageListColorFlags(ILC_COLOR)
 	, m_ullComCtrlVer(MAKEDLLVERULL(4, 0, 0, 0))
+	, m_iDfltImageListColorFlags(ILC_COLOR)
 	, m_app_state(APP_STATE_STARTING)
 	, m_hSystemImageList()
 	, m_sizSmallSystemIcon(16, 16)
@@ -349,23 +345,12 @@ CemuleApp::CemuleApp(LPCTSTR lpszAppName)
 	EnableHtmlHelp();
 }
 
-// Barry - To find out if app is running or shutting/shut down
-bool CemuleApp::IsRunning() const
-{
-	return m_app_state == APP_STATE_RUNNING || m_app_state == APP_STATE_ASKCLOSE;
-}
-
-bool CemuleApp::IsClosing() const
-{
-	return m_app_state == APP_STATE_SHUTTINGDOWN || m_app_state == APP_STATE_DONE;
-}
-
 
 CemuleApp theApp(_T("eMule"));
 
 
 // Workaround for bugged 'AfxSocketTerm' (needed at least for MFC 7.0 - 14.14)
-void __cdecl __AfxSocketTerm() noexcept
+static void __cdecl __AfxSocketTerm() noexcept
 {
 	_AFX_SOCK_STATE *pState = _afxSockState.GetData();
 	if (pState->m_pfnSockTerm != NULL) {
@@ -374,7 +359,7 @@ void __cdecl __AfxSocketTerm() noexcept
 	}
 }
 
-BOOL InitWinsock2(WSADATA *lpwsaData)
+static BOOL InitWinsock2(WSADATA *lpwsaData)
 {
 	_AFX_SOCK_STATE *pState = _afxSockState.GetData();
 	if (pState->m_pfnSockTerm == NULL) {
@@ -492,7 +477,7 @@ BOOL CemuleApp::InitInstance()
 	atexit(__AfxSocketTerm);
 
 	AfxEnableControlContainer();
-	if (!AfxInitRichEdit2() && !AfxInitRichEdit())
+	if (!AfxInitRichEdit5())
 		AfxMessageBox(_T("Fatal Error: No Rich Edit control library found!")); // should never happen.
 
 	if (!Kademlia::CKademlia::InitUnicode(AfxGetInstanceHandle())) {
@@ -665,7 +650,7 @@ int CemuleApp::ExitInstance()
 }
 
 #ifdef _DEBUG
-int CrtDebugReportCB(int reportType, char *message, int *returnValue) noexcept
+static int CrtDebugReportCB(int reportType, char *message, int *returnValue) noexcept
 {
 	FILE *fp = _tfsopen(s_szCrtDebugReportFilePath, _T("a"), _SH_DENYWR);
 	if (fp) {
@@ -780,7 +765,7 @@ bool CemuleApp::ProcessCommandline()
 				return true;
 		}
 	}
-	return (maininst || bAlreadyRunning);
+	return maininst || bAlreadyRunning;
 }
 
 BOOL CALLBACK CemuleApp::SearchEmuleWindow(HWND hWnd, LPARAM lParam) noexcept
@@ -820,13 +805,12 @@ CString CemuleApp::CreateKadSourceLink(const CAbstractFile *f)
 {
 	CString strLink;
 	if (Kademlia::CKademlia::IsConnected() && theApp.clientlist->GetBuddy() && theApp.IsFirewalled()) {
-		CString KadID;
-		Kademlia::CKademlia::GetPrefs()->GetKadID().Xor(Kademlia::CUInt128(true)).ToHexString(KadID);
+		Kademlia::CUInt128 id(Kademlia::CKademlia::GetPrefs()->GetKadID());
 		strLink.Format(_T("ed2k://|file|%s|%I64u|%s|/|kadsources,%s:%s|/")
 			, (LPCTSTR)EncodeUrlUtf8(StripInvalidFilenameChars(f->GetFileName()))
 			, (uint64)f->GetFileSize()
 			, (LPCTSTR)EncodeBase16(f->GetFileHash(), 16)
-			, (LPCTSTR)md4str(thePrefs.GetUserHash()), (LPCTSTR)KadID);
+			, (LPCTSTR)md4str(thePrefs.GetUserHash()), (LPCTSTR)id.Xor(Kademlia::CUInt128(true)).ToHexString());
 	}
 	return strLink;
 }
@@ -1072,7 +1056,7 @@ int CemuleApp::GetFileTypeSystemImageIdx(LPCTSTR pszFilePath, int iLength /* = -
 	} else {
 		dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
 		// search last '.' character *after* the last '\\' character
-		pszCacheExt = _T(""); //default is an empty extension
+		pszCacheExt = _T(""); //default to empty extension
 		for (int i = iLength; --i >= 0;) {
 			if (pszFilePath[i] == _T('\\') || pszFilePath[i] == _T('/'))
 				break;
@@ -1138,11 +1122,6 @@ uint32 CemuleApp::GetID()
 	return static_cast<uint32>(Kademlia::CKademlia::IsConnected() && Kademlia::CKademlia::IsFirewalled());
 }
 
-uint32 CemuleApp::GetED2KPublicIP() const
-{
-	return m_dwPublicIP;
-}
-
 uint32 CemuleApp::GetPublicIP() const
 {
 	if (m_dwPublicIP == 0 && Kademlia::CKademlia::IsConnected()) {
@@ -1198,7 +1177,7 @@ bool CemuleApp::CanDoCallback(CUpDownClient *client)
 	//as it breaks the protocol and will get us banned.
 	if ((ed2k & eLow) != 0) {
 		const CServer *srv = theApp.serverconnect->GetCurrentServer();
-		return (client->GetServerIP() != srv->GetIP() || client->GetServerPort() != srv->GetPort());
+		return client->GetServerIP() != srv->GetIP() || client->GetServerPort() != srv->GetPort();
 	}
 	return true;
 }
@@ -1224,7 +1203,7 @@ HICON CemuleApp::LoadIcon(LPCTSTR lpszResourceName, int cx, int cy, UINT uFlags)
 	if (!sSkinProfile.IsEmpty()) {
 		// load icon resource file specification from skin profile
 		TCHAR szSkinResource[MAX_PATH];
-		GetPrivateProfileString(_T("Icons"), lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
+		::GetPrivateProfileString(_T("Icons"), lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
 		if (szSkinResource[0] != _T('\0')) {
 			// expand any optional available environment strings
 			TCHAR szExpSkinRes[MAX_PATH];
@@ -1329,7 +1308,7 @@ HBITMAP CemuleApp::LoadImage(LPCTSTR lpszResourceName, LPCTSTR pszResourceType) 
 	if (!sSkinProfile.IsEmpty()) {
 		// load resource file specification from skin profile
 		TCHAR szSkinResource[MAX_PATH];
-		GetPrivateProfileString(_T("Bitmaps"), lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
+		::GetPrivateProfileString(_T("Bitmaps"), lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
 		if (szSkinResource[0] != _T('\0')) {
 			// expand any optional available environment strings
 			TCHAR szExpSkinRes[MAX_PATH];
@@ -1369,7 +1348,7 @@ CString CemuleApp::GetSkinFileItem(LPCTSTR lpszResourceName, LPCTSTR pszResource
 	if (!sSkinProfile.IsEmpty()) {
 		// load resource file specification from skin profile
 		TCHAR szSkinResource[MAX_PATH];
-		GetPrivateProfileString(pszResourceType, lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
+		::GetPrivateProfileString(pszResourceType, lpszResourceName, NULL, szSkinResource, _countof(szSkinResource), sSkinProfile);
 		if (szSkinResource[0] != _T('\0')) {
 			// expand any optional available environment strings
 			TCHAR szExpSkinRes[MAX_PATH];
@@ -1399,7 +1378,7 @@ bool CemuleApp::LoadSkinColor(LPCTSTR pszKey, COLORREF &crColor) const
 	const CString &sSkinProfile(thePrefs.GetSkinProfile());
 	if (!sSkinProfile.IsEmpty()) {
 		TCHAR szColor[MAX_PATH];
-		GetPrivateProfileString(_T("Colors"), pszKey, NULL, szColor, _countof(szColor), sSkinProfile);
+		::GetPrivateProfileString(_T("Colors"), pszKey, NULL, szColor, _countof(szColor), sSkinProfile);
 		if (szColor[0] != _T('\0')) {
 			int red, grn, blu;
 			if (_stscanf(szColor, _T("%i , %i , %i"), &red, &grn, &blu) == 3) {
@@ -1532,13 +1511,13 @@ bool CemuleApp::IsEd2kLinkInClipboard(LPCSTR pszLinkType, int iLinkTypeLen)
 bool CemuleApp::IsEd2kFileLinkInClipboard()
 {
 	static const char _szEd2kFileLink[] = "ed2k://|file|"; // Use the ANSI string
-	return IsEd2kLinkInClipboard(_szEd2kFileLink, (sizeof _szEd2kFileLink) - 1);
+	return IsEd2kLinkInClipboard(_szEd2kFileLink, sizeof _szEd2kFileLink - 1);
 }
 
 bool CemuleApp::IsEd2kServerLinkInClipboard()
 {
 	static const char _szEd2kServerLink[] = "ed2k://|server|"; // Use the ANSI string
-	return IsEd2kLinkInClipboard(_szEd2kServerLink, (sizeof _szEd2kServerLink) - 1);
+	return IsEd2kLinkInClipboard(_szEd2kServerLink, sizeof _szEd2kServerLink - 1);
 }
 
 // Elandal:ThreadSafeLogging -->
@@ -1675,9 +1654,12 @@ void CemuleApp::CreateAllFonts()
 	// Creating that font with 'SYMBOL_CHARSET' should be safer (seen in ATL/MFC code). Though
 	// it seems that it does not solve the problem with '6' and '9' characters which are
 	// shown for some ppl.
-	m_fontSymbol.CreateFont(::GetSystemMetrics(SM_CYMENUCHECK), 0, 0, 0,
-		FW_NORMAL, 0, 0, 0, SYMBOL_CHARSET, 0, 0, 0, 0, _T("Marlett"));
+	static LOGFONT lfSymbol = {0, 0, 0, 0, FW_NORMAL
+					   , 0, 0, 0, SYMBOL_CHARSET, 0, 0, 0, 0
+					   , _T("Marlett")};
 
+	lfSymbol.lfHeight = ::GetSystemMetrics(SM_CYMENUCHECK);
+	m_fontSymbol.CreateFontIndirect(&lfSymbol);
 
 	///////////////////////////////////////////////////////////////////////////
 	// Default GUI Font
@@ -1751,7 +1733,7 @@ void CemuleApp::CreateAllFonts()
 //	HFONT hFontMono = CreateFont(10, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T("Lucida Console"));
 //	m_fontLog.Attach(hFontMono);
 	LPLOGFONT plfLog = thePrefs.GetLogFont();
-	if (plfLog->lfFaceName[0] != _T('\0'))
+	if (plfLog->lfFaceName[0])
 		m_fontLog.CreateFontIndirect(plfLog);
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1791,7 +1773,7 @@ void CemuleApp::CreateBackwardDiagonalBrush()
 	static const WORD awBackwardDiagonalBrushPattern[8] = {0x0f, 0x1e, 0x3c, 0x78, 0xf0, 0xe1, 0xc3, 0x87};
 	CBitmap bm;
 	if (bm.CreateBitmap(8, 8, 1, 1, awBackwardDiagonalBrushPattern)) {
-		LOGBRUSH logBrush = {};
+		LOGBRUSH logBrush{};
 		logBrush.lbStyle = BS_PATTERN;
 		logBrush.lbHatch = (ULONG_PTR)bm.GetSafeHandle();
 		//logBrush.lbColor = RGB(0, 0, 0);
@@ -1953,11 +1935,11 @@ void CemuleApp::ResetStandByIdleTimer()
 bool CemuleApp::IsXPThemeActive() const
 {
 	// TRUE: If an XP style (and only an XP style) is active
-	return theApp.m_ullComCtrlVer < MAKEDLLVERULL(6, 16, 0, 0) && g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed();
+	return theApp.m_ullComCtrlVer < MAKEDLLVERULL(6, 16, 0, 0) && ::IsThemeActive() && ::IsAppThemed();
 }
 
 bool CemuleApp::IsVistaThemeActive() const
 {
 	// Return true if Vista (or better) style is active
-	return theApp.m_ullComCtrlVer >= MAKEDLLVERULL(6, 16, 0, 0) && g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed();
+	return theApp.m_ullComCtrlVer >= MAKEDLLVERULL(6, 16, 0, 0) && ::IsThemeActive() && ::IsAppThemed();
 }

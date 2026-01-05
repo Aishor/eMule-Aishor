@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -23,13 +23,11 @@
 #include "MenuCmds.h"
 #include "TransferDlg.h"
 #include "UpDownClient.h"
-#include "UploadQueue.h"
 #include "ClientCredits.h"
 #include "PartFile.h"
 #include "FriendList.h"
 #include "ChatWnd.h"
 #include "Kademlia/Kademlia/Kademlia.h"
-#include "SharedFileList.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -139,14 +137,14 @@ void CDownloadClientsCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					client->GetDisplayImage(iImage, uOverlayImage);
 
 					rcItem.left += sm_iIconOffset;
-					const POINT point = { rcItem.left, rcItem.top + iIconY };
+					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
 					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
 				rcItem.right -= sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 				break;
 			case 4: //download status bar
 				++rcItem.top;
@@ -223,7 +221,6 @@ CString CDownloadClientsCtrl::GetItemDisplayText(const CUpDownClient *client, in
 	}
 	return sText;
 }
-
 
 void CDownloadClientsCtrl::OnLvnGetDispInfo(LPNMHDR pNMHDR, LRESULT *pResult)
 {
@@ -356,7 +353,7 @@ void CDownloadClientsCtrl::OnContextMenu(CWnd*, CPoint point)
 	const CUpDownClient *client = reinterpret_cast<CUpDownClient*>(iSel >= 0 ? GetItemData(iSel) : NULL);
 	const bool is_ed2k = client && client->IsEd2kClient();
 
-	CTitleMenu ClientMenu;
+	CTitledMenu ClientMenu;
 	ClientMenu.CreatePopupMenu();
 	ClientMenu.AddMenuTitle(GetResString(IDS_CLIENTS), true);
 	ClientMenu.AppendMenu(MF_STRING | (client ? MF_ENABLED : MF_GRAYED), MP_DETAIL, GetResString(IDS_SHOWDETAILS), _T("CLIENTDETAILS"));
@@ -438,8 +435,8 @@ void CDownloadClientsCtrl::RemoveClient(const CUpDownClient *client)
 void CDownloadClientsCtrl::RefreshClient(const CUpDownClient *client)
 {
 	if (theApp.emuledlg->activewnd == theApp.emuledlg->transferwnd
-		&& !theApp.IsClosing()
-		&& theApp.emuledlg->transferwnd->GetDownloadClientsList()->IsWindowVisible())
+		&& theApp.emuledlg->transferwnd->GetDownloadClientsList()->IsWindowVisible()
+		&& !theApp.IsClosing())
 	{
 		LVFINDINFO find;
 		find.flags = LVFI_PARAM;

@@ -56,7 +56,7 @@ public:
 	bool LoadConfiguration(LPCTSTR pszFilePath);
 	void Show(LPCTSTR pszCaption, TbnMsg nMsgType, LPCTSTR pszLink, BOOL bAutoClose = TRUE);
 	void ShowLastHistoryMessage();
-	int GetMessageType();
+	int GetMessageType() const						{ return m_nActiveMessageType; }
 	void Hide();
 
 	void SetBitmapRegion(int red, int green, int blue);
@@ -67,10 +67,10 @@ public:
 	void SetTextFont(LPCTSTR pszFont, int nSize, int nNormalStyle, int nSelectedStyle);
 	void SetTextDefaultFont();
 	void SetTextColor(COLORREF crNormalTextColor, COLORREF crSelectedTextColor);
-	void SetTextRect(const RECT &rcText);
-	void SetCloseBtnRect(const RECT &rcCloseBtn);
-	void SetHistoryBtnRect(const RECT &rcHistoryBtn);
-	void SetTextFormat(UINT uTextFormat);
+	void SetTextRect(const RECT &rcText)			{ m_rcText = rcText; }
+	void SetCloseBtnRect(const RECT &rcCloseBtn)	{ m_rcCloseBtn = rcCloseBtn; }
+	void SetHistoryBtnRect(const RECT &rcHistoryBtn) { m_rcHistoryBtn = rcHistoryBtn; }
+	void SetTextFormat(UINT uTextFormat)			{ m_uTextFormat = uTextFormat; }
 	void SetAutoClose(bool bAutoClose);
 
 protected:
@@ -114,8 +114,6 @@ protected:
 	int m_nHistoryPosition;		  //<<--enkeyDEV(kei-kun) -TaskbarNotifier-
 	TbnMsg m_nActiveMessageType;  //<<--enkeyDEV(kei-kun) -TaskbarNotifier-
 	CObList m_MessageHistory;	  //<<--enkeyDEV(kei-kun) -TaskbarNotifier-
-	HMODULE m_hMsImg32Dll;
-	BOOL(WINAPI *m_pfnAlphaBlend)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION);
 
 	HRGN CreateRgnFromBitmap(HBITMAP hBmp, COLORREF color);
 

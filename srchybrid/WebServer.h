@@ -1,7 +1,6 @@
 #pragma once
 
 #include "WebSocket.h"
-#include "PartFile.h"
 #include "zlib/zlib.h"
 
 #define WEB_GRAPH_HEIGHT		120
@@ -29,7 +28,7 @@ typedef struct
 
 struct BadLogin
 {
-	uint32	datalen;
+	uint32	ip;
 	DWORD	timestamp;
 };
 
@@ -210,7 +209,7 @@ typedef struct
 {
 	CArray<UpDown>	PointsForWeb;
 	CArray<Session>	Sessions;
-	CArray<BadLogin> badlogins;	//TransferredData= IP : time
+	CArray<BadLogin> badlogins;	//the data is {IP, time}
 
 	CString			sETag;
 	CString			sLastModified;

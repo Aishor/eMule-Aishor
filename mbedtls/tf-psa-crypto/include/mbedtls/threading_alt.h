@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2017-2023 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2017-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,12 +17,20 @@
 
 #pragma once
 #ifdef _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <winsock2.h>
 
 typedef struct
 {
 	CRITICAL_SECTION cs;
 	char is_valid;
-} mbedtls_threading_mutex_t;
+} mbedtls_platform_mutex_t;
+
+typedef struct
+{
+	int cond;
+} mbedtls_platform_condition_variable_t;
 
 #endif

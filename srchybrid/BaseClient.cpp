@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -57,8 +57,7 @@
 #include "shahashset.h"
 #include "Log.h"
 #include "CaptchaGenerator.h"
-#include "CxImage/xImage.h"
-#include "zlib/zlib.h"
+#include <atlimage.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -74,6 +73,8 @@ IMPLEMENT_DYNAMIC(CUpDownClient, CObject)
 CUpDownClient::CUpDownClient(CClientReqSocket *sender)
 	: socket(sender)
 	, m_reqfile()
+	, m_AverageUDR_hist(512, 512)
+	, m_AverageDDR_hist(512, 512)
 {
 	Init();
 }
@@ -81,6 +82,8 @@ CUpDownClient::CUpDownClient(CClientReqSocket *sender)
 CUpDownClient::CUpDownClient(CPartFile *in_reqfile, uint16 in_port, uint32 in_userid, uint32 in_serverip, uint16 in_serverport, bool ed2kID)
 	: socket()
 	, m_reqfile(in_reqfile)
+	, m_AverageUDR_hist(512, 512)
+	, m_AverageDDR_hist(512, 512)
 {
 	//Converting to the HybridID system. The ED2K system didn't take into account of IP address ending in 0.
 	//All IP addresses ending in 0 were assumed to be a low ID because of the calculations.
@@ -501,7 +504,7 @@ bool CUpDownClient::ProcessHelloTypePacket(CSafeMemFile &data)
 			//	 1 Supports CryptLayer
 			//	 1 Reserved (ModBit)
 			//   1 Ext Multipacket (Hash+Size instead of Hash) - deprecated with FileIdentifiers/MultipacketExt2
-			//   1 Large Files (includes support for 64bit tags)
+			//   1 Large Files (includes support for 64-bit tags)
 			//   4 Kad Version - will go up to version 15 only (may need to add another field at some point in the future)
 			if (temptag.IsInt()) {
 				m_fSupportsFileIdent = (temptag.GetInt() >> 13) & 0x01;
@@ -1398,7 +1401,7 @@ bool CUpDownClient::TryToConnect(bool bIgnoreMaxCon, bool bNoCallbacks, CRuntime
 	// 4) Direct Callback Connections
 	if (SupportsDirectUDPCallback() && thePrefs.GetUDPPort() != 0 && GetConnectIP() != 0) {
 		m_eConnectingState = CCS_DIRECTCALLBACK;
-		//DebugLog(_T("Direct Callback on port %u to client %s (%s) "), GetKadPort(), (LPCTSTR)DbgGetClientInfo(), (LPCTSTR)md4str(GetUserHash()));
+		//DebugLog(_T("Direct Callback on port %u to client %s (%s)"), GetKadPort(), (LPCTSTR)DbgGetClientInfo(), (LPCTSTR)md4str(GetUserHash()));
 		CSafeMemFile data;
 		data.WriteUInt16(thePrefs.GetPort()); // needs to know our port
 		data.WriteHash16(thePrefs.GetUserHash()); // and userhash
@@ -1461,9 +1464,7 @@ bool CUpDownClient::TryToConnect(bool bIgnoreMaxCon, bool bNoCallbacks, CRuntime
 				// for example by adding a queue system for queries
 				DebugLogWarning(_T("TryToConnect: Buddy without known IP, Lookup currently impossible"));
 				delete findSource;
-				return true;
-			}
-			if (Kademlia::CSearchManager::StartSearch(findSource)) {
+			} else if (Kademlia::CSearchManager::StartSearch(findSource)) {
 				m_eConnectingState = CCS_KADCALLBACK;
 				//Started lookup.
 				SetDownloadState(DS_WAITCALLBACKKAD);
@@ -2070,9 +2071,13 @@ void CUpDownClient::SendPreviewRequest(const CAbstractFile &rForFile)
 		LogWarning(LOG_STATUSBAR, GetResString(IDS_ERR_PREVIEWALREADY));
 }
 
-void CUpDownClient::SendPreviewAnswer(const CKnownFile *pForFile, CxImage **imgFrames, uint8 nCount)
+void CUpDownClient::SendPreviewAnswer(const CKnownFile *pForFile, HBITMAP *imgFrames, uint8 nCount)
 {
 	m_fPreviewAnsPending = 0;
+	if (imgFrames == NULL) {
+		ASSERT(0);
+		return;
+	}
 	CSafeMemFile data(1024);
 	if (pForFile)
 		data.WriteHash16(pForFile->GetFileHash());
@@ -2081,26 +2086,32 @@ void CUpDownClient::SendPreviewAnswer(const CKnownFile *pForFile, CxImage **imgF
 		data.WriteHash16(_aucZeroHash);
 	}
 	data.WriteUInt8(nCount);
+	bool bSend = true;
 	for (int i = 0; i < nCount; ++i) {
-		if (imgFrames == NULL) {
+		HBITMAP bmp_frame = imgFrames[i];
+		if (bmp_frame) {
+			if (bSend) {
+				size_t nFrameSize;
+				byte *byFrameBuffer = bmp2mem(bmp_frame, nFrameSize, Gdiplus::ImageFormatPNG);
+				if (byFrameBuffer) {
+					data.WriteUInt32((uint32)nFrameSize);
+					data.Write(byFrameBuffer, (UINT)nFrameSize);
+					delete[] byFrameBuffer;
+				} else {
+					ASSERT(0);
+					bSend = false;
+				}
+			}
+			::DeleteObject(bmp_frame);
+			imgFrames[i] = 0;
+		} else {
 			ASSERT(0);
-			return;
+			bSend = false;
 		}
-		CxImage *cur_frame = imgFrames[i];
-		if (cur_frame == NULL) {
-			ASSERT(0);
-			return;
-		}
-		BYTE *abyResultBuffer = NULL;
-		int32_t nResultSize = 0;
-		if (!cur_frame->Encode(abyResultBuffer, nResultSize, CXIMAGE_FORMAT_PNG)) {
-			ASSERT(0);
-			return;
-		}
-		data.WriteUInt32(nResultSize);
-		data.Write(abyResultBuffer, nResultSize);
-		free(abyResultBuffer);
 	}
+	if (!bSend)
+		return;
+
 	Packet *packet = new Packet(data, OP_EMULEPROT);
 	packet->opcode = OP_PREVIEWANSWER;
 	if (thePrefs.GetDebugClientTCPLevel() > 0)
@@ -2122,7 +2133,7 @@ void CUpDownClient::ProcessPreviewReq(const uchar *pachPacket, uint32 nSize)
 	if (previewFile == NULL)
 		SendPreviewAnswer(NULL, NULL, 0);
 	else
-		previewFile->GrabImage(4, 15, true, 450, this); //start at 15 seconds; at 0 seconds frame usually were solid black
+		previewFile->GrabImage(4, 15.0, true, 450, this); //do not start at 0 because videos commonly begin with blank screens
 }
 
 void CUpDownClient::ProcessPreviewAnswer(const uchar *pachPacket, uint32 nSize)
@@ -2139,27 +2150,29 @@ void CUpDownClient::ProcessPreviewAnswer(const uchar *pachPacket, uint32 nSize)
 		return;
 	}
 	CSearchFile *sfile = theApp.searchlist->GetSearchFileByHash(Hash);
-	if (sfile == NULL)
-		//already deleted
+	if (sfile == NULL)	//could be already deleted
 		return;
 
-	BYTE *pBuffer = NULL;
+	byte *pBuffer = NULL;
+	HBITMAP image = 0;
 	try {
 		for (int i = 0; i < nCount; ++i) {
 			uint32 nImgSize = data.ReadUInt32();
 			if (nImgSize > nSize)
 				throwCStr(_T("CUpDownClient::ProcessPreviewAnswer - Provided image size exceeds limit"));
-			pBuffer = new BYTE[nImgSize];
+			pBuffer = new byte[nImgSize];
 			data.Read(pBuffer, nImgSize);
-			CxImage *image = new CxImage(pBuffer, nImgSize, CXIMAGE_FORMAT_PNG);
+			image = mem2bmp(pBuffer, nImgSize);
+			if (image) {
+				sfile->AddPreviewImg(image);
+				image = 0; //do not delete on exception
+			}
 			delete[] pBuffer;
 			pBuffer = NULL;
-			if (image->IsValid())
-				sfile->AddPreviewImg(image);
-			else
-				delete image;
 		}
 	} catch (...) {
+		if (image)
+			::DeleteObject(image);
 		delete[] pBuffer;
 		throw;
 	}
@@ -2259,7 +2272,7 @@ void CUpDownClient::AssertValid() const
 	(void)s_UpStatusBar;
 	(void)requpfileid;
 	(void)m_lastRefreshedULDisplay;
-	m_AverageUDR_list.AssertValid();
+	ASSERT(m_AverageUDR_hist.Capacity());
 	m_RequestedFiles_list.AssertValid();
 	ASSERT(m_eDownloadState >= DS_DOWNLOADING && m_eDownloadState <= DS_NONE);
 	(void)m_cDownAsked;
@@ -2284,7 +2297,7 @@ void CUpDownClient::AssertValid() const
 	CHECK_BOOL(m_bTransferredDownMini);
 	CHECK_BOOL(m_bUnicodeSupport);
 	ASSERT(m_eKadState >= KS_NONE && m_eKadState <= KS_CONNECTING_FWCHECK_UDP);
-	m_AverageDDR_list.AssertValid();
+	ASSERT(m_AverageDDR_hist.Capacity());
 	(void)m_nSumForAvgUpDataRate;
 	m_PendingBlocks_list.AssertValid();
 	(void)s_StatusBar;
@@ -2295,9 +2308,7 @@ void CUpDownClient::AssertValid() const
 #undef CHECK_PTR
 #undef CHECK_BOOL
 }
-#endif
 
-#ifdef _DEBUG
 void CUpDownClient::Dump(CDumpContext &dc) const
 {
 	CObject::Dump(dc);
@@ -2569,12 +2580,7 @@ void CUpDownClient::SetSpammer(bool bVal)
 	m_fIsSpammer = static_cast<int>(bVal);
 }
 
-void  CUpDownClient::SetMessageFiltered(bool bVal)
-{
-	m_fMessageFiltered = static_cast<int>(bVal);
-}
-
-bool  CUpDownClient::IsObfuscatedConnectionEstablished() const
+bool CUpDownClient::IsObfuscatedConnectionEstablished() const
 {
 	return socket != NULL && socket->IsConnected() && socket->IsObfusicating();
 }
@@ -2641,7 +2647,7 @@ void CUpDownClient::ProcessChatMessage(CSafeMemFile &data, uint32 nLength)
 	// default filtering
 	CString strMessageCheck(strMessage);
 	strMessageCheck.MakeLower();
-	for (int iPos = 0; iPos >= 0;){
+	for (int iPos = 0; iPos >= 0;) {
 		CString sToken(thePrefs.GetMessageFilter().Tokenize(_T("|"), iPos));
 		if (!sToken.Trim().IsEmpty() && strMessageCheck.Find(sToken.MakeLower()) >= 0) {
 			if (thePrefs.IsAdvSpamfilterEnabled() && !IsFriend() && !GetMessagesSent()) {
@@ -2668,6 +2674,7 @@ void CUpDownClient::ProcessChatMessage(CSafeMemFile &data, uint32 nLength)
 						fileAnswer.WriteUInt8(0); // no tags, for future use
 						CCaptchaGenerator captcha(4);
 						if (captcha.WriteCaptchaImage(fileAnswer)) {
+							ASSERT(fileAnswer.GetPosition() > 128 && fileAnswer.GetPosition() < 4096); //sanity check for image size
 							m_strCaptchaChallenge = captcha.GetCaptchaText();
 							m_eChatCaptchaState = CA_CHALLENGESENT;
 							++m_cCaptchasSent;
@@ -2764,6 +2771,7 @@ void CUpDownClient::ProcessChatMessage(CSafeMemFile &data, uint32 nLength)
 
 void CUpDownClient::ProcessCaptchaRequest(CSafeMemFile &data)
 {
+	static LPCTSTR fmt = _T("Received captcha request from client, %s (%s)");
 	// received a captcha request, check if we actually accept it (only after sending a message ourself to this client)
 	if (GetChatCaptchaState() == CA_ACCEPTING && GetChatState() != MS_NONE
 		&& theApp.emuledlg->chatwnd->chatselector.GetItemByClient(this) != NULL)
@@ -2776,24 +2784,23 @@ void CUpDownClient::ProcessCaptchaRequest(CSafeMemFile &data)
 		if (nSize > 128 && nSize < 4096) {
 			ULONGLONG pos = data.GetPosition();
 			BYTE *byBuffer = data.Detach();
-			CxImage imgCaptcha(&byBuffer[pos], nSize, CXIMAGE_FORMAT_BMP);
-			//free(byBuffer);
-			if (imgCaptcha.IsValid() && imgCaptcha.GetHeight() > 10 && imgCaptcha.GetHeight() < 50
-				&& imgCaptcha.GetWidth() > 10 && imgCaptcha.GetWidth() < 150)
-			{
-				HBITMAP hbmp = imgCaptcha.MakeBitmap();
-				if (hbmp != NULL) {
+			HBITMAP imgCaptcha = mem2bmp(&byBuffer[pos], nSize);
+			//free(byBuffer); packet would be deleted later
+			BITMAPINFOHEADER *bi = (BITMAPINFOHEADER*)&byBuffer[pos + sizeof(BITMAPFILEHEADER)];
+			if (imgCaptcha) {
+				if (bi->biWidth > 10 && bi->biWidth < 150 && bi->biHeight > 10 && bi->biHeight < 50)
+				{
 					m_eChatCaptchaState = CA_CAPTCHARECV;
-					theApp.emuledlg->chatwnd->chatselector.ShowCaptchaRequest(this, hbmp);
-					::DeleteObject(hbmp);
+					theApp.emuledlg->chatwnd->chatselector.ShowCaptchaRequest(this, imgCaptcha);
+					::DeleteObject(imgCaptcha);
 				} else
-					DebugLogWarning(_T("Received captcha request from client, Creating bitmap failed (%s)"), (LPCTSTR)DbgGetClientInfo());
+					DebugLogWarning(fmt, _T("processing failed due to invalid image size"), (LPCTSTR)DbgGetClientInfo());
 			} else
-				DebugLogWarning(_T("Received captcha request from client, processing image failed or invalid pixel size (%s)"), (LPCTSTR)DbgGetClientInfo());
+				DebugLogWarning(fmt, _T("bitmap creation failed"), (LPCTSTR)DbgGetClientInfo());
 		} else
-			DebugLogWarning(_T("Received captcha request from client, size sanitize check failed (%u) (%s)"), nSize, (LPCTSTR)DbgGetClientInfo());
+			DebugLogWarning(_T("Received captcha request from client, invalid data size (%u) (%s)"), nSize, (LPCTSTR)DbgGetClientInfo());
 	} else
-		DebugLogWarning(_T("Received captcha request from client, but don't accepting it at this time (%s)"), (LPCTSTR)DbgGetClientInfo());
+		DebugLogWarning(fmt, _T("but not accepting it at this time"), (LPCTSTR)DbgGetClientInfo());
 }
 
 void CUpDownClient::ProcessCaptchaReqRes(uint8 nStatus)
@@ -2806,7 +2813,7 @@ void CUpDownClient::ProcessCaptchaReqRes(uint8 nStatus)
 		theApp.emuledlg->chatwnd->chatselector.ShowCaptchaResult(this, GetResString((nStatus == 0) ? IDS_CAPTCHASOLVED : IDS_CAPTCHAFAILED));
 	} else {
 		m_eChatCaptchaState = CA_NONE;
-		DebugLogWarning(_T("Received captcha result from client, but don't accepting it at this time (%s)"), (LPCTSTR)DbgGetClientInfo());
+		DebugLogWarning(_T("Received captcha result from client, but not accepting it at this time (%s)"), (LPCTSTR)DbgGetClientInfo());
 	}
 }
 

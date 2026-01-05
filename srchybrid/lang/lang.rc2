@@ -1,13 +1,13 @@
-//
+﻿//
 // lang.RC2 - Ressourcen, die Microsoft Visual C++ nicht direkt bearbeitet
 //
+#pragma code_page(65001)
 
 #ifdef APSTUDIO_INVOKED
 #error this file is not editable by Microsoft Visual C++
 #endif //APSTUDIO_INVOKED
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(65001)
 
 /////////////////////////////////////////////////////////////////////////////
 // Fügen Sie hier manuell bearbeitete Ressourcen hinzu...
@@ -38,7 +38,7 @@ BEGIN
             VALUE "CompanyName", "http://www.emule-project.net"
             VALUE "FileDescription", "eMule Language DLL"
             VALUE "FileVersion", SZ_VERSION_NAME
-            VALUE "LegalCopyright", "Copyright © 2002-2024 Merkur - read license.txt for more infos"
+            VALUE "LegalCopyright", "Copyright © 2002-2026 Merkur - read license.txt for more infos"
             VALUE "ProductName", "eMule"
             VALUE "ProductVersion", SZ_VERSION_NAME
         END

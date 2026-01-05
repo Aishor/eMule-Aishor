@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 
 class CHTRichEditCtrl : public CRichEditCtrl
 {
@@ -12,8 +12,8 @@ public:
 	BOOL Create(DWORD dwStyle, const RECT &rect, CWnd *parent, UINT nID);
 
 	void Init(LPCTSTR pszTitle, LPCTSTR pszSkinKey = NULL);
-	void SetProfileSkinKey(LPCTSTR pszSkinKey);
-	void SetTitle(LPCTSTR pszTitle);
+	void SetProfileSkinKey(LPCTSTR pszSkinKey)		{ m_strSkinKey = pszSkinKey; }
+	void SetTitle(LPCTSTR pszTitle)					{ m_strTitle = pszTitle; }
 	void Localize();
 	void ApplySkin();
 	void EnableSmileys(bool bEnable = true);
@@ -72,7 +72,7 @@ protected:
 	CComPtr<IStorage> m_pIStorageCaptchas;
 
 	void SelectAllItems();
-	void CopySelectedItems();
+	void CopySelectedItems()						{ Copy(); }
 //	int GetMaxSize();
 	void SafeAddLine(int nPos, LPCTSTR pszLine, int iLen, long &lStartChar, long &lEndChar, bool bLink, COLORREF cr, COLORREF bk, DWORD mask);
 	void FlushBuffer();

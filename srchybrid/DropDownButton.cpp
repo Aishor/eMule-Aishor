@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -33,8 +33,8 @@ BEGIN_MESSAGE_MAP(CDropDownButton, CToolBarCtrlX)
 END_MESSAGE_MAP()
 
 CDropDownButton::CDropDownButton()
+	: m_bSingleDropDownBtn(true)
 {
-	m_bSingleDropDownBtn = true;
 }
 
 BOOL CDropDownButton::CreateBar(DWORD dwStyle, const RECT &rect, CWnd *pParentWnd, UINT nID, bool bSingleDropDownBtn)
@@ -46,12 +46,9 @@ BOOL CDropDownButton::CreateBar(DWORD dwStyle, const RECT &rect, CWnd *pParentWn
 			| CCS_NODIVIDER
 			| TBSTYLE_LIST
 			| TBSTYLE_FLAT
-			| TBSTYLE_TRANSPARENT
-			| 0;
+			| TBSTYLE_TRANSPARENT;
 
-	if (!CToolBarCtrlX::Create(dwStyle, rect, pParentWnd, nID))
-		return FALSE;
-	return Init(bSingleDropDownBtn);
+	return CToolBarCtrlX::Create(dwStyle, rect, pParentWnd, nID) && Init(bSingleDropDownBtn);
 }
 
 BOOL CDropDownButton::Init(bool bSingleDropDownBtn, bool bWholeDropDown)

@@ -9,7 +9,7 @@
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 #endif
 
-#include <emule_site_config.h>
+#include "emule_site_config.h"
 
 // MSDN: Using the Windows Headers
 // ===========================================================
@@ -48,7 +48,7 @@
 #endif
 
 #ifndef _WIN32_IE
-#define _WIN32_IE 0x0560		// 0x0560 == Internet Explorer 5.6 -> Comctl32.dll v5.8
+#define _WIN32_IE 0x0603		// 0x0603 == Internet Explorer 6.0 SP2
 #endif
 
 #else//HAVE_VISTA_SDK
@@ -122,9 +122,11 @@
 #if _MSC_VER>=1400
 #pragma warning(disable:4738) // storing 32-bit float result in memory, possible loss of performance
 #endif
+#ifdef _M_ARM64
+#pragma warning(disable:4746) // volatile access of '<expression>' is subject to /volatile:[iso|ms] setting
+#endif
 #pragma warning(disable:4820) // <n> bytes padding added after member <member>
 #pragma warning(disable:4917) // a GUID can only be associated with a class, interface or namespace
-
 #if _MSC_VER>=1900
 #pragma warning(disable:5026) // move constructor was implicitly defined as deleted
 #pragma warning(disable:5027) // move assignment operator was implicitly defined as deleted
@@ -161,7 +163,7 @@
 #endif
 #endif//!defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES) || (_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES==0)
 
-#if !defined(_USE_32BIT_TIME_T) && !defined(_WIN64)
+#if defined(XP_BUILD) && !defined(_WIN64) && !defined(_USE_32BIT_TIME_T)
 #define _USE_32BIT_TIME_T
 #endif
 
@@ -178,6 +180,9 @@
 #endif
 
 #include <afxwin.h>			// MFC core and standard components
+#undef _RICHEDIT_VER
+#define _RICHEDIT_VER 0x0500
+
 #include <afxext.h>			// MFC extensions
 #include <afxdtctl.h>		// MFC support for 'CDateTimeCtrl' and 'CMonthCalCtrl'
 #include <afxcmn.h>			// MFC support for Windows Common Controls

@@ -44,15 +44,15 @@ class CSelBrush
 	void Select(HGLOBAL hPackedDib, UINT usage)          // DIB Pattern brush
 
 class CSelFont
-	CSelFont(CDC *pDC, int size, LPCTSTR face = NULL, BOOL bold = 0,
-				BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0,
-				BOOL hiquality = 0, int angleindegrees = 0)
+	CSelFont(CDC *pDC, int size, LPCTSTR face = NULL, BOOL bold = 0
+				, BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0
+				, BOOL hiquality = 0, int angleindegrees = 0)
 	CSelFont(CDC *pDC, CFont *pFont)
 	CSelFont(CDC *pDC, const LOGFONT *lpLogFont)
 
-	void Select(int size, LPCTSTR face = NULL, BOOL bold = 0,
-					BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0,
-					BOOL hiquality = 0, int angleindegrees = 0)
+	void Select(int size, LPCTSTR face = NULL, BOOL bold = 0
+				, BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0
+				, BOOL hiquality = 0, int angleindegrees = 0)
 	void Select(CFont *pFont)
 	void Select(const LOGFONT *lpLogFont)
 
@@ -63,10 +63,10 @@ class CSelBitmap
 	void Select(CDC *pCompatibleToDC, int w, int h)
 
 class CSelPalette
-	CSelPalette(CDC *pDC, CPalette *pPalette,
-				BOOL fForceBackground = FALSE, BOOL fRealize = TRUE)
-	UINT Select(CPalette *pPalette,
-				BOOL fForceBackground = FALSE, BOOL fRealize = TRUE)
+	CSelPalette(CDC *pDC, CPalette *pPalette
+				, BOOL fForceBackground = FALSE, BOOL fRealize = TRUE)
+	UINT Select(CPalette *pPalette
+				, BOOL fForceBackground = FALSE, BOOL fRealize = TRUE)
 	void ChangeRestoreFlags(BOOL fForceBackground, BOOL fRealize)
 
 class CSelROP2
@@ -110,7 +110,7 @@ every class also have:
 class CSelect
 {
 protected:
-	CDC * const m_pDC;
+	CDC *const m_pDC;
 	explicit CSelect(CDC *pDC)
 		: m_pDC(pDC)
 	{
@@ -391,7 +391,7 @@ public:
 		, int angleindegrees = 0)
 	{
 		ASSERT(pDC);
-		SIZE Size = { 0, ::MulDiv(size, pDC->GetDeviceCaps(LOGPIXELSY), 72) };
+		SIZE Size{0, ::MulDiv(size, pDC->GetDeviceCaps(LOGPIXELSY), 72)};
 		pDC->DPtoLP(&Size);
 		return CFont::CreateFont(-abs(Size.cy), 0, 10 * angleindegrees, 0
 			, bold ? FW_BOLD : FW_NORMAL
@@ -425,9 +425,9 @@ public:
 	{
 	}
 
-	CSelFont(CDC *pDC, int size, LPCTSTR face = NULL, BOOL bold = 0,
-		BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0,
-		BOOL hiquality = 0, int angleindegrees = 0)
+	CSelFont(CDC *pDC, int size, LPCTSTR face = NULL, BOOL bold = 0
+			, BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0
+			, BOOL hiquality = 0, int angleindegrees = 0)
 		: CSelect(pDC)
 		, m_pOldFont()
 	{
@@ -464,9 +464,9 @@ public:
 		m_NewFont.DeleteObject();
 	}
 
-	void Select(int size, LPCTSTR face = NULL, BOOL bold = 0,
-		BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0,
-		BOOL hiquality = 0, int angleindegrees = 0)
+	void Select(int size, LPCTSTR face = NULL, BOOL bold = 0
+			, BOOL italic = 0, BOOL underlined = 0, BOOL fixed = 0
+			, BOOL hiquality = 0, int angleindegrees = 0)
 	{
 		if (m_pOldFont)
 			Select(m_pOldFont);
@@ -586,8 +586,10 @@ public:
 	{
 	}
 
-	CSelPalette(CDC *pDC, CPalette *pPalette,
-		BOOL fForceBackground = FALSE, BOOL fRealize = TRUE)
+	CSelPalette(CDC *pDC
+				, CPalette *pPalette
+				, BOOL fForceBackground = FALSE
+				, BOOL fRealize = TRUE)
 		: CSelect(pDC)
 		, m_pOldPalette()
 	{
@@ -655,7 +657,7 @@ public:
 
 	CSelROP2(CDC *pDC, int drawMode)
 		: CSelect(pDC)
-		, m_OldRop(0)
+		, m_OldRop()
 	{
 		Select(drawMode);
 	}
@@ -696,14 +698,14 @@ public:
 
 	explicit CSelBkMode(CDC *pDC)
 		: CSelect(pDC)
-		, m_OldBkMode(0)
+		, m_OldBkMode()
 	{
 		/*VERIFY(m_OldBkMode = m_pDC->GetBkMode());*/
 	}
 
 	CSelBkMode(CDC *pDC, int BkMode)
 		: CSelect(pDC)
-		, m_OldBkMode(0)
+		, m_OldBkMode()
 	{
 		Select(BkMode);
 	}
@@ -888,14 +890,14 @@ public:
 
 	explicit CSelMapMode(CDC *pDC)
 		: CSelect(pDC)
-		, m_OldMapMode(0)
+		, m_OldMapMode()
 	{
 		/*VERIFY(m_OldMapMode = m_pDC->GetMapMode());*/
 	}
 
 	CSelMapMode(CDC *pDC, int MapMode)
 		: CSelect(pDC)
-		, m_OldMapMode(0)
+		, m_OldMapMode()
 	{
 		Select(MapMode);
 	}

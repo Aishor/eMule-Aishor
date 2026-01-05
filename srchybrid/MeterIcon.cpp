@@ -16,7 +16,7 @@ static char THIS_FILE[] = __FILE__;
 //////////////////////////////////////////////////////////////////////
 
 CMeterIcon::CMeterIcon()
-	: m_sDimensions{ 16, 16 }
+	: m_sDimensions{16, 16}
 	, m_hFrame()
 	, m_pLimits()
 	, m_pColors()

@@ -4,7 +4,7 @@
 #define	CATCH_DFLT_ALL(fname)
 #else
 #define	CATCH_DFLT_ALL(fname) \
-	catch(...) { \
+	catch (...) { \
 		if (thePrefs.GetVerbose()) \
 			DebugLogError(LOG_STATUSBAR, _T("Unknown exception in ") fname); \
 		ASSERT(0); \
@@ -16,7 +16,7 @@
 // -> Use explicit exception handlers where needed!
 
 #define CATCH_MFC_EXCEPTION(fname) \
-	catch(CException *e){ \
+	catch (CException *e) { \
 		TCHAR szError[1024]; \
 		GetExceptionMessage(*e, szError, _countof(szError)); \
 		const CRuntimeClass *pRuntimeClass = e->GetRuntimeClass(); \
@@ -29,7 +29,7 @@
 	}
 
 #define	CATCH_STR_EXCEPTION(fname) \
-	catch (const CString &sError){ \
+	catch (const CString &sError) { \
 		if (thePrefs.GetVerbose()) \
 			DebugLogError(LOG_STATUSBAR, _T("Unknown CString exception in ") fname _T(" - %s"), (LPCTSTR)sError); \
 	}
@@ -44,7 +44,9 @@ class CMsgBoxException : public CException
 	DECLARE_DYNAMIC(CMsgBoxException)
 public:
 	explicit CMsgBoxException(LPCTSTR pszMsg, UINT uType = MB_ICONWARNING, UINT uHelpID = 0)
-		: m_strMsg(pszMsg), m_uType(uType), m_uHelpID(uHelpID)
+		: m_strMsg(pszMsg)
+		, m_uType(uType)
+		, m_uHelpID(uHelpID)
 	{
 	}
 
@@ -58,7 +60,8 @@ class CClientException : public CException
 	DECLARE_DYNAMIC(CClientException)
 public:
 	CClientException(LPCTSTR pszMsg, bool bDelete)
-		: m_strMsg(pszMsg), m_bDelete(bDelete)
+		: m_strMsg(pszMsg)
+		, m_bDelete(bDelete)
 	{
 	}
 

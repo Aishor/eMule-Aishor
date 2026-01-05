@@ -1,6 +1,5 @@
-
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,9 +15,9 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "emule.h"
 #include "SmileySelector.h"
-#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -93,7 +92,7 @@ BOOL CSmileySelector::CreateWnd(CWnd *pWndParent, LPCRECT pRect, CEdit *pwndEdit
 	//////////////////////////////////////////////////////////////////////////
 	// Create the popup window
 	//
-	COLORREF crBackground = (g_xpStyle.IsAppThemed() && g_xpStyle.IsThemeActive()) ? COLOR_WINDOW : COLOR_BTNFACE;
+	COLORREF crBackground = (::IsAppThemed() && ::IsThemeActive()) ? COLOR_WINDOW : COLOR_BTNFACE;
 	static const CString &strClassName = AfxRegisterWndClass(
 			CS_CLASSDC | CS_SAVEBITS | CS_HREDRAW | CS_VREDRAW,
 			AfxGetApp()->LoadStandardCursor(IDC_ARROW), (HBRUSH)(crBackground + 1), 0);

@@ -98,7 +98,7 @@ bool CEntry::GetIntTagValue(const CKadTagNameString &strTagName, uint64 &rValue,
 
 	if (bIncludeVirtualTags)
 		// SizeTag is not stored any more, but queried in some places
-		if (strTagName.Compare(TAG_FILESIZE) == 0) {
+		if (strTagName == TAG_FILESIZE) {
 			rValue = m_uSize;
 			return true;
 		}
@@ -123,7 +123,7 @@ void CEntry::SetFileName(const CKadTagValueString &strName)
 		ASSERT(0);
 		m_listFileNames.RemoveAll();
 	}
-	m_listFileNames.AddHead(structFileNameEntry{ strName, 1 });
+	m_listFileNames.AddHead(structFileNameEntry{strName, 1});
 }
 
 CKadTagValueString CEntry::GetCommonFileName() const
@@ -188,10 +188,10 @@ void CEntry::WriteTagListInc(CDataIO *pData, uint32 nIncreaseTagNumber)
 void CEntry::AddTag(CKadTag *pTag, uint32 uDbgSourceIP)
 {
 	// Filter tags which are for sending query results only and should never be stored (or even worse sent within the taglist)
-	if (pTag->m_name.Compare(TAG_KADAICHHASHRESULT) == 0) {
+	if (pTag->m_name == TAG_KADAICHHASHRESULT) {
 		DebugLogWarning(_T("Received result tag TAG_KADAICHHASHRESULT on publishing, filtered, source %s"), (LPCTSTR)ipstr(htonl(uDbgSourceIP)));
 		delete pTag;
-	} else if (pTag->m_name.Compare(TAG_PUBLISHINFO) == 0) {
+	} else if (pTag->m_name == TAG_PUBLISHINFO) {
 		DebugLogWarning(_T("Received result tag TAG_PUBLISHINFO on publishing, filtered, source %s"), (LPCTSTR)ipstr(htonl(uDbgSourceIP)));
 		delete pTag;
 	} else
@@ -255,7 +255,7 @@ bool CKeyEntry::SearchTermsMatch(const SSearchTerm &rSearchTerm) const
 		return true;
 	case SSearchTerm::MetaTag:
 		if (rSearchTerm.m_pTag->m_type == TAGTYPE_STRING) { // meta tags with string values
-			if (rSearchTerm.m_pTag->m_name.Compare(TAG_FILEFORMAT) == 0) {
+			if (rSearchTerm.m_pTag->m_name == TAG_FILEFORMAT) {
 				// 21-Sep-2006 []: Special handling for TAG_FILEFORMAT which is already part
 				// of the filename and thus does not need to get published nor stored explicitly,
 				int iExt = m_strSearchTermCacheCommonFileNameLowerCase.ReverseFind(_T('.'));
@@ -387,7 +387,7 @@ void CKeyEntry::MergeIPsAndFilenames(CKeyEntry *pFromEntry)
 			if (Cur.m_uIP == m_uIP) {
 				bRefresh = true;
 				const time_t tNow = time(NULL);
-				if ((tNow < Cur.m_tLastPublish) + (KADEMLIAREPUBLISHTIMES - HR2S(1))) {
+				if (tNow < Cur.m_tLastPublish + KADEMLIAREPUBLISHTIMES - HR2S(1)) {
 					DEBUG_ONLY(DebugLog(_T("KadEntryTracking: FastRefresh publish, ip: %s"), (LPCTSTR)ipstr(htonl(m_uIP))));
 					bFastRefresh = true; // refreshed faster than expected, will not count into filename popularity index
 				}
@@ -454,15 +454,15 @@ void CKeyEntry::MergeIPsAndFilenames(CKeyEntry *pFromEntry)
 	}
 	delete pNewAICHHash;
 	/*DEBUG_ONLY(
-		DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s"),
-			(bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString());
+		DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s")
+			, (bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString());
 		);
 	if (m_aAICHHashes.GetCount() == 1) {
-			DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s, AICH Hash: %s, Popularity: %u"),
-			(bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString(), m_aAICHHashes[0].GetString(), m_anAICHHashPopularity[0]);
+			DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s, AICH Hash: %s, Popularity: %u")
+				, (bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString(), m_aAICHHashes[0].GetString(), m_anAICHHashPopularity[0]);
 	} else if (m_aAICHHashes.GetCount() > 1) {
-			DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s, AICH Hash: %u - dumping"),
-			(bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString(), m_aAICHHashes.GetCount());
+			DebugLog(_T("Kad: EntryTrack: Indexed Keyword, Refresh: %s, Current Publisher: %s, Total Publishers: %u, Total different Names: %u,TrustValue: %.2f, file: %s, AICH Hash: %u - dumping")
+				, (bRefresh ? _T("Yes") : _T("No")), (LPCTSTR)ipstr(htonl(m_uIP)), m_pliPublishingIPs->GetCount(), m_listFileNames.GetCount(), m_fTrustValue, m_uSourceID.ToHexString(), m_aAICHHashes.GetCount());
 			for (INT_PTR i = 0; i < m_aAICHHashes.GetCount(); ++i)
 				DebugLog(_T("Hash: %s, Popularity: %u"),  m_aAICHHashes[i].GetString(), m_anAICHHashPopularity[i]);
 	}*/
@@ -526,11 +526,6 @@ void CKeyEntry::CleanUpTrackedPublishers()
 		AdjustGlobalPublishTracking(curEntry.m_uIP, false, _T("cleanup"));
 		m_pliPublishingIPs->RemoveHead();
 	}
-}
-
-CEntry*	CKeyEntry::Copy()
-{
-	return CEntry::Copy();
 }
 
 void CKeyEntry::WritePublishTrackingDataToFile(CDataIO *pData)
@@ -603,14 +598,14 @@ void CKeyEntry::ReadPublishTrackingDataFromFile(CDataIO *pData, bool bIncludesAI
 	ASSERT(m_pliPublishingIPs == NULL);
 	m_pliPublishingIPs = new CList<structPublishingIP>();
 	uint32 nIPCount = pData->ReadUInt32();
-	time_t nDbgLastTime = 0;
+	time_t tDbgLastTime = 0;
 	for (uint32 i = 0; i < nIPCount; ++i) {
 		structPublishingIP sToAdd;
 		sToAdd.m_uIP = pData->ReadUInt32();
 		ASSERT(sToAdd.m_uIP);
 		sToAdd.m_tLastPublish = pData->ReadUInt32();
-		ASSERT(nDbgLastTime <= sToAdd.m_tLastPublish); // should always be sorted oldest first
-		nDbgLastTime = sToAdd.m_tLastPublish;
+		ASSERT(tDbgLastTime <= sToAdd.m_tLastPublish); // should always be sorted oldest first
+		tDbgLastTime = sToAdd.m_tLastPublish;
 		// read hash index and update popularity index
 		if (bIncludesAICH) {
 			sToAdd.m_wAICHHashIdx = pData->ReadUInt16();

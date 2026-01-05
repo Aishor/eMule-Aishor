@@ -24,15 +24,14 @@ CQuantizer::~CQuantizer()
 		DeleteTree(&m_pTree);
 }
 /////////////////////////////////////////////////////////////////////////////
-BOOL CQuantizer::ProcessImage(HANDLE hImage)
+BOOL CQuantizer::ProcessImage(void *bmpImage)
 {
-	BITMAPINFOHEADER ds;
-	memcpy(&ds, hImage, sizeof(ds));
+	const BITMAPINFOHEADER &ds = *(BITMAPINFOHEADER*)bmpImage;
 	int effwdt = ((ds.biBitCount * ds.biWidth + 31) / 32) * 4;
 
 	int nPad = effwdt - (ds.biWidth * ds.biBitCount + 7) / 8;
 
-	BYTE *pbBits = (BYTE*)hImage + *(DWORD*)hImage + ds.biClrUsed * sizeof(RGBQUAD);
+	BYTE *pbBits = (BYTE*)bmpImage + *(DWORD*)bmpImage + ds.biClrUsed * sizeof(RGBQUAD);
 
 	switch (ds.biBitCount) {
 	case 1: // 1-bit DIB
@@ -41,7 +40,7 @@ BOOL CQuantizer::ProcessImage(HANDLE hImage)
 		for (int i = 0; i < ds.biHeight; ++i)
 			for (int j = 0; j < ds.biWidth; ++j) {
 				BYTE idx = GetPixelIndex(j, i, ds.biBitCount, effwdt, pbBits);
-				BYTE *pal = (BYTE*)hImage + sizeof(BITMAPINFOHEADER);
+				BYTE *pal = (BYTE*)bmpImage + sizeof(BITMAPINFOHEADER);
 				size_t ldx = idx * sizeof(RGBQUAD);
 				BYTE b = pal[ldx];
 				BYTE g = pal[++ldx];
@@ -180,11 +179,6 @@ void CQuantizer::GetPaletteColors(NODE *pTree, RGBQUAD *prgb, UINT *pIndex, UINT
 				if (pTree->pChild[i] != NULL)
 					GetPaletteColors(pTree->pChild[i], prgb, pIndex, pSum);
 	}
-}
-/////////////////////////////////////////////////////////////////////////////
-UINT CQuantizer::GetColorCount() const
-{
-	return m_nLeafCount;
 }
 /////////////////////////////////////////////////////////////////////////////
 void CQuantizer::SetColorTable(RGBQUAD *prgb)

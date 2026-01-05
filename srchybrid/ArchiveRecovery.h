@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -81,15 +81,6 @@ struct ZIP_CentralDirectory
 #pragma pack(push, 1)
 struct RAR_BlockFile
 {
-	RAR_BlockFile()
-	{
-		memset(this, 0, sizeof(RAR_BlockFile));
-	}
-	~RAR_BlockFile()
-	{
-		delete[] EXT_DATE;
-	}
-
 	// This indicates the position in the input file just after the filename
 	ULONGLONG offsetData;
 	// This indicates how much of the block is after this offset
@@ -114,6 +105,16 @@ struct RAR_BlockFile
 	BYTE	*EXT_DATE;
 	uint32	EXT_DATE_SIZE;
 	BYTE	SALT[8];
+
+	RAR_BlockFile()
+	{
+		memset(this, 0, sizeof(RAR_BlockFile));
+	}
+
+	~RAR_BlockFile()
+	{
+		delete[] EXT_DATE;
+	}
 };
 #pragma pack(pop)
 
@@ -143,6 +144,7 @@ struct ACE_ARCHIVEHEADER
 	{
 		memset(this, 0, sizeof(ACE_ARCHIVEHEADER));
 	}
+
 	~ACE_ARCHIVEHEADER()
 	{
 		free(AV);
@@ -179,6 +181,7 @@ struct ACE_BlockFile
 		, COMMENT()
 	{
 	}
+
 	~ACE_BlockFile()
 	{
 		free(FNAME);
@@ -331,8 +334,16 @@ struct ISO_FileFolderEntry
 	unsigned int	volSeqNr;
 	BYTE	nameLen;
 	TCHAR	*name;
-	ISO_FileFolderEntry()	{ name = NULL; };
-	~ISO_FileFolderEntry()	{ free(name); };
+
+	ISO_FileFolderEntry()
+		: name()
+	{
+	}
+
+	~ISO_FileFolderEntry()
+	{
+		free(name);
+	}
 };
 #pragma pack(pop)
 
@@ -365,6 +376,7 @@ struct archiveinfo_s
 	WORD rarFlags;
 	ISOInfos_s isoInfos;
 	ACE_ARCHIVEHEADER *ACEhdr;
+
 	archiveinfo_s()
 		: centralDirectoryEntries()
 		, RARdir()
@@ -399,7 +411,7 @@ public:
 	static bool recoverZip(CFile *zipInput, CFile *zipOutput, archiveScannerThreadParams_s *aitp, CArray<Gap_Struct> *paFilled, bool fullSize);
 	static bool recoverRar(CFile *rarInput, CFile *rarOutput, archiveScannerThreadParams_s *aitp, CArray<Gap_Struct> *paFilled);
 	static bool recoverAce(CFile *aceInput, CFile *aceOutput, archiveScannerThreadParams_s *aitp, CArray<Gap_Struct> *paFilled);
-	static bool recoverISO(CFile *isoInput, CFile *isoOutput, archiveScannerThreadParams_s *aitp, CArray<Gap_Struct> *paFilled);
+	static bool recoverISO(CFile *isoInput, const CFile *isoOutput, archiveScannerThreadParams_s *aitp, CArray<Gap_Struct> *paFilled);
 
 private:
 	CArchiveRecovery(); // Just use static recover method
@@ -412,7 +424,7 @@ private:
 	static bool readZipCentralDirectory(CFile *zipInput, CTypedPtrList<CPtrList, ZIP_CentralDirectory*> *centralDirectoryEntries, CArray<Gap_Struct> *filled);
 
 	static RAR_BlockFile* scanForRarFileHeader(CFile *input, archiveScannerThreadParams_s *aitp, ULONGLONG available);
-	static bool validateRarFileBlock(RAR_BlockFile *block);
+	static bool validateRarFileBlock(const RAR_BlockFile *block);
 	static void writeRarBlock(CFile *input, CFile *output, RAR_BlockFile *block);
 
 	static ACE_BlockFile* scanForAceFileHeader(CFile *input, archiveScannerThreadParams_s *aitp, ULONGLONG available);

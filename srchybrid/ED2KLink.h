@@ -82,7 +82,7 @@ public:
 	LPCTSTR GetName() const								{ return (LPCTSTR)m_name; }
 	const uchar* GetHashKey() const						{ return m_hash; }
 	const CAICHHash &GetAICHHash() const				{ return m_AICHHash; }
-	EMFileSize GetSize() const							{ return (EMFileSize)(uint64)(_tstoi64(m_size)); }
+	EMFileSize GetSize() const;
 	bool HasValidSources() const						{ return SourcesList != NULL; }
 	bool HasHostnameSources() const						{ return !m_HostnameSourcesList.IsEmpty(); }
 	bool HasValidAICHHash() const						{ return m_bAICHHashValid; }

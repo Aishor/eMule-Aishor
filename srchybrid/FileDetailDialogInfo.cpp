@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -134,9 +134,9 @@ void CFileDetailDialogInfo::RefreshData()
 
 		// date created
 		if (file->GetCrFileDate() != 0) {
-			str.Format(_T("%s   ") + GetResString(IDS_TIMEBEFORE),
-				(LPCTSTR)file->GetCrCFileDate().Format(thePrefs.GetDateTimeFormat()),
-				(LPCTSTR)CastSecondsToLngHM(time(NULL) - file->GetCrFileDate()));
+			str.Format(_T("%s   ") + GetResString(IDS_TIMEBEFORE)
+				, (LPCTSTR)file->GetCrCFileDate().Format(thePrefs.GetDateTimeFormat())
+				, (LPCTSTR)CastSecondsToLngHM(time(NULL) - file->GetCrFileDate()));
 		} else
 			str = GetResString(IDS_UNKNOWN);
 		SetDlgItemText(IDC_FILECREATED, str);
@@ -196,7 +196,7 @@ void CFileDetailDialogInfo::RefreshData()
 
 		// file type
 		LPCTSTR pDot = ::PathFindExtension(fname);
-		CString szExt(pDot + static_cast<int>(*pDot != _T('\0'))); //skip the dot
+		CString szExt(&pDot[static_cast<int>(*pDot != _T('\0'))]); //skip the dot
 		szExt.MakeUpper();
 
 		bool showwarning = false;

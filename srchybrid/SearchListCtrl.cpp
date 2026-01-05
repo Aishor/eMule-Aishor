@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -42,10 +42,7 @@
 #include "HighColorTab.hpp"
 #include "ListViewWalkerPropertySheet.h"
 #include "UserMsgs.h"
-#include "SearchDlg.h"
 #include "SearchResultsWnd.h"
-#include "ServerConnect.h"
-#include "server.h"
 #include "MediaInfo.h"
 
 #ifdef _DEBUG
@@ -198,7 +195,7 @@ CSearchListCtrl::CSearchListCtrl()
 	, m_crSearchResultDownloading()
 	, m_crSearchResultDownloadStopped()
 	, m_crSearchResultKnown()
-	, m_crSearchResultShareing()
+	, m_crSearchResultSharing()
 	, m_crSearchResultCancelled()
 	, m_crShades()
 	, m_nResultsID()
@@ -386,7 +383,7 @@ void CSearchListCtrl::UpdateSources(const CSearchFile *toupdate)
 					if (index >= 0)
 						Update(index);
 					else
-						InsertItem(LVIF_PARAM | LVIF_TEXT, iItem + 1, cur_file->GetFileName(), 0, 0, 0, (LPARAM)cur_file);
+						InsertItem(LVIF_TEXT | LVIF_PARAM, iItem + 1, cur_file->GetFileName(), 0, 0, 0, (LPARAM)cur_file);
 				}
 			}
 		}
@@ -414,7 +411,7 @@ void CSearchListCtrl::UpdateTabHeader(uint32 nResultsID)
 	ti.mask = TCIF_PARAM;
 	for (int iItem = searchselect.GetItemCount(); --iItem >= 0;)
 		if (searchselect.GetItem(iItem, &ti) && ti.lParam != NULL) {
-			const SSearchParams* pSearchParams = reinterpret_cast<SSearchParams*>(ti.lParam);
+			const SSearchParams *pSearchParams = reinterpret_cast<SSearchParams*>(ti.lParam);
 			if (pSearchParams->dwSearchID == nResultsID) {
 				UINT iAvailResults = searchlist->GetFoundFiles(nResultsID);
 				CString strTabLabel(pSearchParams->strSearchTitle);
@@ -716,7 +713,7 @@ void CSearchListCtrl::OnContextMenu(CWnd*, CPoint point)
 		uInsertedMenuItem2 = MP_MARKASSPAM;
 		m_SearchFileMenu.EnableMenuItem(MP_MARKASSPAM, iSelected > 0 ? MF_ENABLED : MF_GRAYED);
 	}
-	CTitleMenu WebMenu;
+	CTitledMenu WebMenu;
 	WebMenu.CreateMenu();
 	WebMenu.AddMenuTitle(NULL, true);
 	int iWebMenuEntries = theWebServices.GetFileMenuEntries(&WebMenu);
@@ -893,7 +890,7 @@ BOOL CSearchListCtrl::OnCommand(WPARAM wParam, LPARAM)
 void CSearchListCtrl::OnLvnDeleteAllItems(LPNMHDR, LRESULT *pResult)
 {
 	// To suppress subsequent LVN_DELETEITEM notification messages, return TRUE.
-	*pResult = TRUE;
+	*pResult = 1;
 }
 
 void CSearchListCtrl::CreateMenus()
@@ -1070,9 +1067,9 @@ void CSearchListCtrl::OnLvnGetInfoTip(LPNMHDR pNMHDR, LRESULT *pResult)
 							bFirst = false;
 							strSource = _T("Sources");
 						}
-						strSource.AppendFormat(_T(": %u.%u.%u.%u:%u  Server: %u.%u.%u.%u:%u"),
-							(uint8)uClientIP, (uint8)(uClientIP >> 8), (uint8)(uClientIP >> 16), (uint8)(uClientIP >> 24), file->GetClientPort(),
-							(uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24), file->GetClientServerPort());
+						strSource.AppendFormat(_T(": %u.%u.%u.%u:%u  Server: %u.%u.%u.%u:%u")
+							, (uint8)uClientIP, (uint8)(uClientIP >> 8), (uint8)(uClientIP >> 16), (uint8)(uClientIP >> 24), file->GetClientPort()
+							, (uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24), file->GetClientServerPort());
 						if (!strInfo.IsEmpty())
 							strInfo += _T('\n');
 						strInfo += strSource;
@@ -1087,9 +1084,9 @@ void CSearchListCtrl::OnLvnGetInfoTip(LPNMHDR pNMHDR, LRESULT *pResult)
 							bFirst = false;
 							strSource = _T("Sources");
 						}
-						strSource.AppendFormat(_T(": %u.%u.%u.%u:%u  Server: %u.%u.%u.%u:%u"),
-							(uint8)uClientIP, (uint8)(uClientIP >> 8), (uint8)(uClientIP >> 16), (uint8)(uClientIP >> 24), aClients[i].m_nPort,
-							(uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24), aClients[i].m_nServerPort);
+						strSource.AppendFormat(_T(": %u.%u.%u.%u:%u  Server: %u.%u.%u.%u:%u")
+							, (uint8)uClientIP, (uint8)(uClientIP >> 8), (uint8)(uClientIP >> 16), (uint8)(uClientIP >> 24), aClients[i].m_nPort
+							, (uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24), aClients[i].m_nServerPort);
 						if (!strInfo.IsEmpty())
 							strInfo += _T('\n');
 						strInfo += strSource;
@@ -1105,8 +1102,10 @@ void CSearchListCtrl::OnLvnGetInfoTip(LPNMHDR pNMHDR, LRESULT *pResult)
 						CString strServer;
 						if (i == 0)
 							strServer = _T("Servers");
-						strServer.AppendFormat(_T(": %u.%u.%u.%u:%u  Avail: %u"),
-							(uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24), aServers[i].m_nPort, aServers[i].m_uAvail);
+						strServer.AppendFormat(_T(": %u.%u.%u.%u:%u  Avail: %u")
+							, (uint8)uServerIP, (uint8)(uServerIP >> 8), (uint8)(uServerIP >> 16), (uint8)(uServerIP >> 24)
+							, aServers[i].m_nPort
+							, aServers[i].m_uAvail);
 						if (!strInfo.IsEmpty())
 							strInfo += _T('\n');
 						strInfo += strServer;
@@ -1180,7 +1179,7 @@ void CSearchListCtrl::ExpandCollapseItem(int iItem, int iAction)
 				const CSearchFile *cur_file = list->GetNext(pos);
 				if (cur_file->GetListParent() == searchfile) {
 					searchfile->SetListExpanded(true);
-					InsertItem(LVIF_PARAM | LVIF_TEXT, iItem + 1, cur_file->GetFileName(), 0, 0, 0, (LPARAM)cur_file);
+					InsertItem(LVIF_TEXT | LVIF_PARAM, iItem + 1, cur_file->GetFileName(), 0, 0, 0, (LPARAM)cur_file);
 				}
 			}
 			SetRedraw(true);
@@ -1271,7 +1270,7 @@ void CSearchListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	// icon
 	LONG iIndent = isChild ? 8 : 0; // indent child items
 	LONG iIconY = max((rcItem.Height() - theApp.GetSmallSytemIconSize().cy - 1) / 2, 0);
-	const POINT point = { itemLeft + iIndent + TREE_WIDTH + 18, rcItem.top + iIconY };
+	const POINT point{itemLeft + iIndent + TREE_WIDTH + 18, rcItem.top + iIconY};
 	// spam indicator takes the place of comments & rating icon
 	int iImage;
 	if (thePrefs.IsSearchSpamFilterEnabled() && content->IsConsideredSpam())
@@ -1317,7 +1316,7 @@ void CSearchListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	//draw the tree last, over selected and focus (looks better)
 	if (tree_start < tree_end) {
 		//set new bounds
-		RECT tree_rect = { tree_start, lpDrawItemStruct->rcItem.top, tree_end, lpDrawItemStruct->rcItem.bottom };
+		RECT tree_rect{tree_start, lpDrawItemStruct->rcItem.top, tree_end, lpDrawItemStruct->rcItem.bottom};
 		dc.SetBoundsRect(&tree_rect, DCB_DISABLE);
 
 		//gather some information
@@ -1346,7 +1345,7 @@ void CSearchListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			}
 		} else if (isOpenRoot || content->GetListChildCount() > 1) {
 			//draw box
-			const RECT circle_rec = { treeCenter - 4, middle - 5, treeCenter + 5, middle + 4 };
+			const RECT circle_rec{treeCenter - 4, middle - 5, treeCenter + 5, middle + 4};
 			CBrush brush(crLine);
 			dc.FrameRect(&circle_rec, &brush);
 			CPen penBlack;
@@ -1391,11 +1390,11 @@ COLORREF CSearchListCtrl::GetSearchItemColor(/*const*/ CSearchFile *src)
 			return m_crSearchResultDownloading;
 		}
 		src->SetKnownType(CSearchFile::Shared);
-		return m_crSearchResultShareing;
+		return m_crSearchResultSharing;
 	}
 	if (theApp.sharedfiles->GetFileByID(src->GetFileHash())) {
 		src->SetKnownType(CSearchFile::Shared);
-		return m_crSearchResultShareing;
+		return m_crSearchResultSharing;
 	}
 	if (theApp.knownfiles->FindKnownFileByID(src->GetFileHash())) {
 		src->SetKnownType(CSearchFile::Downloaded);
@@ -1416,7 +1415,7 @@ COLORREF CSearchListCtrl::GetSearchItemColor(/*const*/ CSearchFile *src)
 	return m_crShades[min(srccnt, AVBLYSHADECOUNT - 1)];
 }
 
-void CSearchListCtrl::DrawSourceChild(CDC *dc, int nColumn, LPRECT lpRect, UINT uDrawTextAlignment, const CSearchFile *src)
+void CSearchListCtrl::DrawSourceChild(CDC &dc, int nColumn, LPRECT lpRect, UINT uDrawTextAlignment, const CSearchFile *src)
 {
 	const CString &sItem(GetItemDisplayText(src, nColumn));
 	switch (nColumn) {
@@ -1428,14 +1427,14 @@ void CSearchListCtrl::DrawSourceChild(CDC *dc, int nColumn, LPRECT lpRect, UINT 
 			lpRect->left += 16;
 		}
 	default:
-		dc->DrawText(sItem, -1, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
+		dc.DrawText(sItem, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
 	case 4: // file type
 	case 5: // file hash
 		break;
 	}
 }
 
-void CSearchListCtrl::DrawSourceParent(CDC *dc, int nColumn, LPRECT lpRect, UINT uDrawTextAlignment, const CSearchFile *src)
+void CSearchListCtrl::DrawSourceParent(CDC &dc, int nColumn, LPRECT lpRect, UINT uDrawTextAlignment, const CSearchFile *src)
 {
 	const CString &sItem(GetItemDisplayText(src, nColumn));
 	switch (nColumn) {
@@ -1447,15 +1446,15 @@ void CSearchListCtrl::DrawSourceParent(CDC *dc, int nColumn, LPRECT lpRect, UINT
 			lpRect->left += 16;
 		}
 	default:
-		dc->DrawText(sItem, -1, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
+		dc.DrawText(sItem, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
 		break;
 	case 3: // complete sources
 		{
 			bool bComplete = IsComplete(src, src->GetSourceCount());
-			COLORREF crOldTextColor = (bComplete ? 0 : dc->SetTextColor(RGB(255, 0, 0)));
-			dc->DrawText(sItem, -1, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
+			COLORREF crOldTextColor = (bComplete ? 0 : dc.SetTextColor(RGB(255, 0, 0)));
+			dc.DrawText(sItem, lpRect, MLC_DT_TEXT | uDrawTextAlignment);
 			if (!bComplete)
-				dc->SetTextColor(crOldTextColor);
+				dc.SetTextColor(crOldTextColor);
 		}
 	}
 }
@@ -1481,14 +1480,14 @@ void CSearchListCtrl::SetHighlightColors()
 	COLORREF crSearchResultAvblyBase = RGB(0, 0, 255);
 	m_crSearchResultDownloading = RGB(255, 0, 0);
 	m_crSearchResultDownloadStopped = RGB(255, 0, 0);
-	m_crSearchResultShareing = RGB(255, 0, 0);
+	m_crSearchResultSharing = RGB(255, 0, 0);
 	m_crSearchResultKnown = RGB(0, 128, 0);
 	m_crSearchResultCancelled = RGB(0, 128, 0);
 
 	theApp.LoadSkinColor(GetSkinKey() + _T("Fg_Downloading"), m_crSearchResultDownloading);
 	if (!theApp.LoadSkinColor(_T("Fg_DownloadStopped"), m_crSearchResultDownloadStopped))
 		m_crSearchResultDownloadStopped = m_crSearchResultDownloading;
-	theApp.LoadSkinColor(GetSkinKey() + _T("Fg_Sharing"), m_crSearchResultShareing);
+	theApp.LoadSkinColor(GetSkinKey() + _T("Fg_Sharing"), m_crSearchResultSharing);
 	theApp.LoadSkinColor(GetSkinKey() + _T("Fg_Known"), m_crSearchResultKnown);
 	theApp.LoadSkinColor(GetSkinKey() + _T("Fg_AvblyBase"), crSearchResultAvblyBase);
 
@@ -1499,9 +1498,9 @@ void CSearchListCtrl::SetHighlightColors()
 	float bdelta = (GetBValue(crSearchResultAvblyBase) - GetBValue(normFGC)) / (float)AVBLYSHADECOUNT;
 
 	for (int shades = 0; shades < AVBLYSHADECOUNT; ++shades)
-		m_crShades[shades] = RGB(GetRValue(normFGC) + (rdelta * shades),
-			GetGValue(normFGC) + (gdelta * shades),
-			GetBValue(normFGC) + (bdelta * shades));
+		m_crShades[shades] = RGB(GetRValue(normFGC) + (rdelta * shades)
+			, GetGValue(normFGC) + (gdelta * shades)
+			, GetBValue(normFGC) + (bdelta * shades));
 }
 
 void CSearchListCtrl::OnSysColorChange()
@@ -1703,9 +1702,11 @@ CString CSearchListCtrl::FormatFileSize(ULONGLONG ullFileSize) const
 		}
 		CString sVal, strVal;
 		sVal.Format(_T("%.2f"), fFileSize);
-		int iResult = GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, sVal, &nf, strVal.GetBuffer(80), 80);
+		int iResult = ::GetNumberFormat(LOCALE_SYSTEM_DEFAULT, 0, sVal, &nf, strVal.GetBuffer(80), 80);
 		strVal.ReleaseBuffer();
-		return (iResult ? strVal : sVal) + _T(' ') + GetResString(IDS_MBYTES);
+		CString &s(iResult ? strVal : sVal);
+		s += _T(' ');
+		return s + GetResString(IDS_MBYTES);
 	}
 
 	return CastItoXBytes(ullFileSize);

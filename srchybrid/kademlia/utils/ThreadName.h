@@ -39,8 +39,7 @@ namespace Kademlia
 		LPCSTR szName;		// pointer to name (in same addr space)
 		DWORD dwThreadID;	// thread ID (-1 caller thread)
 		DWORD dwFlags;		// reserved for future use, must be zero
-	}
-	THREADNAME_INFO;
+	} THREADNAME_INFO;
 #pragma pack(pop)
 
 	void SetThreadName(DWORD dwThreadID, LPCTSTR szThreadName, ...);

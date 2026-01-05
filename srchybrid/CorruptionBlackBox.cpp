@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,7 +16,6 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "StdAfx.h"
 #include "corruptionblackbox.h"
-#include "knownfile.h"
 #include "updownclient.h"
 #include "log.h"
 #include "emule.h"
@@ -71,7 +70,7 @@ void CCorruptionBlackBox::Free()
 	m_aaRecords.SetSize(0);
 }
 
-void CCorruptionBlackBox::TransferredData(uint64 nStartPos, uint64 nEndPos, const CUpDownClient *pSender)
+void CCorruptionBlackBox::ReceivedData(uint64 nStartPos, uint64 nEndPos, const CUpDownClient *pSender)
 {
 	if (nEndPos - nStartPos >= PARTSIZE || nStartPos > nEndPos) {
 		ASSERT(0);
@@ -91,7 +90,7 @@ void CCorruptionBlackBox::TransferredData(uint64 nStartPos, uint64 nEndPos, cons
 	if (nRelEndPos >= PARTSIZE) {
 		// data crosses the part boundary, split it
 		nRelEndPos = PARTSIZE - 1;
-		TransferredData(nStart + PARTSIZE, nEndPos, pSender);
+		ReceivedData(nStart + PARTSIZE, nEndPos, pSender);
 	}
 
 	INT_PTR posMerge = -1;

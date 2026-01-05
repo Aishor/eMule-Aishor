@@ -62,12 +62,6 @@ CStatisticsTree::~CStatisticsTree()
 		VERIFY(mnuContext.DestroyMenu());
 }
 
-// This function is called from CStatisticsDlg::OnInitDialog in StatisticsDlg.cpp
-void CStatisticsTree::Init()
-{
-	m_bExpandingAll = false;
-}
-
 // It is necessary to disrupt whatever behavior was preventing
 // us from getting OnContextMenu to work.  This seems to be the
 // magic fix...
@@ -220,8 +214,7 @@ lblSaveExpanded:
 // EX: if(IsBold(myTreeItem)) AfxMessageBox("It's bold.");
 BOOL CStatisticsTree::IsBold(HTREEITEM theItem)
 {
-	UINT stateBold = GetItemState(theItem, TVIS_BOLD);
-	return (stateBold & TVIS_BOLD);
+	return GetItemState(theItem, TVIS_BOLD) & TVIS_BOLD;
 }
 
 // If the item is expanded it returns true, otherwise
@@ -229,8 +222,7 @@ BOOL CStatisticsTree::IsBold(HTREEITEM theItem)
 // EX: if(IsExpanded(myTreeItem)) AfxMessageBox("It's expanded.");
 BOOL CStatisticsTree::IsExpanded(HTREEITEM theItem)
 {
-	UINT stateExpanded = GetItemState(theItem, TVIS_EXPANDED);
-	return (stateExpanded & TVIS_EXPANDED);
+	return GetItemState(theItem, TVIS_EXPANDED) & TVIS_EXPANDED;
 }
 
 // This is a generic function to check if a state is valid or not.
@@ -243,8 +235,7 @@ BOOL CStatisticsTree::IsExpanded(HTREEITEM theItem)
 // EX:  if(CheckState(myTreeItem, TVIS_BOLD)) AfxMessageBox("It's bold.");
 BOOL CStatisticsTree::CheckState(HTREEITEM hItem, UINT state)
 {
-	UINT stateGeneric = GetItemState(hItem, state);
-	return (stateGeneric & state);
+	return GetItemState(hItem, state) & state;
 }
 
 // Returns the entire text label of an HTREEITEM.  This
@@ -572,7 +563,7 @@ void CStatisticsTree::ExportHTML()
 
 		htmlFile.Close();
 
-		static const TCHAR * const s_apcFileNames[] = {
+		static const TCHAR *const s_apcFileNames[] = {
 			_T("stats_0.gif"), _T("stats_1.gif"), _T("stats_2.gif"), _T("stats_3.gif"), _T("stats_4.gif"),
 			_T("stats_5.gif"), _T("stats_6.gif"), _T("stats_7.gif"), _T("stats_8.gif"), _T("stats_9.gif"),
 			_T("stats_10.gif"), _T("stats_11.gif"), _T("stats_12.gif"), _T("stats_13.gif"),

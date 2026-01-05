@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -56,12 +56,9 @@ void CListViewPropertySheet::InsertPage(int iIndex, CPropertyPage *pPage)
 	BuildPropPageArray();
 
 	if (m_hWnd != NULL) {
-		PROPSHEETPAGE *ppsp = const_cast<PROPSHEETPAGE*>(m_psh.ppsp);
-		for (UINT i = 0; i < m_psh.nPages; ++i) {
-			if (i == (UINT)iIndex)
-				break;
-			(BYTE *&)ppsp += ppsp->dwSize;
-		}
+		LPPROPSHEETPAGE ppsp = const_cast<LPPROPSHEETPAGE>(m_psh.ppsp);
+		for (UINT i = 0; i != (UINT)iIndex && i < m_psh.nPages; ++i)
+			(BYTE*&)ppsp += ppsp->dwSize;
 
 		HPROPSHEETPAGE hPSP = CreatePropertySheetPage(ppsp);
 		if (hPSP == NULL)

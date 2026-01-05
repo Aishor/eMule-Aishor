@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,16 +22,13 @@
 #include "UpDownClient.h"
 #include "MenuCmds.h"
 #include "ClientDetailDialog.h"
-#include "KademliaWnd.h"
 #include "emuledlg.h"
 #include "friendlist.h"
 #include "MemDC.h"
 #include "KnownFile.h"
 #include "SharedFileList.h"
-#include "ClientCredits.h"
 #include "ChatWnd.h"
 #include "kademlia/kademlia/Kademlia.h"
-#include "kademlia/net/KademliaUDPListener.h"
 #include "UploadQueue.h"
 
 #ifdef _DEBUG
@@ -153,14 +150,14 @@ void CUploadListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					client->GetDisplayImage(iImage, uOverlayImage);
 
 					rcItem.left += sm_iIconOffset;
-					const POINT point = { rcItem.left, rcItem.top + iIconY };
+					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
 					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
 				rcItem.right -= sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 				break;
 			case 7: //upload status bar
 				++rcItem.top;
@@ -264,9 +261,9 @@ void CUploadListCtrl::OnLvnGetInfoTip(LPNMHDR pNMHDR, LRESULT *pResult)
 			const CKnownFile *file = theApp.sharedfiles->GetFileByID(client->GetUploadFileID());
 			if (file) {
 				strInfo.AppendFormat(_T("%s %s\n"), (LPCTSTR)GetResString(IDS_SF_REQUESTED), (LPCTSTR)file->GetFileName());
-				strInfo.AppendFormat(GetResString(IDS_FILESTATS_SESSION) + GetResString(IDS_FILESTATS_TOTAL),
-					file->statistic.GetAccepts(), file->statistic.GetRequests(), (LPCTSTR)CastItoXBytes(file->statistic.GetTransferred()),
-					file->statistic.GetAllTimeAccepts(), file->statistic.GetAllTimeRequests(), (LPCTSTR)CastItoXBytes(file->statistic.GetAllTimeTransferred()));
+				strInfo.AppendFormat(GetResString(IDS_FILESTATS_SESSION) + GetResString(IDS_FILESTATS_TOTAL)
+					, file->statistic.GetAccepts(), file->statistic.GetRequests(), (LPCTSTR)CastItoXBytes(file->statistic.GetTransferred())
+					, file->statistic.GetAllTimeAccepts(), file->statistic.GetAllTimeRequests(), (LPCTSTR)CastItoXBytes(file->statistic.GetAllTimeTransferred()));
 			} else
 				strInfo += GetResString(IDS_REQ_UNKNOWNFILE);
 
@@ -379,7 +376,7 @@ void CUploadListCtrl::OnContextMenu(CWnd*, CPoint point)
 	const CUpDownClient *client = (iSel >= 0) ? reinterpret_cast<CUpDownClient*>(GetItemData(iSel)) : NULL;
 	const bool is_ed2k = client && client->IsEd2kClient();
 
-	CTitleMenu ClientMenu;
+	CTitledMenu ClientMenu;
 	ClientMenu.CreatePopupMenu();
 	ClientMenu.AddMenuTitle(GetResString(IDS_CLIENTS), true);
 	ClientMenu.AppendMenu(MF_STRING | (client ? MF_ENABLED : MF_GRAYED), MP_DETAIL, GetResString(IDS_SHOWDETAILS), _T("CLIENTDETAILS"));
@@ -462,8 +459,8 @@ void CUploadListCtrl::RemoveClient(const CUpDownClient *client)
 void CUploadListCtrl::RefreshClient(const CUpDownClient *client)
 {
 	if (theApp.emuledlg->activewnd == theApp.emuledlg->transferwnd
-		&& !theApp.IsClosing()
-		&& theApp.emuledlg->transferwnd->m_pwndTransfer->uploadlistctrl.IsWindowVisible())
+		&& theApp.emuledlg->transferwnd->m_pwndTransfer->uploadlistctrl.IsWindowVisible()
+		&& !theApp.IsClosing())
 	{
 		LVFINDINFO find;
 		find.flags = LVFI_PARAM;
@@ -481,7 +478,7 @@ void CUploadListCtrl::ShowSelectedUserDetails()
 		return;
 	ScreenToClient(&point);
 	int it = HitTest(point);
-	if (it == -1)
+	if (it < 0)
 		return;
 
 	SetItemState(-1, 0, LVIS_SELECTED);

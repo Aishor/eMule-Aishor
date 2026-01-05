@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -81,7 +81,10 @@ public:
 	void	AddFileToDownloadByHash(const uchar *hash, int cat);
 	bool	AddToList(CSearchFile *toadd, bool bClientResponse = false, uint32 dwFromUDPServerIP = 0);
 	CSearchFile* GetSearchFileByHash(const uchar *hash) const;
-	void	KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt128 *pFileID, LPCTSTR name, uint64 size, LPCTSTR type, UINT uKadPublishInfo, CArray<CAICHHash> &raAICHHashes, CArray<uint8, uint8> &raAICHHashPopularity, SSearchTerm *pQueriedSearchTerm, UINT numProperties, ...);
+	void	KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt128 *pFileID
+				, LPCTSTR name, uint64 size, LPCTSTR type, UINT uKadPublishInfo
+				, CArray<CAICHHash>& raAICHHashes, CArray<uint8, uint8> &raAICHHashPopularity
+				, SSearchTerm *pQueriedSearchTerm, UINT numProperties, ...);
 	bool	AddNotes(const Kademlia::CEntry &cEntry, const uchar *hash);
 	void	SetNotesSearchStatus(const uchar *pFileHash, bool bSearchRunning);
 	void	SentUDPRequestNotification(uint32 nSearchID, uint32 dwServerIP);
@@ -89,7 +92,8 @@ public:
 	void	StoreSearches();
 	void	LoadSearches();
 
-	void	DoSpamRating(CSearchFile *pSearchFile, bool bIsClientFile = false, bool bMarkAsNoSpam = false, bool bRecalculateAll = false, bool bUpdate = false, uint32 dwFromUDPServerIP = 0);
+	void	DoSpamRating(CSearchFile *pSearchFile, bool bIsClientFile = false, bool bMarkAsNoSpam = false
+				, bool bRecalculateAll = false, bool bUpdate = false, uint32 dwFromUDPServerIP = 0);
 	void	MarkFileAsSpam(CSearchFile *pSpamFile, bool bRecalculateAll = false, bool bUpdate = false);
 	void	MarkFileAsNotSpam(CSearchFile *pSpamFile, bool bRecalculateAll = false, bool bUpdate = false)
 	{

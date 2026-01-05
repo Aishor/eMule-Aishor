@@ -25,7 +25,7 @@
 	and a context menu.
 */
 #pragma once
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 
 // -khaos--+++> Items for our stat's tree context menu.
 #define	MP_STATTREE_RESET		10950
@@ -62,7 +62,7 @@ protected:
 	afx_msg		void	OnItemExpanded(LPNMHDR, LRESULT*);
 
 public:
-	void				Init();
+	void				Init()						{ m_bExpandingAll = false; } //called from CStatisticsDlg::OnInitDialog
 	void				ExportHTML();
 	bool				CopyHTML(int copyMode = MP_STATTREE_HTMLCOPYSEL);
 	CString				GetHTML(bool onlyVisible = true, HTREEITEM theItem = NULL, int theItemLevel = 0, bool firstItem = true);
@@ -82,7 +82,7 @@ public:
 	CString				GetExpandedMask(HTREEITEM theItem = NULL);
 	int					ApplyExpandedMask(const CString &theMask, HTREEITEM theItem = NULL, int theStringIndex = 0);
 private:
-	CTitleMenu			mnuContext;
-	CTitleMenu			mnuHTML;
+	CTitledMenu			mnuContext;
+	CTitledMenu			mnuHTML;
 	bool				m_bExpandingAll;
 };

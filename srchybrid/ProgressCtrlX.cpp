@@ -248,7 +248,7 @@ void CProgressCtrlX::DrawText(const CDrawInfo &info, const CRect &rcMax, const C
 	CSelTextColor tc(pDC, m_clrTextOnBar);
 	CSelBkMode bm(pDC, TRANSPARENT);
 	CSelTextAlign ta(pDC, TA_BOTTOM | TA_CENTER);
-	CPoint ptOrg = pDC->GetWindowOrg();
+	CPoint ptOrg(pDC->GetWindowOrg());
 	CString sText;
 	sText.Format(sFormat, nValue);
 
@@ -291,17 +291,17 @@ void CProgressCtrlX::DrawText(const CDrawInfo &info, const CRect &rcMax, const C
 		ASSERT(0); // angle not supported
 	}
 
-	CPoint pt = pDC->GetViewportOrg();
+	CPoint pt(pDC->GetViewportOrg());
 	if (info.dwStyle & PBS_TIED_TEXT) {
 		if ((fVert ? y : x) <= rcBar.Width()) {
 			CRect rcFill(ConvertToReal(info, rcBar));
-			pDC->SetViewportOrg(rcFill.left + (rcFill.Width() + dx) / 2,
-				rcFill.top + (rcFill.Height() + dy) / 2);
+			pDC->SetViewportOrg(rcFill.left + (rcFill.Width() + dx) / 2
+							, rcFill.top + (rcFill.Height() + dy) / 2);
 			DrawClippedText(info, rcBar, sText, ptOrg);
 		}
 	} else {
-		pDC->SetViewportOrg(info.rcClient.left + (info.rcClient.Width() + dx) / 2,
-			info.rcClient.top + (info.rcClient.Height() + dy) / 2);
+		pDC->SetViewportOrg(info.rcClient.left + (info.rcClient.Width() + dx) / 2
+						, info.rcClient.top + (info.rcClient.Height() + dy) / 2);
 		if (m_clrTextOnBar == m_clrTextOnBk)
 			// if the same color for bar and background draw text once
 			DrawClippedText(info, rcMax, sText, ptOrg);

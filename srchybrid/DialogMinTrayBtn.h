@@ -20,11 +20,11 @@ public:
 	// methods
 	void MinTrayBtnShow();
 	void MinTrayBtnHide();
-	inline BOOL MinTrayBtnIsVisible() const			{ return m_bMinTrayBtnVisible; }
+	bool MinTrayBtnIsVisible() const			{ return m_bMinTrayBtnVisible; }
 
 	void MinTrayBtnEnable();
 	void MinTrayBtnDisable();
-	inline BOOL MinTrayBtnIsEnabled() const			{ return m_bMinTrayBtnEnabled; }
+	bool MinTrayBtnIsEnabled() const			{ return m_bMinTrayBtnEnabled; }
 
 	void SetWindowText(LPCTSTR lpszString);
 
@@ -46,32 +46,32 @@ private:
 	// internal methods
 	void MinTrayBtnInit();
 	void MinTrayBtnDraw();
-	BOOL MinTrayBtnHitTest(CPoint ptScreen) const;
+	bool MinTrayBtnHitTest(CPoint ptScreen) const;
 	void MinTrayBtnUpdatePosAndSize();
 
 	void MinTrayBtnSetUp();
 	void MinTrayBtnSetDown();
 
-	inline const CPoint &MinTrayBtnGetPos() const	{ return m_MinTrayBtnPos; }
-	inline const CSize &MinTrayBtnGetSize() const	{ return m_MinTrayBtnSize; }
-	inline CRect MinTrayBtnGetRect() const			{ return CRect(MinTrayBtnGetPos(), MinTrayBtnGetSize()); }
+	const CPoint &MinTrayBtnGetPos() const	{ return m_MinTrayBtnPos; }
+	const CSize &MinTrayBtnGetSize() const	{ return m_MinTrayBtnSize; }
+	CRect MinTrayBtnGetRect() const			{ return CRect(MinTrayBtnGetPos(), MinTrayBtnGetSize()); }
 
-	BOOL IsWindowsClassicStyle() const;
+	bool IsWindowsClassicStyle() const		{ return m_bMinTrayBtnWindowsClassicStyle; }
 	INT GetVisualStylesXPColor() const;
 
-	BOOL MinTrayBtnInitBitmap();
+	bool MinTrayBtnInitBitmap();
 
 	// data members
-	CPoint m_MinTrayBtnPos;
-	CSize  m_MinTrayBtnSize;
-	BOOL   m_bMinTrayBtnVisible;
-	BOOL   m_bMinTrayBtnEnabled;
-	BOOL   m_bMinTrayBtnUp;
-	BOOL   m_bMinTrayBtnCapture;
-	BOOL   m_bMinTrayBtnActive;
-	BOOL   m_bMinTrayBtnHitTest;
+	CPoint	m_MinTrayBtnPos;
+	CSize	m_MinTrayBtnSize;
+	CBitmap	m_bmMinTrayBtnBitmap;
 	UINT_PTR m_nMinTrayBtnTimerId;
-	CBitmap m_bmMinTrayBtnBitmap;
-	BOOL	m_bMinTrayBtnWindowsClassicStyle;
-	static const TCHAR *m_pszMinTrayBtnBmpName[];
+	static LPCTSTR m_pszMinTrayBtnBmpName[];
+	bool	m_bMinTrayBtnActive;
+	bool	m_bMinTrayBtnCapture;
+	bool	m_bMinTrayBtnEnabled;
+	bool	m_bMinTrayBtnHitTest;
+	bool	m_bMinTrayBtnUp;
+	bool	m_bMinTrayBtnVisible;
+	bool	m_bMinTrayBtnWindowsClassicStyle;
 };

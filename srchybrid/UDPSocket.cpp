@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -526,7 +526,7 @@ bool CUDPSocket::ProcessPacket(const BYTE *packet, UINT size, UINT opcode, uint3
 		if (opcode == OP_GLOBSEARCHRES || opcode == OP_GLOBFOUNDSOURCES)
 			return true;
 	} catch (CMemoryException *ex) {
-		ProcessPacketError(size, opcode, nIP, nUDPPort, (LPCTSTR)CExceptionStr(*ex));
+		ProcessPacketError(size, opcode, nIP, nUDPPort, CExceptionStr(*ex));
 		ex->Delete();
 		//ASSERT(0);
 		if (opcode == OP_GLOBSEARCHRES || opcode == OP_GLOBFOUNDSOURCES)
@@ -690,7 +690,7 @@ SocketSentBytes CUDPSocket::SendControlData(uint32 maxNumberOfBytesToSend, uint3
 
 	sendLocker.Unlock();
 
-	return SocketSentBytes{ 0, sentBytes, true };
+	return SocketSentBytes{0, sentBytes, true};
 // <-- ZZ:UploadBandWithThrottler (UDP)
 }
 

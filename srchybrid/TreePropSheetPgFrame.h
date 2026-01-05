@@ -80,7 +80,7 @@ public:
 	/**
 	Returns TRUE if captions are enabled, FALSE otherwise.
 	*/
-	BOOL GetShowCaption() const;
+	BOOL GetShowCaption() const						{ return m_bShowCaption; }
 
 	/**
 	Sets the height of the caption in pixels. This value is ignored
@@ -95,7 +95,7 @@ public:
 	Returns the caption height, that has been most recently set by a
 	call to the SetCaptionHeight() method.
 	*/
-	int GetCaptionHeight() const;
+	int GetCaptionHeight() const					{ return m_nCaptionHeight; }
 
 	/**
 	Sets caption text an icon.
@@ -155,7 +155,7 @@ public:
 
 	@see SetMsgFormat()
 	*/
-	DWORD GetMsgFormat() const;
+	DWORD GetMsgFormat() const						{ return m_dwMsgFormat; }
 
 // Overridable implementation helpers
 protected:

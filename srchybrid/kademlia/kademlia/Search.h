@@ -120,7 +120,7 @@ namespace Kademlia
 		CLookupHistory *m_pLookupHistory;
 		CContact *pRequestedMoreNodesContact;
 		LPBYTE m_pucSearchTermsData;
-		time_t m_uLastResponse;
+		time_t m_tLastResponse;
 		time_t m_tCreated;
 		uint32 m_uType;
 		uint32 m_uAnswers;

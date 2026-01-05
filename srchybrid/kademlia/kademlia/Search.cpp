@@ -1,6 +1,6 @@
 /*
 Copyright (C)2003 Barry Dunne (https://www.emule-project.net)
-Copyright (C)2004-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+Copyright (C)2004-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -75,8 +75,8 @@ CSearch::CSearch()
 	, pNodeSpecialSearchRequester()
 	, pRequestedMoreNodesContact()
 	, m_pucSearchTermsData()
-	, m_uLastResponse(time(NULL))
-	, m_tCreated(m_uLastResponse)
+	, m_tLastResponse(time(NULL))
+	, m_tCreated(m_tLastResponse)
 	, m_uType(_UI32_MAX)
 	, m_uAnswers()
 	, m_uTotalRequestAnswers()
@@ -261,7 +261,7 @@ void CSearch::PrepareToStop()
 void CSearch::JumpStart()
 {
 	// If we had a response within the last 3 seconds, no need to jump-start the search.
-	if (time(NULL) < m_uLastResponse + SEC(3))
+	if (time(NULL) < m_tLastResponse + SEC(3))
 		return;
 
 	// If we ran out of contacts, stop search.
@@ -322,7 +322,7 @@ void CSearch::ProcessResponse(uint32 uFromIP, uint16 uFromPort, const ContactArr
 	// Remember the contacts to be deleted when finished
 	m_listDelete.insert(m_listDelete.end(), rlistResults.begin(), rlistResults.end());
 
-	m_uLastResponse = time(NULL);
+	m_tLastResponse = time(NULL);
 
 	//Find contact that is responding.
 	CUInt128 uFromDistance;
@@ -354,7 +354,8 @@ void CSearch::ProcessResponse(uint32 uFromIP, uint16 uFromPort, const ContactArr
 
 			// Add contacts to the History for GUI
 			for (ContactArray::const_iterator itResultsList = rlistResults.begin(); itResultsList != rlistResults.end(); ++itResultsList) {
-				CUInt128 uDistance((*itResultsList)->GetClientID().Xor(m_uTarget));
+				CUInt128 uDistance((*itResultsList)->GetClientID());
+				uDistance.Xor(m_uTarget);
 				m_pLookupHistory->ContactReceived(*itResultsList, pFromContact, uDistance, uDistance < uFromDistance, true);
 			}
 			theApp.emuledlg->kademliawnd->UpdateSearchGraph(m_pLookupHistory);
@@ -373,94 +374,94 @@ void CSearch::ProcessResponse(uint32 uFromIP, uint16 uFromPort, const ContactArr
 		return;
 	}
 
+	if (pFromContact == NULL)
+		return;
 	try {
-		if (pFromContact != NULL) {
-			bool bProvidedCloserContacts = false;
-			std::map<uint32, uint32> mapReceivedIPs;
-			std::map<uint32, uint32> mapReceivedSubnets;
-			mapReceivedIPs[uFromIP] = 1; // A node is not allowed to answer with contacts to itself
-			mapReceivedSubnets[uFromIP & ~0xFF] = 1;
-			// Loop through their responses
-			for (ContactArray::const_iterator itContact = rlistResults.begin(); itContact != rlistResults.end(); ++itContact) {
-				// Get next result
-				CContact *pContact = *itContact;
+		bool bProvidedCloserContacts = false;
+		std::map<uint32, uint32> mapReceivedIPs;
+		std::map<uint32, uint32> mapReceivedSubnets;
+		mapReceivedIPs[uFromIP] = 1; // A node is not allowed to answer with contacts to itself
+		mapReceivedSubnets[uFromIP & ~0xFF] = 1;
+		// Loop through their responses
+		for (ContactArray::const_iterator itContact = rlistResults.begin(); itContact != rlistResults.end(); ++itContact) {
+			// Get next result
+			CContact *pContact = *itContact;
 
-				// Calc distance from this result to the target.
-				CUInt128 uDistance(pContact->GetClientID());
-				uDistance.Xor(m_uTarget);
+			// Calc distance from this result to the target.
+			CUInt128 uDistance(pContact->GetClientID());
+			uDistance.Xor(m_uTarget);
 
-				if (uDistance < uFromDistance)
-					bProvidedCloserContacts = true;
+			if (uDistance < uFromDistance)
+				bProvidedCloserContacts = true;
 
-				m_pLookupHistory->ContactReceived(pContact, pFromContact, uDistance, bProvidedCloserContacts);
-				theApp.emuledlg->kademliawnd->UpdateSearchGraph(m_pLookupHistory);
+			m_pLookupHistory->ContactReceived(pContact, pFromContact, uDistance, bProvidedCloserContacts);
+			theApp.emuledlg->kademliawnd->UpdateSearchGraph(m_pLookupHistory);
 
-				// Ignore this contact if already know or tried it.
-				if (m_mapPossible.find(uDistance) != m_mapPossible.end() || m_mapTried.find(uDistance) != m_mapTried.end())
-					continue;
-				// we only accept unique IPs in the answer, having multiple IDs pointing to one IP in the routing tables
-				// is no longer allowed since 0.49a anyway
-				if (mapReceivedIPs.find(pContact->GetIPAddress()) != mapReceivedIPs.end()) {
-					DebugLogWarning(_T("Multiple KadIDs pointing to same IP (%s) in KADEMLIA(2)_RES answer - ignored, sent by %s")
-						, (LPCTSTR)ipstr(pContact->GetNetIP()), (LPCTSTR)ipstr(pFromContact->GetNetIP()));
+			// Ignore this contact if already know or tried it.
+			if (m_mapPossible.find(uDistance) != m_mapPossible.end() || m_mapTried.find(uDistance) != m_mapTried.end())
+				continue;
+			// we only accept unique IPs in the answer, having multiple IDs pointing to one IP in the routing tables
+			// is no longer allowed since 0.49a anyway
+			if (mapReceivedIPs.find(pContact->GetIPAddress()) != mapReceivedIPs.end()) {
+				DebugLogWarning(_T("Multiple KadIDs pointing to same IP (%s) in KADEMLIA(2)_RES answer - ignored, sent by %s")
+					, (LPCTSTR)ipstr(pContact->GetNetIP()), (LPCTSTR)ipstr(pFromContact->GetNetIP()));
+				continue;
+			}
+
+			mapReceivedIPs[pContact->GetIPAddress()] = 1;
+
+			// and no more than 2 IPs from the same /24 block
+			const uint32 subnetIP = pContact->GetIPAddress() & ~0xFF;
+			std::map<uint32, uint32>::iterator it = IsLANIP(pContact->GetNetIP()) ? mapReceivedSubnets.end() : mapReceivedSubnets.find(subnetIP);
+			if (it == mapReceivedSubnets.end())
+				mapReceivedSubnets[subnetIP] = 1;
+			else {
+				if (it->second >= 2) {
+					DebugLogWarning(_T("More than 2 KadIDs pointing to same Subnet (%s) in KADEMLIA(2)_RES answer - ignored, sent by %s")
+						, (LPCTSTR)ipstr(htonl(subnetIP)), (LPCTSTR)ipstr(pFromContact->GetNetIP()));
 					continue;
 				}
+				++it->second;
+			}
 
-				mapReceivedIPs[pContact->GetIPAddress()] = 1;
+			// Add to possible
+			m_mapPossible[uDistance] = pContact;
 
-				// and no more than 2 IPs from the same /24 block
-				const uint32 subnetIP = pContact->GetIPAddress() & ~0xFF;
-				std::map<uint32, uint32>::iterator it = IsLANIP(pContact->GetNetIP()) ? mapReceivedSubnets.end() : mapReceivedSubnets.find(subnetIP);
-				if (it == mapReceivedSubnets.end())
-					mapReceivedSubnets[subnetIP] = 1;
+			// Verify if the result is closer to the target then the one we just checked.
+			if (uDistance < uFromDistance) {
+				// The top APLPHA_QUERY of results are used to determine if we send a request.
+				bool bTop = (m_mapBest.size() < ALPHA_QUERY);
+				if (bTop)
+					m_mapBest[uDistance] = pContact;
 				else {
-					if (it->second >= 2) {
-						DebugLogWarning(_T("More than 2 KadIDs pointing to same Subnet (%s) in KADEMLIA(2)_RES answer - ignored, sent by %s")
-							, (LPCTSTR)ipstr(htonl(subnetIP)), (LPCTSTR)ipstr(pFromContact->GetNetIP()));
-						continue;
-					}
-					++it->second;
-				}
-
-				// Add to possible
-				m_mapPossible[uDistance] = pContact;
-
-				// Verify if the result is closer to the target then the one we just checked.
-				if (uDistance < uFromDistance) {
-					// The top APLPHA_QUERY of results are used to determine if we send a request.
-					bool bTop = (m_mapBest.size() < ALPHA_QUERY);
-					if (bTop)
+					ContactMap::const_iterator itContactMapBest = m_mapBest.end();
+					--itContactMapBest;
+					if (uDistance < itContactMapBest->first) {
+						// Prevent having more then ALPHA_QUERY within the Best list.
+						m_mapBest.erase(itContactMapBest);
 						m_mapBest[uDistance] = pContact;
-					else {
-						ContactMap::const_iterator itContactMapBest = m_mapBest.end();
-						--itContactMapBest;
-						if (uDistance < itContactMapBest->first) {
-							// Prevent having more then ALPHA_QUERY within the Best list.
-							m_mapBest.erase(itContactMapBest);
-							m_mapBest[uDistance] = pContact;
-							bTop = true;
-						}
-					}
-
-					if (bTop) {
-						// We determined this contact is a candidate for a request.
-						// Add to the tried list.
-						m_mapTried[uDistance] = pContact;
-						// Send the KadID so other side can check if I think it has the right KadID. (Safety net)
-						// Send request
-						SendFindValue(pContact);
+						bTop = true;
 					}
 				}
-			}
 
-			// Add to the list of contacts that responded
-			m_mapResponded[uFromDistance] = bProvidedCloserContacts;
-
-			// Complete node search, just increase the answers and update the GUI
-			if (m_uType == NODECOMPLETE || m_uType == NODESPECIAL) {
-				++m_uAnswers;
-				theApp.emuledlg->kademliawnd->searchList->SearchRef(this);
+				if (bTop) {
+					// We determined this contact is a candidate for a request.
+					// Add to the tried list.
+					m_mapTried[uDistance] = pContact;
+					// Send the KadID so other side can check if I think it has the right KadID. (Safety net)
+					// Send request
+					SendFindValue(pContact);
+				}
 			}
+		}
+
+		// Add to the list of contacts that responded
+		m_mapResponded[uFromDistance] = bProvidedCloserContacts;
+
+		// Complete node search, just increase the answers and update the GUI
+		if (m_uType == NODECOMPLETE || m_uType == NODESPECIAL) {
+			++m_uAnswers;
+			theApp.emuledlg->kademliawnd->searchList->SearchRef(this);
 		}
 	} catch (...) {
 		AddDebugLogLine(false, _T("Exception in CSearch::ProcessResponse"));
@@ -631,7 +632,7 @@ void CSearch::StorePacket()
 			// We set this mostly for GUI response.
 			SetGUIName((CStringW)pFile->GetFileName());
 
-			// Get our clientID for the packet.
+			// Get our ContactID for the packet.
 			CUInt128 uID(CKademlia::GetPrefs()->GetClientHash());
 
 			//We can use type for different types of sources.
@@ -911,7 +912,7 @@ void CSearch::ProcessResult(const CUInt128 &uAnswer, TagList &rlistInfo, uint32 
 void CSearch::ProcessResultFile(const CUInt128 &uAnswer, TagList &rlistInfo)
 {
 	// Process a possible source to a file.
-	// Set of data we could receive from the result.
+	// Set of data we could get from the result.
 	uint8 uType = 0;
 	uint32 uIP = 0;
 	uint16 uTCPPort = 0;
@@ -924,28 +925,42 @@ void CSearch::ProcessResultFile(const CUInt128 &uAnswer, TagList &rlistInfo)
 
 	for (TagList::const_iterator itInfoList = rlistInfo.begin(); itInfoList != rlistInfo.end(); ++itInfoList) {
 		const CKadTag &cTag(**itInfoList);
-		if (cTag.m_name == TAG_SOURCETYPE)
+		if (cTag.m_name.GetLength() != 1) //all names are 1 byte strings
+			continue;
+		switch ((byte)cTag.m_name[0]) {
+		case FT_SOURCETYPE:
 			uType = (uint8)cTag.GetInt();
-		else if (cTag.m_name == TAG_SOURCEIP)
+			break;
+		case FT_SOURCEIP:
 			uIP = (uint32)cTag.GetInt();
-		else if (cTag.m_name == TAG_SOURCEPORT)
+			break;
+		case FT_SOURCEPORT:
 			uTCPPort = (uint16)cTag.GetInt();
-		else if (cTag.m_name == TAG_SOURCEUPORT)
+			break;
+		case FT_SOURCEUPORT:
 			uUDPPort = (uint16)cTag.GetInt();
-		else if (cTag.m_name == TAG_SERVERIP)
+			break;
+		case FT_SERVERIP:
 			uBuddyIP = (uint32)cTag.GetInt();
-		else if (cTag.m_name == TAG_SERVERPORT)
+			break;
+		case FT_SERVERPORT:
 			uBuddyPort = (uint16)cTag.GetInt();
-		//else if (cTag.m_name == TAG_CLIENTLOWID)
-		//  uClientID = cTag.GetInt();
-		else if (cTag.m_name == TAG_BUDDYHASH) {
-			uchar ucharBuddyHash[MDX_DIGEST_SIZE];
-			if (cTag.IsStr() && strmd4(cTag.GetStr(), ucharBuddyHash))
-				md4cpy(uBuddy.GetDataPtr(), ucharBuddyHash);
-			else
-				TRACE("+++ Invalid TAG_BUDDYHASH tag\n");
-		} else if (cTag.m_name == TAG_ENCRYPTION)
+			break;
+		//case FT_CLIENTLOWID:
+		//	uClientID = cTag.GetInt();
+		//	break;
+		case FT_BUDDYHASH:
+			{
+				uchar ucharBuddyHash[MDX_DIGEST_SIZE];
+				if (cTag.IsStr() && strmd4(cTag.GetStr(), ucharBuddyHash))
+					md4cpy(uBuddy.GetDataPtr(), ucharBuddyHash);
+				else
+					TRACE("+++ Invalid TAG_BUDDYHASH tag\n");
+			}
+			break;
+		case FT_ENCRYPTION:
 			byCryptOptions = (uint8)cTag.GetInt();
+		}
 	}
 
 	// Process source based on its type. Currently only one method is needed to process all types.
@@ -973,36 +988,42 @@ void CSearch::ProcessResultNotes(const CUInt128 &uAnswer, TagList &rlistInfo)
 	// Loop through tags and pull wanted into. Currently we only keep Filename, Rating, Comment.
 	for (TagList::iterator itInfoList = rlistInfo.begin(); itInfoList != rlistInfo.end(); ++itInfoList) {
 		const CKadTag &cTag(**itInfoList);
-		if (cTag.m_name == TAG_SOURCEIP)
+		if (cTag.m_name.GetLength() != 1)
+			continue;
+		switch ((byte)cTag.m_name[0]) {
+		case FT_SOURCEIP:
 			cEntry.m_uIP = (uint32)cTag.GetInt();
-		else if (cTag.m_name == TAG_SOURCEPORT)
+			break;
+		case FT_SOURCEPORT:
 			cEntry.m_uTCPPort = (uint16)cTag.GetInt();
-		else if (cTag.m_name == TAG_FILENAME || cTag.m_name == TAG_DESCRIPTION) {
-			const CString &cfilter(thePrefs.GetCommentFilter());
-			// Run the filter against the comment as well as against the filename since both values could be misused
-			if (!cfilter.IsEmpty()) {
-				CString strCommentLower(cTag.GetStr());
-				// Verified Locale Dependency: Locale dependent string conversion (OK)
-				strCommentLower.MakeLower();
+			break;
+		case FT_FILENAME:
+		case FT_DESCRIPTION:
+			{
+				const CString &cfilter(thePrefs.GetCommentFilter());
+				// Run the filter against the comment as well as against the filename since both values could be misused
+				if (!cfilter.IsEmpty()) {
+					CString strCommentLower(cTag.GetStr());
+					// Verified Locale Dependency: Locale dependent string conversion (OK)
+					strCommentLower.MakeLower();
 
-				for (int iPos = 0; iPos >= 0;) {
-					const CString &strFilter(cfilter.Tokenize(_T("|"), iPos));
-					// comment filters are already in lower case, compare with temp. lower cased received comment
-					if (!strFilter.IsEmpty() && strCommentLower.Find(strFilter) >= 0)
-						return;
+					for (int iPos = 0; iPos >= 0;) {
+						const CString &strFilter(cfilter.Tokenize(_T("|"), iPos));
+						// comment filters are already in lower case, compare with temp. lower cased received comment
+						if (!strFilter.IsEmpty() && strCommentLower.Find(strFilter) >= 0)
+							return;
+					}
 				}
-			}
-			if (cTag.m_name == TAG_FILENAME)
-				cEntry.SetFileName(cTag.GetStr());
-			else {
-				ASSERT(cTag.m_name == TAG_DESCRIPTION);
-				if (cTag.GetStr().GetLength() <= MAXFILECOMMENTLEN) {
+				if ((byte)cTag.m_name[0] == FT_FILENAME)
+					cEntry.SetFileName(cTag.GetStr());
+				else if (cTag.GetStr().GetLength() <= MAXFILECOMMENTLEN) { //FT_DESCRIPTION
 					cEntry.AddTag(*itInfoList); //move pointer
 					*itInfoList = NULL; //do not delete this tag
 				} else
 					cEntry.AddTag(new CKadTagStr(cTag.m_name, cTag.GetStr().Left(MAXFILECOMMENTLEN)));
 			}
-		} else if (cTag.m_name == TAG_FILERATING) {
+			break;
+		case FT_FILERATING:
 			cEntry.AddTag(*itInfoList); //move pointer
 			*itInfoList = NULL; //do not delete this tag
 		}
@@ -1074,43 +1095,56 @@ void CSearch::ProcessResultKeyword(const CUInt128 &uAnswer, TagList &rlistInfo, 
 
 	for (TagList::const_iterator itInfoList = rlistInfo.begin(); itInfoList != rlistInfo.end(); ++itInfoList) {
 		const CKadTag &cTag(**itInfoList);
-		if (cTag.m_name == TAG_FILENAME) {
+		if (cTag.m_name.GetLength() != 1)
+			continue;
+		switch ((byte)cTag.m_name[0]) {
+		case FT_FILENAME:
 			// Set flag based on last tag we saw.
 			sName = cTag.GetStr();
 			bFileName = !sName.IsEmpty();
-		} else if (cTag.m_name == TAG_FILESIZE) {
+			break;
+		case FT_FILESIZE:
 			if (cTag.IsBsob() && cTag.GetBsobSize() == 8)
 				uSize = *((uint64*)cTag.GetBsob());
 			else
 				uSize = cTag.GetInt();
-
 			// Set flag based on last tag we saw.
 			bFileSize = (uSize > 0);
-		} else if (cTag.m_name == TAG_FILETYPE)
+			break;
+		case FT_FILETYPE:
 			sType = cTag.GetStr();
-		else if (cTag.m_name == TAG_FILEFORMAT)
+			break;
+		case FT_FILEFORMAT:
 			sFormat = cTag.GetStr();
-		else if (cTag.m_name == TAG_MEDIA_ARTIST)
+			break;
+		case FT_MEDIA_ARTIST:
 			sArtist = cTag.GetStr();
-		else if (cTag.m_name == TAG_MEDIA_ALBUM)
+			break;
+		case FT_MEDIA_ALBUM:
 			sAlbum = cTag.GetStr();
-		else if (cTag.m_name == TAG_MEDIA_TITLE)
+			break;
+		case FT_MEDIA_TITLE:
 			sTitle = cTag.GetStr();
-		else if (cTag.m_name == TAG_MEDIA_LENGTH)
+			break;
+		case FT_MEDIA_LENGTH:
 			uLength = (uint32)cTag.GetInt();
-		else if (cTag.m_name == TAG_MEDIA_BITRATE)
+			break;
+		case FT_MEDIA_BITRATE:
 			uBitrate = (uint32)cTag.GetInt();
-		else if (cTag.m_name == TAG_MEDIA_CODEC)
+			break;
+		case FT_MEDIA_CODEC:
 			sCodec = cTag.GetStr();
-		else if (cTag.m_name == TAG_SOURCES) {
-			// Some rouge client was setting an invalid availability, just set it to 0
+			break;
+		case FT_SOURCES:
+			// Some rogue client was setting an invalid availability, just set it to 0
 			uAvailability = (uint32)cTag.GetInt();
 			if (uAvailability > 65500)
 				uAvailability = 0;
-		} else if (cTag.m_name == TAG_PUBLISHINFO) {
+			break;
+		case FT_PUBLISHINFO:
 			if (uFromKadVersion >= KADEMLIA_VERSION6_49aBETA) {
 				// we don't keep this as a tag, but as a member property of the search file,
-				// because we only need its information in the search list and don't want to carry
+				// because we only need the information in the search list and don't want to carry
 				// the tag over when downloading the file (and maybe even wrongly publishing it)
 				uPublishInfo = (uint32)cTag.GetInt();
 /*
@@ -1124,7 +1158,8 @@ void CSearch::ProcessResultKeyword(const CUInt128 &uAnswer, TagList &rlistInfo, 
 			} else
 				DebugLogWarning(_T("ProcessResultKeyword: Received special publish tag (TAG_PUBLISHINFO) from node (version %u, ip: %s) which is not aware of it, filtering")
 					, uFromKadVersion, (LPCTSTR)ipstr(htonl(uFromIP)));
-		} else if (cTag.m_name == TAG_KADAICHHASHRESULT) {
+			break;
+		case FT_KADAICHHASHRESULT:
 			if (uFromKadVersion >= KADEMLIA_VERSION9_50a && cTag.IsBsob()) {
 				CSafeMemFile fileAICHTag(cTag.GetBsob(), cTag.GetBsobSize());
 				try {
@@ -1181,26 +1216,26 @@ void CSearch::ProcessResultKeyword(const CUInt128 &uAnswer, TagList &rlistInfo, 
 	theApp.emuledlg->kademliawnd->searchList->SearchRef(this);
 	// Send the keyword to search list for processing.
 	// This method is still legacy from the multithreaded Kad, maybe this can be changed for better handling.
-	theApp.searchlist->KademliaSearchKeyword(m_uSearchID, &uAnswer, sName, uSize, sType, uPublishInfo
-		, aAICHHashes, aAICHHashPopularity, m_pSearchTerm
+	theApp.searchlist->KademliaSearchKeyword(m_uSearchID, &uAnswer, sName, uSize, sType
+		, uPublishInfo, aAICHHashes, aAICHHashPopularity, m_pSearchTerm
 		, 8
-		, TAGTYPE_STRING, TAG_FILEFORMAT, (LPCTSTR)sFormat
-		, TAGTYPE_STRING, TAG_MEDIA_ARTIST, (LPCTSTR)sArtist
-		, TAGTYPE_STRING, TAG_MEDIA_ALBUM, (LPCTSTR)sAlbum
-		, TAGTYPE_STRING, TAG_MEDIA_TITLE, (LPCTSTR)sTitle
-		, TAGTYPE_UINT32, TAG_MEDIA_LENGTH, uLength
-		, TAGTYPE_UINT32, TAG_MEDIA_BITRATE, uBitrate
-		, TAGTYPE_STRING, TAG_MEDIA_CODEC, (LPCTSTR)sCodec
-		, TAGTYPE_UINT32, TAG_SOURCES, uAvailability);
+		, TAGTYPE_STRING, TAG_FILEFORMAT,		(LPCTSTR)sFormat
+		, TAGTYPE_STRING, TAG_MEDIA_ARTIST,		(LPCTSTR)sArtist
+		, TAGTYPE_STRING, TAG_MEDIA_ALBUM,		(LPCTSTR)sAlbum
+		, TAGTYPE_STRING, TAG_MEDIA_TITLE,		(LPCTSTR)sTitle
+		, TAGTYPE_UINT32, TAG_MEDIA_LENGTH,		(LPCTSTR)uLength		//uint32
+		, TAGTYPE_UINT32, TAG_MEDIA_BITRATE,	(LPCTSTR)uBitrate		//uint32
+		, TAGTYPE_STRING, TAG_MEDIA_CODEC,		(LPCTSTR)sCodec
+		, TAGTYPE_UINT32, TAG_SOURCES,			(LPCTSTR)uAvailability);//uint32
 }
 
 void CSearch::SendFindValue(CContact *pContact, bool bReAskMore)
 {
+	// Make sure we are not in the process of stopping.
+	if (m_bStoping)
+		return;
 	// Found a Node that we think has contacts closer to our target.
 	try {
-		// Make sure we are not in the process of stopping.
-		if (m_bStoping)
-			return;
 		CSafeMemFile fileIO(33);
 		// The number of returned contacts is based on the type of search.
 		uint8 byContactCount = GetRequestContactCount();
@@ -1325,98 +1360,98 @@ static bool IsRedundantMetaData(const CStringArray &rastrFileNameWords, const CS
 		if (iFoundInFileName < iMetaDataWords)
 			return false;
 	}
-	return (iMetaDataWords == 0 || iMetaDataWords == iFoundInFileName);
+	return iMetaDataWords == 0 || iMetaDataWords == iFoundInFileName;
 }
 
 void CSearch::PreparePacketForTags(CByteIO *byIO, CKnownFile *pFile, uint8 byTargetKadVersion)
 {
+	if (!pFile || !byIO) {
+		//If we get here, bad things happened. Will fix this later if it is a real issue.
+		ASSERT(0);
+		return;
+	}
 	// We are going to publish a keyword, setup the tag list.
 	TagList listTag;
 	try {
-		if (pFile && byIO) {
-			// Name, Size
-			listTag.push_back(new CKadTagStr(TAG_FILENAME, pFile->GetFileName()));
-			//if (pFile->GetFileSize() > OLD_MAX_EMULE_FILE_SIZE) {
-			//	// TODO: As soon as we drop Kad1 support, we should switch to Int64 tags (we could do now already for kad2 nodes only but no advantage in that)
-			//	uint64 uSize = (uint64)pFile->GetFileSize();
-			//	listTag.push_back(new CKadTagBsob(TAG_FILESIZE, (BYTE*)&uSize, sizeof(uint64)));
-			//} else
-			listTag.push_back(new CKadTagUInt(TAG_FILESIZE, (uint64)pFile->GetFileSize()));
+		// Name, Size
+		listTag.push_back(new CKadTagStr(TAG_FILENAME, pFile->GetFileName()));
+		//if (pFile->GetFileSize() > OLD_MAX_EMULE_FILE_SIZE) {
+		//	// TODO: As soon as we drop Kad1 support, we should switch to Int64 tags (we could do now already for kad2 nodes only but no advantage in that)
+		//	uint64 uSize = (uint64)pFile->GetFileSize();
+		//	listTag.push_back(new CKadTagBsob(TAG_FILESIZE, (BYTE*)&uSize, sizeof(uint64)));
+		//} else
+		listTag.push_back(new CKadTagUInt(TAG_FILESIZE, (uint64)pFile->GetFileSize()));
 
-			listTag.push_back(new CKadTagUInt(TAG_SOURCES, pFile->m_nCompleteSourcesCount));
+		listTag.push_back(new CKadTagUInt(TAG_SOURCES, pFile->m_nCompleteSourcesCount));
 
-			if (byTargetKadVersion >= KADEMLIA_VERSION9_50a && pFile->GetFileIdentifier().HasAICHHash())
-				listTag.push_back(new CKadTagBsob(TAG_KADAICHHASHPUB, pFile->GetFileIdentifier().GetAICHHash().GetRawHashC()
-					, (uint8)CAICHHash::GetHashSize()));
+		if (byTargetKadVersion >= KADEMLIA_VERSION9_50a && pFile->GetFileIdentifier().HasAICHHash())
+			listTag.push_back(new CKadTagBsob(TAG_KADAICHHASHPUB, pFile->GetFileIdentifier().GetAICHHash().GetRawHashC()
+				, (uint8)CAICHHash::GetHashSize()));
 
-			// eD2K file type (Audio, Video, ...)
-			// NOTE: Archives and CD-Images are published with file type "Pro"
-			const CString &strED2KFileType(GetED2KFileTypeSearchTerm(GetED2KFileTypeID(pFile->GetFileName())));
-			if (!strED2KFileType.IsEmpty())
-				listTag.push_back(new CKadTagStr(TAG_FILETYPE, strED2KFileType));
+		// eD2K file type (Audio, Video, ...)
+		// NOTE: Archives and CD-Images are published with file type "Pro"
+		LPCTSTR const pED2KFileType(GetED2KFileTypeSearchTerm(GetED2KFileTypeID(pFile->GetFileName())));
+		if (*pED2KFileType)
+			listTag.push_back(new CKadTagStr(TAG_FILETYPE, pED2KFileType));
 
-			// file format (filename extension)
-			// 21-Sep-2006 []: TAG_FILEFORMAT is no longer explicitly published nor stored as
-			// it is already a part of the filename.
-			/*LPCTSTR pDot = ::PathFindExtension(pFile->GetFileName());
-			if (pDot && pDot[1]) // not empty
-				listTag.push_back(new CKadTagStr(TAG_FILEFORMAT, CString(pDot + 1)));
-			*/
+		// file format (filename extension)
+		// 21-Sep-2006 []: TAG_FILEFORMAT is no longer explicitly published nor stored as
+		// it is already a part of the filename.
+		/*LPCTSTR pDot = ::PathFindExtension(pFile->GetFileName());
+		if (pDot[0] && pDot[1]) // not empty
+			listTag.push_back(new CKadTagStr(TAG_FILEFORMAT, &pDot[1]));
+		*/
 
-			// additional meta data (Artist, Album, Codec, Length, ...)
-			// only send verified meta data to nodes
-			if (pFile->GetMetaDataVer() > 0) {
-				static const struct
-				{
-					uint8 uName;
-					uint8 uType;
-				}
-				_aMetaTags[] =
-				{
-					{ FT_MEDIA_ARTIST,  TAGTYPE_STRING },
-					{ FT_MEDIA_ALBUM,   TAGTYPE_STRING },
-					{ FT_MEDIA_TITLE,   TAGTYPE_STRING },
-					{ FT_MEDIA_LENGTH,  TAGTYPE_UINT32 },
-					{ FT_MEDIA_BITRATE, TAGTYPE_UINT32 },
-					{ FT_MEDIA_CODEC,   TAGTYPE_STRING }
-				};
-				CStringArray astrFileNameWords;
-				for (unsigned iIndex = 0; iIndex < _countof(_aMetaTags); ++iIndex) {
-					const CTag *pTag = pFile->GetTag(_aMetaTags[iIndex].uName, _aMetaTags[iIndex].uType);
-					if (pTag) {
-						// skip string tags with empty string values
-						if (pTag->IsStr() && pTag->GetStr().IsEmpty())
-							continue;
-						// skip integer tags with '0' values
-						if (pTag->IsInt() && pTag->GetInt() == 0)
-							continue;
-						char szKadTagName[2];
-						szKadTagName[0] = (char)pTag->GetNameID();
-						szKadTagName[1] = '\0';
-						if (pTag->IsStr()) {
-							bool bIsRedundant = false;
-							switch (pTag->GetNameID()) {
-							case FT_MEDIA_ARTIST:
-							case FT_MEDIA_ALBUM:
-							case FT_MEDIA_TITLE:
-								if (astrFileNameWords.IsEmpty())
-									GetMetaDataWords(astrFileNameWords, pFile->GetFileName());
-								bIsRedundant = IsRedundantMetaData(astrFileNameWords, pTag->GetStr());
-								//if (bIsRedundant)
-								//	TRACE(_T("Skipping meta data tag \"%s\" for file \"%s\"\n"), pTag->GetStr(), pFile->GetFileName());
-							}
-							if (!bIsRedundant)
-								listTag.push_back(new CKadTagStr(szKadTagName, pTag->GetStr()));
-						} else
-							listTag.push_back(new CKadTagUInt(szKadTagName, pTag->GetInt()));
-					}
+		// additional meta data (Artist, Album, Codec, Length, ...)
+		// only send verified meta data to nodes
+		if (pFile->GetMetaDataVer() > 0) {
+			static const struct
+			{
+				uint8 uName;
+				uint8 uType;
+			}
+			_aMetaTags[] =
+			{
+				{ FT_MEDIA_ARTIST,  TAGTYPE_STRING },
+				{ FT_MEDIA_ALBUM,   TAGTYPE_STRING },
+				{ FT_MEDIA_TITLE,   TAGTYPE_STRING },
+				{ FT_MEDIA_LENGTH,  TAGTYPE_UINT32 },
+				{ FT_MEDIA_BITRATE, TAGTYPE_UINT32 },
+				{ FT_MEDIA_CODEC,   TAGTYPE_STRING }
+			};
+			CStringArray astrFileNameWords;
+			for (unsigned iIndex = 0; iIndex < _countof(_aMetaTags); ++iIndex) {
+				const CTag *pTag = pFile->GetTag(_aMetaTags[iIndex].uName, _aMetaTags[iIndex].uType);
+				if (pTag) {
+					// skip string tags with empty string values
+					if (pTag->IsStr() && pTag->GetStr().IsEmpty())
+						continue;
+					// skip integer tags with '0' values
+					if (pTag->IsInt() && pTag->GetInt() == 0)
+						continue;
+					char szKadTagName[2];
+					szKadTagName[0] = (char)pTag->GetNameID();
+					szKadTagName[1] = '\0';
+					if (pTag->IsStr()) {
+						bool bIsRedundant = false;
+						switch (pTag->GetNameID()) {
+						case FT_MEDIA_ARTIST:
+						case FT_MEDIA_ALBUM:
+						case FT_MEDIA_TITLE:
+							if (astrFileNameWords.IsEmpty())
+								GetMetaDataWords(astrFileNameWords, pFile->GetFileName());
+							bIsRedundant = IsRedundantMetaData(astrFileNameWords, pTag->GetStr());
+							//if (bIsRedundant)
+							//	TRACE(_T("Skipping meta data tag \"%s\" for file \"%s\"\n"), pTag->GetStr(), pFile->GetFileName());
+						}
+						if (!bIsRedundant)
+							listTag.push_back(new CKadTagStr(szKadTagName, pTag->GetStr()));
+					} else
+						listTag.push_back(new CKadTagUInt(szKadTagName, pTag->GetInt()));
 				}
 			}
-			byIO->WriteTagList(listTag);
-		} else {
-			//If we get here, bad things happened. Will fix this later if it is a real issue.
-			ASSERT(0);
 		}
+		byIO->WriteTagList(listTag);
 	} catch (CIOException *ex) {
 		AddDebugLogLine(false, _T("Exception in CSearch::PreparePacketForTags (IO error(%i))"), ex->m_iCause);
 		ex->Delete();

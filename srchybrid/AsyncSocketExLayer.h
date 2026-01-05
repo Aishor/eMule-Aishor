@@ -121,13 +121,13 @@ protected:
 	CAsyncSocketEx *m_pOwnerSocket;
 
 	//Calls OnLayerCallback on owner socket
-	int DoLayerCallback(int nType, WPARAM wParam, LPARAM lParam, const char* const str = NULL);
+	int DoLayerCallback(int nType, WPARAM wParam, LPARAM lParam, const char *const str = NULL);
 
 	AsyncSocketExState GetLayerState() const		{ return m_nLayerState; }
 	BOOL TriggerEvent(long lEvent, int nErrorCode, BOOL bPassThrough = FALSE);
 
 	//Gets the socket family
-	ADDRESS_FAMILY GetFamily() const;
+	ADDRESS_FAMILY GetFamily() const				{ return m_nFamily; }
 
 	//Sets the socket family
 	bool SetFamily(ADDRESS_FAMILY nFamily);

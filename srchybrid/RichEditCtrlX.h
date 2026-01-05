@@ -8,7 +8,7 @@ class CRichEditCtrlX : public CRichEditCtrl
 public:
 	CRichEditCtrlX();
 
-	void SetDisableSelectOnFocus(bool bDisable = true);
+	void SetDisableSelectOnFocus(bool bDisable = true)		{ m_bDisableSelectOnFocus = bDisable; }
 	void SetSyntaxColoring(LPCTSTR *ppszKeywords = NULL, LPCTSTR pszSeparators = NULL);
 
 	CRichEditCtrlX& operator<<(LPCTSTR psz);

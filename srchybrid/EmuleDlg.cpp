@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,7 +15,6 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <afxinet.h>
 #define MMNODRV			// mmsystem: Installable driver support
 //#define MMNOSOUND		// mmsystem: Sound support
 #define MMNOWAVE		// mmsystem: Waveform support
@@ -31,14 +30,14 @@
 #include <HtmlHelp.h>
 #include <share.h>
 #include <dbt.h>
+#include <uxtheme.h>
 #include "emule.h"
 #include "emuleDlg.h"
 #include "otherfunctions.h"
 #include "ServerWnd.h"
 #include "KademliaWnd.h"
-#include "TransferWnd.h"
+#include "DownloadListCtrl.h"
 #include "TransferDlg.h"
-#include "SearchResultsWnd.h"
 #include "SearchDlg.h"
 #include "SharedFilesWnd.h"
 #include "ChatWnd.h"
@@ -54,18 +53,11 @@
 #include "ED2KLink.h"
 #include "Splashscreen.h"
 #include "PartFileConvert.h"
-#include "EnBitmap.h"
 #include "Exceptions.h"
 #include "SearchList.h"
 #include "HTRichEditCtrl.h"
 #include "FrameGrabThread.h"
 #include "kademlia/kademlia/kademlia.h"
-#include "kademlia/kademlia/SearchManager.h"
-#include "kademlia/routing/RoutingZone.h"
-#include "kademlia/routing/contact.h"
-#include "kademlia/kademlia/prefs.h"
-#include "KadSearchListCtrl.h"
-#include "KadContactListCtrl.h"
 #include "PerfLog.h"
 #include "DropTarget.h"
 #include "LastCommonRouteFinder.h"
@@ -85,14 +77,11 @@
 #include "Server.h"
 #include "PartFile.h"
 #include "Scheduler.h"
-#include "ClientCredits.h"
 #include "MenuCmds.h"
 #include "MuleSystrayDlg.h"
 #include "IPFilterDlg.h"
 #include "WebServices.h"
 #include "DirectDownloadDlg.h"
-#include "Statistics.h"
-#include "FirewallOpener.h"
 #include "StringConversion.h"
 #include "aichsyncthread.h"
 #include "Log.h"
@@ -101,13 +90,14 @@
 #include "TextToSpeech.h"
 #include "Collection.h"
 #include "CollectionViewDialog.h"
-#include "VisualStylesXP.h"
 #include "UPnPImpl.h"
 #include "UPnPImplWrapper.h"
 #include "ExitBox.h"
 #include "UploadDiskIOThread.h"
 #include "PartFileWriteThread.h"
 #include "ImportParts.h"
+#include "ClientCredits.h"
+#include "FirewallOpener.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -292,11 +282,6 @@ void CemuleDlg::SetClientIconList()
 	m_IconList.SetOverlayImage(m_IconList.Add(CTempIconLoader(_T("OverlaySecureObfu"))), 3);
 }
 
-CImageList& CemuleDlg::GetClientIconList()
-{
-	return m_IconList;
-}
-
 CemuleDlg::~CemuleDlg()
 {
 	CloseTTS();
@@ -323,7 +308,7 @@ CemuleDlg::~CemuleDlg()
 		ASSERT(m_bInitedCOM);
 	}
 	if (m_bInitedCOM)
-		CoUninitialize();
+		::CoUninitialize();
 #endif
 
 	// already destroyed by windows?
@@ -353,7 +338,7 @@ LRESULT CemuleDlg::OnAreYouEmule(WPARAM, LPARAM)
 	return UWM_ARE_YOU_EMULE;
 }
 
-void DialogCreateIndirect(CDialog *pWnd, UINT uID)
+static void DialogCreateIndirect(CDialog *pWnd, UINT uID)
 {
 #if 0
 	// This could be a nice way to change the font size of the main windows without needing
@@ -376,11 +361,11 @@ BOOL CemuleDlg::OnInitDialog()
 #ifdef HAVE_WIN7_SDK_H
 	// allow the TaskbarButtonCreated- & (tbb-)WM_COMMAND message to be sent to our window if our app is running elevated
 	if (thePrefs.GetWindowsVersion() >= _WINVER_7_) {
-		m_bInitedCOM = SUCCEEDED(CoInitialize(NULL));
+		m_bInitedCOM = SUCCEEDED(::CoInitialize(NULL));
 		if (m_bInitedCOM) {
 			typedef BOOL(WINAPI *PChangeWindowMessageFilter)(UINT message, DWORD dwFlag);
 			PChangeWindowMessageFilter ChangeWindowMessageFilter
-				= (PChangeWindowMessageFilter)(GetProcAddress(GetModuleHandle(_T("user32.dll")), "ChangeWindowMessageFilter"));
+				= (PChangeWindowMessageFilter)(::GetProcAddress(::GetModuleHandle(_T("user32.dll")), "ChangeWindowMessageFilter"));
 			if (ChangeWindowMessageFilter) {
 				ChangeWindowMessageFilter(UWM_TASK_BUTTON_CREATED, 1);
 				ChangeWindowMessageFilter(WM_COMMAND, 1);
@@ -420,14 +405,14 @@ BOOL CemuleDlg::OnInitDialog()
 	}
 
 	CWnd *pwndToolbarX = toolbar;
-	if (toolbar->Create(WS_CHILD | WS_VISIBLE, CRect(), this, IDC_TOOLBAR)) {
+	if (toolbar->Create(WS_CHILD | WS_VISIBLE, RECT(), this, IDC_TOOLBAR)) {
 		toolbar->Init();
 		if (thePrefs.GetUseReBarToolbar()) {
 			if (m_ctlMainTopReBar.Create(WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 				RBS_BANDBORDERS | RBS_AUTOSIZE | CCS_NODIVIDER,
-				CRect(), this, AFX_IDW_REBAR))
+				RECT(), this, AFX_IDW_REBAR))
 			{
-				CSize sizeBar;
+				SIZE sizeBar;
 				VERIFY(toolbar->GetMaxSize(&sizeBar));
 				REBARBANDINFO rbbi = {};
 				rbbi.cbSize = (UINT)sizeof rbbi;
@@ -1320,6 +1305,8 @@ void CemuleDlg::ProcessED2KLink(LPCTSTR pszData)
 	}
 }
 
+#pragma warning(push)
+#pragma warning(disable:4774)
 LRESULT CemuleDlg::OnWMData(WPARAM, LPARAM lParam)
 {
 	PCOPYDATASTRUCT data = (PCOPYDATASTRUCT)lParam;
@@ -1402,6 +1389,7 @@ LRESULT CemuleDlg::OnWMData(WPARAM, LPARAM lParam)
 	}
 	return TRUE;
 }
+#pragma warning(pop)
 
 LRESULT CemuleDlg::OnFileHashed(WPARAM wParam, LPARAM lParam)
 {
@@ -1491,7 +1479,7 @@ LRESULT CemuleDlg::OnImportPart(WPARAM wParam, LPARAM lParam)
 }
 
 #ifdef _DEBUG
-void BeBusy(UINT uSeconds, LPCSTR pszCaller)
+static void BeBusy(UINT uSeconds, LPCSTR pszCaller)
 {
 	UINT s = 0;
 	while (uSeconds--) {
@@ -2227,16 +2215,14 @@ HBRUSH CemuleDlg::OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor)
 
 HBRUSH CemuleDlg::GetCtlColor(CDC* /*pDC*/, CWnd* /*pWnd*/, UINT /*nCtlColor*/)
 {
-	// This function could be used to give the entire eMule (at least all of the main windows)
+	// This function could have been used to give the entire eMule (at least all of the main windows)
 	// a somewhat more Vista like look by giving them all a bright background color.
 	// However, again, the owner drawn tab controls are noticeably disturbing that attempt. They
 	// do not change their background color accordingly. They don't use NMCUSTOMDRAW nor to they
 	// use WM_CTLCOLOR...
 	//
-	//if (theApp.m_ullComCtrlVer >= MAKEDLLVERULL(6,16,0,0) && g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-	//	if (nCtlColor == CTLCOLOR_DLG || nCtlColor == CTLCOLOR_STATIC)
-	//		return ::GetSysColorBrush(COLOR_WINDOW);
-	//}
+	//if (theApp.IsVistaThemeActive() && (nCtlColor == CTLCOLOR_DLG || nCtlColor == CTLCOLOR_STATIC))
+	//	return ::GetSysColorBrush(COLOR_WINDOW);
 	return NULL;
 }
 
@@ -2582,14 +2568,14 @@ void CemuleDlg::OnBnClickedHotmenu()
 
 void CemuleDlg::ShowToolPopup(bool toolsonly)
 {
-	POINT point = {};
+	POINT point{};
 	::GetCursorPos(&point);
 
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.AddMenuTitle(GetResString(toolsonly ? IDS_TOOLS : IDS_HOTMENU), true);
 
-	CTitleMenu Links;
+	CTitledMenu Links;
 	Links.CreateMenu();
 	Links.AddMenuTitle(NULL, true);
 	Links.AppendMenu(MF_STRING, MP_HM_LINK1, GetResString(IDS_HM_LINKHP), _T("WEB"));
@@ -2687,13 +2673,13 @@ LRESULT CemuleDlg::OnFrameGrabFinished(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void StraightWindowStyles(CWnd *pWnd)
+static void StraightWindowStyles(CWnd *pWnd)
 {
 	for (CWnd *pWndChild = pWnd->GetWindow(GW_CHILD); pWndChild != NULL; pWndChild = pWndChild->GetNextWindow())
 		StraightWindowStyles(pWndChild);
 
 	TCHAR szClassName[MAX_PATH];
-	if (GetClassName(*pWnd, szClassName, _countof(szClassName))) {
+	if (::GetClassName(*pWnd, szClassName, _countof(szClassName))) {
 		if (_tcsicmp(szClassName, _T("Button")) == 0)
 			pWnd->ModifyStyle(BS_FLAT, 0);
 		else if (_tcsicmp(szClassName, _T("EDIT")) == 0 && (pWnd->GetExStyle() & WS_EX_STATICEDGE)
@@ -2703,19 +2689,17 @@ void StraightWindowStyles(CWnd *pWnd)
 			pWnd->ModifyStyleEx(WS_EX_STATICEDGE, WS_EX_CLIENTEDGE);
 		}
 		//else if (_tcsicmp(szClassName, _T("SysTreeView32")) == 0)
-		//{
 		//	pWnd->ModifyStyleEx(WS_EX_STATICEDGE, WS_EX_CLIENTEDGE);
-		//}
 	}
 }
 
-void ApplySystemFont(CWnd *pWnd)
+static void ApplySystemFont(CWnd *pWnd)
 {
 	for (CWnd *pWndChild = pWnd->GetWindow(GW_CHILD); pWndChild != NULL; pWndChild = pWndChild->GetNextWindow())
 		ApplySystemFont(pWndChild);
 
 	TCHAR szClassName[MAX_PATH];
-	if (GetClassName(*pWnd, szClassName, _countof(szClassName))
+	if (::GetClassName(*pWnd, szClassName, _countof(szClassName))
 		&& (_tcsicmp(szClassName, _T("SysListView32")) == 0 || _tcsicmp(szClassName, _T("SysTreeView32")) == 0))
 	{
 		pWnd->SendMessage(WM_SETFONT, NULL, FALSE);
@@ -2724,7 +2708,7 @@ void ApplySystemFont(CWnd *pWnd)
 
 static bool s_bIsXPStyle;
 
-void FlatWindowStyles(CWnd *pWnd)
+static void FlatWindowStyles(CWnd *pWnd)
 {
 	for (CWnd *pWndChild = pWnd->GetWindow(GW_CHILD); pWndChild != NULL; pWndChild = pWndChild->GetNextWindow())
 		FlatWindowStyles(pWndChild);
@@ -2746,7 +2730,7 @@ void InitWindowStyles(CWnd *pWnd)
 	if (thePrefs.GetStraightWindowStyles() > 0)
 		/*StraightWindowStyles(pWnd)*/;	// no longer needed
 	else {
-		s_bIsXPStyle = g_xpStyle.IsAppThemed() && g_xpStyle.IsThemeActive();
+		s_bIsXPStyle = ::IsAppThemed() && ::IsThemeActive();
 		if (!s_bIsXPStyle)
 			FlatWindowStyles(pWnd);
 	}
@@ -3154,7 +3138,7 @@ BOOL CemuleDlg::OnChevronPushed(UINT id, LPNMHDR pNMHDR, LRESULT *plResult)
 
 	// create menu for all toolbar buttons which are not (fully) visible
 	BOOL bLastMenuItemIsSep = TRUE;
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.AddMenuTitle(_T("eMule"), true);
 
@@ -3188,7 +3172,7 @@ BOOL CemuleDlg::OnChevronPushed(UINT id, LPNMHDR pNMHDR, LRESULT *plResult)
 
 bool CemuleDlg::IsPreferencesDlgOpen() const
 {
-	return (preferenceswnd->m_hWnd != NULL);
+	return preferenceswnd->m_hWnd != NULL;
 }
 
 INT_PTR CemuleDlg::ShowPreferences(UINT uStartPageID)
@@ -3223,10 +3207,10 @@ LRESULT CemuleDlg::OnWebAddDownloads(WPARAM wParam, LPARAM lParam)
 
 LRESULT CemuleDlg::OnAddRemoveFriend(WPARAM wParam, LPARAM lParam)
 {
-	if (lParam == 0) // remove
-		theApp.friendlist->RemoveFriend(reinterpret_cast<CFriend*>(wParam));
-	else		// add
+	if (lParam) // add
 		theApp.friendlist->AddFriend(reinterpret_cast<CUpDownClient*>(wParam));
+	else		// remove
+		theApp.friendlist->RemoveFriend(reinterpret_cast<CFriend*>(wParam));
 
 	return 0;
 }
@@ -3239,15 +3223,14 @@ LRESULT CemuleDlg::OnWebSetCatPrio(WPARAM wParam, LPARAM lParam)
 
 LRESULT CemuleDlg::OnWebServerClearCompleted(WPARAM wParam, LPARAM lParam)
 {
-	if (!wParam)
-		transferwnd->GetDownloadList()->ClearCompleted(static_cast<int>(lParam));
-	else {
+	if (wParam) {
 		uchar *pFileHash = reinterpret_cast<uchar*>(lParam);
 		CKnownFile *file = theApp.knownfiles->FindKnownFileByID(pFileHash);
 		if (file)
 			transferwnd->GetDownloadList()->RemoveFile(static_cast<CPartFile*>(file));
 		delete[] pFileHash;
-	}
+	} else
+		transferwnd->GetDownloadList()->ClearCompleted(static_cast<int>(lParam));
 
 	return 0;
 }
@@ -3747,10 +3730,10 @@ void CemuleDlg::SetTaskbarIconColor()
 	bool bTransparent = false;
 	COLORREF cr = RGB(0, 0, 0);
 	if (thePrefs.IsRunningAeroGlassTheme()) {
-		HMODULE hDWMAPI = LoadLibrary(_T("dwmapi.dll"));
+		HMODULE hDWMAPI = ::LoadLibrary(_T("dwmapi.dll"));
 		if (hDWMAPI) {
 			HRESULT(WINAPI *pfnDwmGetColorizationColor)(DWORD*, BOOL*);
-			(FARPROC&)pfnDwmGetColorizationColor = GetProcAddress(hDWMAPI, "DwmGetColorizationColor");
+			(FARPROC&)pfnDwmGetColorizationColor = ::GetProcAddress(hDWMAPI, "DwmGetColorizationColor");
 			if (pfnDwmGetColorizationColor != NULL) {
 				DWORD dwGlassColor;
 				BOOL bOpaque;
@@ -3766,26 +3749,22 @@ void CemuleDlg::SetTaskbarIconColor()
 					}
 				}
 			}
-			FreeLibrary(hDWMAPI);
+			::FreeLibrary(hDWMAPI);
 		}
+	} else if (::IsThemeActive() && ::IsAppThemed()) {
+		CWnd tmpWnd;
+		VERIFY(tmpWnd.Create(_T("STATIC"), _T("Tmp"), 0, CRect(0, 0, 10, 10), this, 1235));
+		VERIFY(::SetWindowTheme(tmpWnd.GetSafeHwnd(), L"TrayNotifyHoriz", NULL) == S_OK);
+		HTHEME hTheme = ::OpenThemeData(tmpWnd.GetSafeHwnd(), L"TrayNotify");
+		if (hTheme != NULL) {
+			VERIFY(SUCCEEDED(::GetThemeColor(hTheme, TNP_BACKGROUND, 0, TMT_FILLCOLORHINT, &cr)));
+			::CloseThemeData(hTheme);
+		} else
+			ASSERT(0);
+		tmpWnd.DestroyWindow();
 	} else {
-		if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) {
-			CWnd *ptmpWnd = new CWnd();
-			VERIFY(ptmpWnd->Create(_T("STATIC"), _T("Tmp"), 0, CRect(0, 0, 10, 10), this, 1235));
-			VERIFY(g_xpStyle.SetWindowTheme(ptmpWnd->GetSafeHwnd(), L"TrayNotifyHoriz", NULL) == S_OK);
-			HTHEME hTheme = g_xpStyle.OpenThemeData(ptmpWnd->GetSafeHwnd(), L"TrayNotify");
-			if (hTheme != NULL) {
-				if (g_xpStyle.GetThemeColor(hTheme, TNP_BACKGROUND, 0, TMT_FILLCOLORHINT, &cr) != S_OK)
-					ASSERT(0);
-				g_xpStyle.CloseThemeData(hTheme);
-			} else
-				ASSERT(0);
-			ptmpWnd->DestroyWindow();
-			delete ptmpWnd;
-		} else {
-			DEBUG_ONLY(DebugLog(_T("Taskbar Notifier Color: ::GetSysColor() used")));
-			cr = ::GetSysColor(COLOR_3DFACE);
-		}
+		DEBUG_ONLY(DebugLog(_T("Taskbar Notifier Color: ::GetSysColor() used")));
+		cr = ::GetSysColor(COLOR_3DFACE);
 	}
 	uint8 iRed = GetRValue(cr);
 	uint8 iBlue = GetBValue(cr);

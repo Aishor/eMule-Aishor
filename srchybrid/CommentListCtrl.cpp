@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( merkur-@users.sourceforge.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( merkur-@users.sourceforge.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 #include "stdafx.h"
 #include "CommentListCtrl.h"
 #include "MenuCmds.h"
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 #include "emule.h"
 #include "UpDownClient.h"
 #include "kademlia/kademlia/Entry.h"
@@ -124,7 +124,7 @@ void CCommentListCtrl::OnContextMenu(CWnd*, CPoint point)
 	if (GetNextItem(-1, LVIS_SELECTED | LVIS_FOCUSED) == -1)
 		flag = MF_GRAYED;
 
-	CTitleMenu popupMenu;
+	CTitledMenu popupMenu;
 	popupMenu.CreatePopupMenu();
 	popupMenu.AppendMenu(MF_STRING | flag, MP_COPYSELECTED, GetResString(IDS_COPY));
 

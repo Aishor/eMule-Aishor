@@ -35,11 +35,11 @@ public:
 	CSplitterControl();
 
 	void CreateWnd(DWORD dwStyle, const CRect &rect, CWnd *pParent, UINT nID);
-	int GetStyle();
+	int GetStyle() const							{ return m_nType; }
 	int	SetStyle(int nStyle = SPS_VERTICAL);
 	void SetRange(int nMin, int nMax);
 	void SetRange(int nSubtraction, int nAddition, int nRoot);
-	void SetDrawBorder(bool bEnable = true);
+	void SetDrawBorder(bool bEnable = true)			{ m_bDrawBorder = bEnable; }
 
 	static void ChangePos(CWnd *pWnd, int dx, int dy);
 	static void ChangeWidth(CWnd *pWnd, int dx, DWORD dwFlag = CW_LEFTALIGN);

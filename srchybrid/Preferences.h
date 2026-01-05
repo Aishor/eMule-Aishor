@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -965,8 +965,8 @@ public:
 	static DWORD	GetServerKeepAliveTimeout()			{ return m_dwServerKeepAliveTimeout; }
 	static bool		GetConditionalTCPAccept()			{ return m_bConditionalTCPAccept; }
 
-	static LANGID	GetLanguageID();
-	static void		SetLanguageID(LANGID lid);
+	static LANGID	GetLanguageID()						{ return m_wLanguageID; }
+	static void		SetLanguageID(LANGID lid)			{ m_wLanguageID = lid; }
 	static void		GetLanguages(CWordArray &aLanguageIDs);
 	static void		SetLanguage();
 	static bool		IsLanguageSupported(LANGID lidSelected);
@@ -1109,7 +1109,7 @@ public:
 	static bool		AddNewFilesPaused()					{ return addnewfilespaused; }
 
 	static bool		TransferlistRemainSortStyle()		{ return m_bTransflstRemain; }
-	static void		TransferlistRemainSortStyle(bool in){ m_bTransflstRemain = in; }
+	static void		TransferlistRemainSortStyle(bool in) { m_bTransflstRemain = in; }
 
 	static DWORD	GetStatsColor(int index)			{ return m_adwStatsColors[index]; }
 	static void		SetStatsColor(int index, DWORD value) { m_adwStatsColors[index] = value; }
@@ -1142,7 +1142,7 @@ public:
 	static bool		GetRearrangeKadSearchKeywords()		{ return m_bRearrangeKadSearchKeywords; }
 
 	static const CString& GetYourHostname()				{ return m_strYourHostname; }
-	static void		SetYourHostname(LPCTSTR pszHostname){ m_strYourHostname = pszHostname; }
+	static void		SetYourHostname(LPCTSTR pszHostname) { m_strYourHostname = pszHostname; }
 	static bool		IsCheckDiskspaceEnabled()			{ return checkDiskspace; }
 	static UINT		GetMinFreeDiskSpace()				{ return m_uMinFreeDiskSpace; }
 	static bool		GetSparsePartFiles();
@@ -1223,9 +1223,9 @@ public:
 	static bool		GetWebUseHttps()					{ return m_bWebUseHttps; }
 	static void		SetWebUseHttps(bool bUse)			{ m_bWebUseHttps = bUse; }
 	static const CString& GetWebCertPath()				{ return m_sWebHttpsCertificate; }
-	static void		SetWebCertPath(const CString &path)		{ m_sWebHttpsCertificate = path; };
+	static void		SetWebCertPath(const CString &path)		{ m_sWebHttpsCertificate = path; }
 	static const CString& GetWebKeyPath()				{ return m_sWebHttpsKey; }
-	static void		SetWebKeyPath(const CString &path)	{ m_sWebHttpsKey = path; };
+	static void		SetWebKeyPath(const CString &path)	{ m_sWebHttpsKey = path; }
 
 	static void		SetMaxSourcesPerFile(UINT in)		{ maxsourceperfile = in; }
 	static void		SetMaxConnections(UINT in)			{ maxconnections = in; }
@@ -1243,7 +1243,7 @@ public:
 	static const CString& GetTemplate()					{ return m_strTemplateFile; }
 	static void		SetTemplate(const CString &in)		{ m_strTemplateFile = in; }
 	static bool		GetNetworkKademlia()				{ return networkkademlia && udpport > 0; }
-	static void		SetNetworkKademlia(bool val);
+	static void		SetNetworkKademlia(bool val)		{ networkkademlia = val; }
 	static bool		GetNetworkED2K()					{ return networked2k; }
 	static void		SetNetworkED2K(bool val)			{ networked2k = val; }
 

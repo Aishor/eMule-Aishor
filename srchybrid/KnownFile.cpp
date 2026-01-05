@@ -1,6 +1,6 @@
 // parts of this file are based on work from pan One (http://home-3.tiscali.nl/~meost/pms/)
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -23,7 +23,6 @@
 #include "DebugHelpers.h"
 #endif
 #include "emule.h"
-#include "KnownFile.h"
 #include "KnownFileList.h"
 #include "SharedFileList.h"
 #include "UpDownClient.h"
@@ -31,7 +30,6 @@
 #include "opcodes.h"
 #include "ini2.h"
 #include "FrameGrabThread.h"
-#include "CxImage/xImage.h"
 #include "Preferences.h"
 #include "PartFile.h"
 #include "Packets.h"
@@ -47,7 +45,6 @@
 #include "SharedFilesWnd.h"
 #include "MediaInfo.h"
 #include "id3/tag.h"
-#include "id3/misc_support.h"
 #include "uploaddiskiothread.h"
 extern wchar_t* ID3_GetStringW(const ID3_Frame *frame, ID3_FieldID fldName);
 
@@ -68,7 +65,7 @@ IMPLEMENT_DYNAMIC(CKnownFile, CShareableFile)
 
 CKnownFile::CKnownFile()
 	: m_tUtcLastModified((time_t)-1)
-	, m_nCompleteSourcesTime() //(time(NULL))
+	, m_tCompleteSourcesTime() //(time(NULL))
 	, m_nCompleteSourcesCount(1)
 	, m_nCompleteSourcesCountLo(1)
 	, m_nCompleteSourcesCountHi(1)
@@ -109,7 +106,7 @@ void CKnownFile::AssertValid() const
 
 	(void)m_tUtcLastModified;
 	(void)statistic;
-	(void)m_nCompleteSourcesTime;
+	(void)m_tCompleteSourcesTime;
 	(void)m_nCompleteSourcesCount;
 	(void)m_nCompleteSourcesCountLo;
 	(void)m_nCompleteSourcesCountHi;
@@ -138,7 +135,7 @@ void CKnownFile::Dump(CDumpContext &dc) const
 
 CBarShader CKnownFile::s_ShareStatusBar(16);
 
-void CKnownFile::DrawShareStatusBar(CDC *dc, LPCRECT rect, bool onlygreyrect, bool  bFlat) const
+void CKnownFile::DrawShareStatusBar(CDC &dc, LPCRECT rect, bool onlygreyrect, bool  bFlat) const
 {
 	s_ShareStatusBar.SetFileSize(GetFileSize());
 	s_ShareStatusBar.SetRect(rect);
@@ -192,10 +189,7 @@ void CKnownFile::UpdateFileRatingCommentAvail(bool bForceUpdate)
 		}
 	}
 
-	if (uRatings)
-		m_uUserRating = (uint32)ROUND((float)uUserRatings / uRatings);
-	else
-		m_uUserRating = 0;
+	m_uUserRating = uRatings ? (uint32)ROUND(uUserRatings / (float)uRatings) : 0;
 
 	if (bOldHasComment != m_bHasComment || uOldUserRatings != m_uUserRating || bForceUpdate)
 		theApp.emuledlg->sharedfileswnd->sharedfilesctrl.UpdateFile(this);
@@ -204,7 +198,7 @@ void CKnownFile::UpdateFileRatingCommentAvail(bool bForceUpdate)
 void CKnownFile::UpdatePartsInfo()
 {
 	time_t tNow = time(NULL);
-	bool bRefresh = (tNow - m_nCompleteSourcesTime > 0);
+	bool bRefresh = (tNow - m_tCompleteSourcesTime > 0);
 
 	// Reset part counters
 	if (m_AvailPartFrequency.GetCount() < GetPartCount())
@@ -289,7 +283,7 @@ void CKnownFile::UpdatePartsInfo()
 			if (m_nCompleteSourcesCountHi < m_nCompleteSourcesCount)
 				m_nCompleteSourcesCountHi = m_nCompleteSourcesCount;
 		}
-		m_nCompleteSourcesTime = tNow + MIN2S(1);
+		m_tCompleteSourcesTime = tNow + MIN2S(1);
 	}
 	if (theApp.emuledlg->sharedfileswnd->m_hWnd)
 		theApp.emuledlg->sharedfileswnd->sharedfilesctrl.UpdateFile(this);
@@ -328,12 +322,10 @@ void Dump(const Kademlia::WordList &wordlist)
 
 void CKnownFile::SetFileName(LPCTSTR pszFileName, bool bReplaceInvalidFileSystemChars, bool bRemoveControlChars)
 {
-	// If this is called within the shared files object during startup,
-	// we cannot reference it yet.
+	// The shared files object may not exist early in startup sequence.
+	bool bSharedFiles = theApp.sharedfiles && theApp.sharedfiles->GetFileByID(GetFileHash()) == this;
 
-	const CKnownFile *pFile = theApp.sharedfiles ? theApp.sharedfiles->GetFileByID(GetFileHash()) : NULL;
-
-	if (pFile == this)
+	if (bSharedFiles)
 		theApp.sharedfiles->RemoveKeywords(this);
 
 	SetAFileName(pszFileName, bReplaceInvalidFileSystemChars, true, bRemoveControlChars);
@@ -347,7 +339,7 @@ void CKnownFile::SetFileName(LPCTSTR pszFileName, bool bReplaceInvalidFileSystem
 	} else
 		Kademlia::CSearchManager::GetWords((CStringW)GetFileName(), wordlist); //make sure that it is a CStringW
 
-	if (pFile == this)
+	if (bSharedFiles)
 		theApp.sharedfiles->AddKeywords(this);
 }
 
@@ -429,22 +421,22 @@ bool CKnownFile::CreateFromFile(LPCTSTR in_directory, LPCTSTR in_filename, LPVOI
 			else
 				break;
 
+		if (theApp.IsClosing()) {
+			LogError(_T("Hashing cancelled (closing eMule), file \"%s\""), (LPCTSTR)strFilePath);
+			fclose(file);
+			return false;
+		}
 		if (pvProgressParam) {
-			if (theApp.IsClosing()) {
-				LogError(_T("Hashing cancelled (closing eMule), file \"%s\""), (LPCTSTR)strFilePath);
-				fclose(file);
-				return false;
-			}
 			if (reinterpret_cast<CPartFile*>(pvProgressParam)->IsKindOf(RUNTIME_CLASS(CPartFile))
-				&& reinterpret_cast<CPartFile*>(pvProgressParam)->IsDeleting())
-			{
+				&& reinterpret_cast<CPartFile*>(pvProgressParam)->IsDeleting()) {
 				LogError(_T("Hashing cancelled (pending delete), file \"%s\""), (LPCTSTR)strFilePath);
 				fclose(file);
 				return false;
 			}
+
 			ASSERT(reinterpret_cast<CKnownFile*>(pvProgressParam)->IsKindOf(RUNTIME_CLASS(CKnownFile)));
 			ASSERT(reinterpret_cast<CKnownFile*>(pvProgressParam)->GetFileSize() == GetFileSize());
-			WPARAM uProgress = (WPARAM)((((uint64)GetFileSize() - togo) * 100) / (uint64)GetFileSize());
+			WPARAM uProgress = (WPARAM)(100 - (togo * 100) / (uint64)GetFileSize());
 			ASSERT(uProgress <= 100);
 			VERIFY(theApp.emuledlg->PostMessage(TM_FILEOPPROGRESS, uProgress, (LPARAM)pvProgressParam));
 		}
@@ -1383,9 +1375,9 @@ void CKnownFile::UpdateMetaDataTags()
 	if (thePrefs.GetExtractMetaData() == 0)
 		return;
 
-	CString szExt(::PathFindExtension(GetFileName()));
-	szExt.MakeLower();
-	if (szExt == _T(".mp3") || szExt == _T(".mp2") || szExt == _T(".mp1") || szExt == _T(".mpa")) {
+	LPCTSTR pszExt = ::PathFindExtension(GetFileName());
+	pszExt += static_cast<int>(*pszExt != _T('\0'));
+	if (!_tcsicmp(pszExt, _T("mp3")) || !_tcsicmp(pszExt, _T("mp2")) || !_tcsicmp(pszExt, _T("mp1")) || !_tcsicmp(pszExt, _T("mpa"))) {
 		TCHAR szFullPath[MAX_PATH];
 		if (_tmakepathlimit(szFullPath, NULL, GetPath(), GetFileName(), NULL)) {
 			wchar_t *pszText = NULL;
@@ -1585,7 +1577,7 @@ bool CKnownFile::PublishSrc()
 
 bool CKnownFile::IsMovie() const
 {
-	return (ED2KFT_VIDEO == GetED2KFileTypeID(GetFileName()));
+	return GetED2KFileTypeID(GetFileName()) == ED2KFT_VIDEO;
 }
 
 // function assumes that this file is shared and that any needed permission to preview exists. checks have to be done before calling!
@@ -1605,7 +1597,7 @@ bool CKnownFile::GrabImage(const CString &strFileName, uint8 nFramesToGrab, doub
 }
 
 // imgResults[i] can be NULL
-void CKnownFile::GrabbingFinished(CxImage **imgResults, uint8 nFramesGrabbed, void *pSender)
+void CKnownFile::GrabbingFinished(HBITMAP *imgResults, uint8 nFramesGrabbed, void *pSender)
 {
 	// continue processing
 	if (theApp.clientlist->IsValidClient(reinterpret_cast<CUpDownClient*>(pSender)))
@@ -1615,7 +1607,8 @@ void CKnownFile::GrabbingFinished(CxImage **imgResults, uint8 nFramesGrabbed, vo
 
 	//cleanup
 	for (int i = nFramesGrabbed; --i >= 0;)
-		delete imgResults[i];
+		if (imgResults[i])
+			::DeleteObject(imgResults[i]);
 	delete[] imgResults;
 }
 

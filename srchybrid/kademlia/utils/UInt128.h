@@ -35,16 +35,16 @@ namespace Kademlia
 	class CUInt128
 	{
 	public:
-		CUInt128();
+		CUInt128()										{ SetZero(); }
 		explicit CUInt128(bool bFill);
-		explicit CUInt128(ULONG uValue);
-		explicit CUInt128(const byte *pbyValueBE);
+		explicit CUInt128(ULONG uValue)					{ SetValue(uValue); }
+		explicit CUInt128(const byte *pbyValueBE)		{ SetValueBE(pbyValueBE); }
 		//Generates a new number, copying the most significant 'numBits' bits from 'value'.
 		//The remaining bits are randomly generated.
 		CUInt128(const CUInt128 &uValue, UINT uNumBits = 128);
 
-		const byte* GetData() const;
-		byte*	GetDataPtr() const;
+		const byte* GetData() const						{ return (byte*)m_uData; }
+		byte*	GetDataPtr() const						{ return (byte*)m_uData; }
 		/** Bit at position 0 being the most significant. */
 		UINT	GetBitNumber(UINT uBit) const;
 		int		CompareTo(const CUInt128 &uOther) const;
@@ -53,7 +53,7 @@ namespace Kademlia
 		CString	ToHexString() const;
 		void	ToBinaryString(CString &str, bool bTrim = false) const;
 		void	ToByteArray(byte *pby) const;
-		ULONG	Get32BitChunk(int iVal) const;
+		ULONG	Get32BitChunk(int iVal) const			{ return m_uData[iVal]; }
 		CUInt128& SetValue(const CUInt128 &uValue);
 		CUInt128& SetValue(ULONG uValue);
 		CUInt128& SetValueBE(const byte *pbyValueBE);
@@ -67,30 +67,31 @@ namespace Kademlia
 		CUInt128& Subtract(const CUInt128 &uValue);
 		CUInt128& Subtract(ULONG uValue);
 		CUInt128& Xor(const CUInt128 &uValue);
-		CUInt128& XorBE(const byte *pbyValueBE);
-		CUInt128& operator+ (const CUInt128 &uValue);
-		CUInt128& operator- (const CUInt128 &uValue);
-		CUInt128& operator= (const CUInt128 &uValue);
-		bool operator<  (const CUInt128 &uValue) const;
-		bool operator>  (const CUInt128 &uValue) const;
-		bool operator<= (const CUInt128 &uValue) const;
-		bool operator>= (const CUInt128 &uValue) const;
-		bool operator== (const CUInt128 &uValue) const;
-		bool operator!= (const CUInt128 &uValue) const;
-		CUInt128& operator+ (ULONG uValue);
-		CUInt128& operator- (ULONG uValue);
-		CUInt128& operator= (ULONG uValue);
-		bool operator<  (ULONG uValue) const;
-		bool operator>  (ULONG uValue) const;
-		bool operator<= (ULONG uValue) const;
-		bool operator>= (ULONG uValue) const;
-		bool operator== (ULONG uValue) const;
-		bool operator!= (ULONG uValue) const;
+		CUInt128& XorBE(const byte *pbyValueBE)			{ return Xor(CUInt128(pbyValueBE)); }
+		CUInt128& operator+ (const CUInt128 &uValue)	{ return Add(uValue); }
+		CUInt128& operator- (const CUInt128 &uValue)	{ return Subtract(uValue); }
+		CUInt128& operator= (const CUInt128 &uValue)	{ return SetValue(uValue); }
+		bool operator<  (const CUInt128 &uValue) const	{ return CompareTo(uValue) < 0; }
+		bool operator>  (const CUInt128 &uValue) const	{ return CompareTo(uValue) > 0; }
+		bool operator<= (const CUInt128 &uValue) const	{ return CompareTo(uValue) <= 0; }
+		bool operator>= (const CUInt128 &uValue) const	{ return CompareTo(uValue) >= 0; }
+		bool operator== (const CUInt128 &uValue) const	{ return CompareTo(uValue) == 0; }
+		bool operator!= (const CUInt128 &uValue) const	{ return CompareTo(uValue) != 0; }
+		CUInt128& operator+ (ULONG uValue)				{ return Add(uValue); }
+		CUInt128& operator- (ULONG uValue)				{ return Subtract(uValue); }
+		CUInt128& operator= (ULONG uValue)				{ return SetValue(uValue); }
+		bool operator<  (ULONG uValue) const			{ return CompareTo(uValue) < 0; }
+		bool operator>  (ULONG uValue) const			{ return CompareTo(uValue) > 0; }
+		bool operator<= (ULONG uValue) const			{ return CompareTo(uValue) <= 0; }
+		bool operator>= (ULONG uValue) const			{ return CompareTo(uValue) >= 0; }
+		bool operator== (ULONG uValue) const			{ return CompareTo(uValue) == 0; }
+		bool operator!= (ULONG uValue) const			{ return CompareTo(uValue) != 0; }
 	private:
 		union
 		{
 			ULONG	m_uData[4];
 			uint64	m_u64Data[2];
 		};
+		void SetZero() { m_u64Data[0] = 0; m_u64Data[1] = 0; }
 	};
 }

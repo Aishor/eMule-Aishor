@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2003-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2003-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -16,12 +16,11 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
 
-class CxImage;
 class CKnownFile;
 
 struct FrameGrabResult_Struct
 {
-	CxImage	**imgResults;
+	HBITMAP	*imgResults;
 	uint8	nImagesGrabbed;
 	void	*pSender;
 };
@@ -44,11 +43,11 @@ public:
 
 private:
 	CString	strFileName;
-	CxImage	**imgResults;
+	HBITMAP	*imgResults;
 	const CKnownFile *pOwner;
 	void	*pSender;
 	double	dStartTime;
-	int32_t	nMaxWidth;
+	uint32	nMaxWidth;
 	uint8	nFramesToGrab;
 	bool	bReduceColor;
 };

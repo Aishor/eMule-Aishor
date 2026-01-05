@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -18,8 +18,6 @@
 #include "emule.h"
 #include "KademliaWnd.h"
 #include "KadContactListCtrl.h"
-#include "Ini2.h"
-#include "OtherFunctions.h"
 #include "emuledlg.h"
 
 #ifdef _DEBUG
@@ -63,11 +61,6 @@ void CKadContactListCtrl::Init()
 
 	SetSortArrow(iSortItem, bSortAscending);
 	SortItems(SortProc, MAKELONG(iSortItem, !bSortAscending));
-}
-
-void CKadContactListCtrl::SaveAllSettings()
-{
-	SaveSettings();
 }
 
 void CKadContactListCtrl::OnSysColorChange()

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 #include "UserMsgs.h"
 #include "PartFile.h"
 #include "UpDownClient.h"
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 #include "MenuCmds.h"
 #include "StringConversion.h"
 
@@ -283,7 +283,7 @@ void CFileDetailDialogName::OnNmRClickList(LPNMHDR, LRESULT *pResult)
 
 	POINT point;
 	::GetCursorPos(&point);
-	CTitleMenu popupMenu;
+	CTitledMenu popupMenu;
 	popupMenu.CreatePopupMenu();
 	popupMenu.AppendMenu(flag, MP_MESSAGE, GetResString(IDS_TAKEOVER));
 	popupMenu.AppendMenu(flag, MP_COPYSELECTED, GetResString(IDS_COPY));
@@ -332,7 +332,7 @@ void CFileDetailDialogName::RenameFile()
 bool CFileDetailDialogName::CanRenameFile() const
 {
 	const CPartFile *file = static_cast<CPartFile*>((*m_paFiles)[0]);
-	return (file->GetStatus() != PS_COMPLETE && file->GetStatus() != PS_COMPLETING);
+	return file->GetStatus() != PS_COMPLETE && file->GetStatus() != PS_COMPLETING;
 }
 
 void CFileDetailDialogName::OnEnChangeFilename()

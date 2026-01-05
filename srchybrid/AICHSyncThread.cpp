@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #include "shahashset.h"
 #include "safefile.h"
 #include "knownfile.h"
-#include "sha.h"
 #include "emule.h"
 #include "emuledlg.h"
 #include "sharedfilelist.h"
@@ -58,7 +57,7 @@ int CAICHSyncThread::Run()
 	// we need to keep a lock on this file while the thread is running
 	CSingleLock lockKnown2Met(&CAICHRecoveryHashSet::m_mutKnown2File, TRUE);
 	bool bJustCreated = ConvertKnown2ToKnown264(file);
-	if (!bJustCreated) {
+	if (!bJustCreated)
 		if (!CFileOpen(file
 			, thePrefs.GetMuleDirectory(EMULE_CONFIGDIR) + KNOWN2_MET_FILENAME
 			, CFile::modeReadWrite | CFile::modeCreate | CFile::modeNoTruncate | CFile::osSequentialScan | CFile::typeBinary | CFile::shareDenyNone
@@ -66,7 +65,7 @@ int CAICHSyncThread::Run()
 		{
 			return 0;
 		}
-	}
+
 	uint32 nLastVerifiedPos = 0;
 	try {
 		if (file.GetLength() >= 1) {

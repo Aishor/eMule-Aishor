@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,8 +15,8 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <uxtheme.h>
 #include "TreeOptionsCtrlEx.h"
-#include "VisualStylesXP.h"
 #include "UserMsgs.h"
 
 #ifdef _DEBUG
@@ -46,24 +46,19 @@ void CTreeOptionsCtrlEx::HandleCheckBox(HTREEITEM hItem, BOOL bCheck)
 	BOOL bOldState;
 	GetCheckBox(hItem, bOldState);
 	VERIFY(SetCheckBox(hItem, !bCheck));
-	if (bOldState != !bCheck)
+	if (static_cast<bool>(bOldState) != static_cast<bool>(!bCheck))
 		NotifyParent(BN_CLICKED, hItem);
 
 	//If the item has children, then iterate through them and for all items
 	//which are check boxes set their state to be the same as the parent
-	HTREEITEM hChild = GetNextItem(hItem, TVGN_CHILD);
-	while (hChild) {
+	for (HTREEITEM hChild = GetNextItem(hItem, TVGN_CHILD); hChild; hChild = GetNextItem(hChild, TVGN_NEXT))
 		if (IsCheckBox(hChild)) {
 			BOOL bThisChecked;
 			GetCheckBox(hChild, bThisChecked);
 			SetCheckBox(hChild, !bCheck);
-			if (bThisChecked != !bCheck)
+			if (static_cast<bool>(bThisChecked) != static_cast<bool>(!bCheck))
 				NotifyParent(BN_CLICKED, hChild);
 		}
-
-		//Move on to the next item
-		hChild = GetNextItem(hChild, TVGN_NEXT);
-	}
 
 	//Get the parent item and if it is a checkbox, then iterate through
 	//all its children and if all the checkboxes are checked, then also
@@ -85,20 +80,15 @@ void CTreeOptionsCtrlEx::UpdateCheckBoxGroup(HTREEITEM hItem)
 	//also automatically uncheck the item.
 	HTREEITEM hParent = hItem;
 	if (hParent && IsCheckBox(hParent)) {
-		BOOL bNoCheckBoxesChecked = TRUE;
-		BOOL bAllCheckBoxesChecked = TRUE;
-		HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD);
-		while (hChild) {
+		bool bNoCheckBoxesChecked = true;
+		bool bAllCheckBoxesChecked = true;
+		for (HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD); hChild; hChild = GetNextItem(hChild, TVGN_NEXT))
 			if (IsCheckBox(hChild)) {
 				BOOL bThisChecked;
 				VERIFY(GetCheckBox(hChild, bThisChecked));
-				bNoCheckBoxesChecked = bNoCheckBoxesChecked && !bThisChecked;
-				bAllCheckBoxesChecked = bAllCheckBoxesChecked && bThisChecked;
+				bNoCheckBoxesChecked &= static_cast<bool>(!bThisChecked);
+				bAllCheckBoxesChecked &= static_cast<bool>(bThisChecked);
 			}
-
-			//Move on to the next item
-			hChild = GetNextItem(hChild, TVGN_NEXT);
-		}
 
 		if (bNoCheckBoxesChecked) {
 			BOOL bOldState;
@@ -116,7 +106,7 @@ void CTreeOptionsCtrlEx::UpdateCheckBoxGroup(HTREEITEM hItem)
 		} else {
 			BOOL bEnable;
 			VERIFY(GetCheckBoxEnable(hParent, bEnable));
-			SetEnabledSemiCheckBox(hParent, bEnable);
+			SetSemiCheckBox(hParent, bEnable);
 		}
 	}
 
@@ -129,25 +119,20 @@ BOOL CTreeOptionsCtrlEx::SetRadioButton(HTREEITEM hParent, int nIndex)
 	//Validate our parameters
 	ASSERT(IsGroup(hParent)); //Parent item must be a group item
 
-	//Iterate through the child items and turn on the specified one and turn off all the other ones
-	HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD);
-
 	//Turn of redraw to Q all the changes we're going to make here
 	SetRedraw(FALSE);
 
 	int i = 0;
-	BOOL bCheckedSomeItem = FALSE;
-	while (hChild) {
-		//if we reach a non radio button then break out of the loop
-		if (!IsRadioButton(hChild))
-			break;
-
+	bool bCheckedSomeItem = false;
+	//Iterate through the child items and turn on the specified one and turn off all the other ones
+	//if we reach a non radio button then break out of the loop
+	for (HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD); hChild && IsRadioButton(hChild); hChild = GetNextItem(hChild, TVGN_NEXT)) {
 		if (i == nIndex) {
 			//Turn this item on
 			BOOL bOldState;
 			GetRadioButton(hChild, bOldState);
 			VERIFY(SetItemImage(hChild, 3, 3));
-			bCheckedSomeItem = TRUE;
+			bCheckedSomeItem = true;
 			if (!bOldState)
 				NotifyParent(BN_CLICKED, hChild);
 		} else {
@@ -161,8 +146,6 @@ BOOL CTreeOptionsCtrlEx::SetRadioButton(HTREEITEM hParent, int nIndex)
 				VERIFY(SetItemImage(hChild, 4, 4));
 		}
 
-		//Move on to the next item
-		hChild = GetNextItem(hChild, TVGN_NEXT);
 		++i;
 	}
 	ASSERT(bCheckedSomeItem); //You specified an index which does not exist
@@ -182,17 +165,12 @@ BOOL CTreeOptionsCtrlEx::SetRadioButton(HTREEITEM hItem)
 	HTREEITEM hParent = GetNextItem(hItem, TVGN_PARENT);
 	ASSERT(IsGroup(hParent)); //Parent item must be a group item
 
-	//Iterate through the child items and turn on the specified one and turn off all the other ones
-	HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD);
-
 	//Turn of redraw to Q all the changes we're going to make here
 	SetRedraw(FALSE);
 
-	while (hChild) {
-		//if we reach a non radio button then break out of the loop
-		if (!IsRadioButton(hChild))
-			break;
-
+	//Iterate through the child items and turn on the specified one and turn off all the other ones
+	//if we reach a non radio button then break out of the loop
+	for (HTREEITEM hChild = GetNextItem(hParent, TVGN_CHILD); hChild && IsRadioButton(hChild); hChild = GetNextItem(hChild, TVGN_NEXT))
 		if (hChild == hItem) {
 			//Turn this item on
 			BOOL bOldState;
@@ -210,10 +188,6 @@ BOOL CTreeOptionsCtrlEx::SetRadioButton(HTREEITEM hItem)
 			else
 				VERIFY(SetItemImage(hChild, 6, 6));
 		}
-
-		//Move on to the next item
-		hChild = GetNextItem(hChild, TVGN_NEXT);
-	}
 
 	//Reset the redraw flag
 	SetRedraw(TRUE);
@@ -235,11 +209,6 @@ BOOL CTreeOptionsCtrlEx::NotifyParent(UINT uCode, HTREEITEM hItem)
 	return pWnd->SendMessage(UM_TREEOPTSCTRL_NOTIFY, ::GetWindowLongPtr(m_hWnd, GWLP_ID), (LPARAM)&ton) != 0;
 }
 
-void CTreeOptionsCtrlEx::SetImageListColorFlags(UINT uImageListColorFlags)
-{
-	m_uImageListColorFlags = uImageListColorFlags;
-}
-
 void CTreeOptionsCtrlEx::OnCreateImageList()
 {
 	CDC *pDCScreen = CDC::FromHandle(::GetDC(HWND_DESKTOP)); // explicitly use screen-dc, for proper RTL support
@@ -252,14 +221,12 @@ void CTreeOptionsCtrlEx::OnCreateImageList()
 			if (m_ilTree.Create(iBmpWidth, iBmpHeight, m_uImageListColorFlags | ILC_MASK, 0, 1)) {
 				CDC dcMem;
 				if (dcMem.CreateCompatibleDC(pDCScreen)) {
-					HTHEME hTheme = (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) ? g_xpStyle.OpenThemeData(NULL, L"BUTTON") : NULL;
+					HTHEME hTheme = (::IsThemeActive() && ::IsAppThemed()) ? ::OpenThemeData(NULL, L"BUTTON") : NULL;
 					CBitmap *pOldBmp = dcMem.SelectObject(&bmpControls);
 					dcMem.FillSolidRect(0, 0, iBmpWidth * iBitmaps, iBmpHeight, ::GetSysColor(COLOR_WINDOW));
 
-					//int iCtrlWidth = iBmpWidth - 2;
-					//int iCtrlHeight = iBmpHeight - 2;
-					int iCtrlWidth = 16 - 3;
-					int iCtrlHeight = 16 - 3;
+					int iCtrlWidth = iBmpWidth - 3;
+					int iCtrlHeight = iBmpHeight - 3;
 					int iCtrlLeft = (iBmpWidth - iCtrlWidth) / 2;
 					int iCtrlTop = (iBmpHeight - iCtrlHeight) / 2;
 
@@ -267,80 +234,80 @@ void CTreeOptionsCtrlEx::OnCreateImageList()
 					CRect rcBmp(0, 0, iBmpWidth, iBmpHeight);
 					CRect rcCtrl(iCtrlLeft, iCtrlTop, iCtrlLeft + iCtrlWidth, iCtrlTop + iCtrlHeight);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT);
 
 					// checkbox checked
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 1);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDNORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDNORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_CHECKED | DFCS_FLAT);
 
 					// radio
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 2);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_UNCHECKEDNORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_UNCHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_UNCHECKEDNORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_UNCHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONRADIO | DFCS_FLAT);
 
 					// radio checked
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 3);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_CHECKEDNORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_CHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_CHECKEDNORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_CHECKEDNORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONRADIO | DFCS_CHECKED | DFCS_FLAT);
 
 					// checkbox disabled
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 4);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDDISABLED, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDDISABLED, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_UNCHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_INACTIVE | DFCS_FLAT);
 
 					// checkbox checked disabled
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 5);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDDISABLED, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDDISABLED, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_CHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_CHECKED | DFCS_INACTIVE | DFCS_FLAT);
 
 					// radio disabled
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 6);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_UNCHECKEDDISABLED, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_UNCHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_UNCHECKEDDISABLED, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_UNCHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONRADIO | DFCS_INACTIVE | DFCS_FLAT);
 
 					// radio checked disabled
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 7);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_CHECKEDDISABLED, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_CHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_RADIOBUTTON, RBS_CHECKEDDISABLED, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, RBS_CHECKEDDISABLED, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTONRADIO | DFCS_CHECKED | DFCS_INACTIVE | DFCS_FLAT);
 
 					// checkbox checked tri-state
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 8);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDNORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDNORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDNORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDNORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTON3STATE | DFCS_CHECKED | DFCS_FLAT);
 
 					// checkbox checked tri-state disabled
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 9);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDDISABLED, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDDISABLED, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDDISABLED, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, BP_CHECKBOX, CBS_MIXEDDISABLED, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_BUTTON, DFCS_BUTTON3STATE | DFCS_CHECKED | DFCS_INACTIVE | DFCS_FLAT);
 
@@ -359,30 +326,25 @@ void CTreeOptionsCtrlEx::OnCreateImageList()
 					dcMem.DrawEdge(&rcEdge, EDGE_ETCHED, BF_RECT);
 
 					if (hTheme)
-						g_xpStyle.CloseThemeData(hTheme);
+						::CloseThemeData(hTheme);
 
-					hTheme = (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) ? g_xpStyle.OpenThemeData(NULL, L"COMBOBOX") : NULL;
+					hTheme = (::IsThemeActive() && ::IsAppThemed()) ? ::OpenThemeData(NULL, L"COMBOBOX") : NULL;
 					rcCtrl.MoveToX(iCtrlLeft + iBmpWidth * 12);
 					if (hTheme) {
-						g_xpStyle.DrawThemeBackground(hTheme, dcMem, CP_DROPDOWNBUTTON, CBXS_NORMAL, &rcCtrl, NULL);
-						g_xpStyle.DrawThemeEdge(hTheme, dcMem, CP_DROPDOWNBUTTON, CBXS_NORMAL, &rcCtrl, 0, 0, NULL);
+						::DrawThemeBackground(hTheme, dcMem, CP_DROPDOWNBUTTON, CBXS_NORMAL, &rcCtrl, NULL);
+						::DrawThemeEdge(hTheme, dcMem, CP_DROPDOWNBUTTON, CBXS_NORMAL, &rcCtrl, 0, 0, NULL);
 					} else
 						dcMem.DrawFrameControl(&rcCtrl, DFC_SCROLL, DFCS_SCROLLCOMBOBOX | DFCS_FLAT);
 
 					dcMem.SelectObject(pOldBmp);
 					m_ilTree.Add(&bmpControls, RGB(255, 0, 255));
 					if (hTheme)
-						g_xpStyle.CloseThemeData(hTheme);
+						::CloseThemeData(hTheme);
 				}
 			}
 		}
 		::ReleaseDC(HWND_DESKTOP, *pDCScreen);
 	}
-}
-
-void CTreeOptionsCtrlEx::HandleChildControlLosingFocus()
-{
-	CTreeOptionsCtrl::HandleChildControlLosingFocus();
 }
 
 void CTreeOptionsCtrlEx::SetEditLabel(HTREEITEM hItem, const CString &rstrLabel)
@@ -433,8 +395,10 @@ void EditTextFloatFormat(CDataExchange *pDX, int nIDC, HTREEITEM hItem, void *pD
 	}
 }
 
+#pragma warning(push)
+#pragma warning(disable:4774)
+// only supports windows output formats - no floating point
 void EditTextWithFormat(CDataExchange *pDX, int nIDC, HTREEITEM hItem, LPCTSTR lpszFormat, UINT nIDPrompt, ...)
-	// only supports windows output formats - no floating point
 {
 	va_list pData;
 	va_start(pData, nIDPrompt);
@@ -463,6 +427,7 @@ void EditTextWithFormat(CDataExchange *pDX, int nIDC, HTREEITEM hItem, LPCTSTR l
 
 	va_end(pData);
 }
+#pragma warning(pop)
 
 void DDX_TreeCheck(CDataExchange *pDX, int nIDC, HTREEITEM hItem, bool &bCheck)
 {

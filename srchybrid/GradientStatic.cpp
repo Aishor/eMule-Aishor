@@ -2,9 +2,9 @@
 //
 
 #include "stdafx.h"
-#include "GradientStatic.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "GradientStatic.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -156,7 +156,7 @@ void DrawRotatedText(HDC hdc, LPCTSTR str, LPCRECT rect, double angle, UINT nOpt
 	SIZE TextSize;
 	GetTextExtentPoint32(hdc, str, (int)_tcslen(str), &TextSize);
 
-	const POINT center{ TextSize.cx / 2, TextSize.cy / 2 };
+	const POINT center{TextSize.cx / 2, TextSize.cy / 2};
 
 	// now calculate the center of the rotated text
 	POINT rcenter;
@@ -166,8 +166,8 @@ void DrawRotatedText(HDC hdc, LPCTSTR str, LPCRECT rect, double angle, UINT nOpt
 	// finally draw the text and move it to the center of the rectangle
 	::SetTextAlign(hdc, TA_BOTTOM);
 	::SetBkMode(hdc, TRANSPARENT);
-	::ExtTextOut(hdc, (rect->left + rect->right) / 2 - rcenter.x,
-		rect->bottom, nOptions, rect, str, (UINT)_tcslen(str), NULL);
+	::ExtTextOut(hdc, (rect->left + rect->right) / 2 - rcenter.x
+		, rect->bottom, nOptions, rect, str, (UINT)_tcslen(str), NULL);
 }
 
 void CGradientStatic::DrawVerticalText(CRect *pRect)

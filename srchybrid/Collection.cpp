@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -96,7 +96,7 @@ CCollectionFile* CCollection::AddFileToCollection(CAbstractFile *pAbstractFile, 
 	return pCollectionFile;
 }
 
-void CCollection::RemoveFileFromCollection(CAbstractFile *pAbstractFile)
+void CCollection::RemoveFileFromCollection(const CAbstractFile *pAbstractFile)
 {
 	CSKey key(pAbstractFile->GetFileHash());
 	CCollectionFile *pCollectionFile;

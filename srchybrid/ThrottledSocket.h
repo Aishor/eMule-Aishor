@@ -25,7 +25,7 @@ public:
 	virtual uint32	GetNeededBytes() = 0;
 	virtual bool IsBusyExtensiveCheck() = 0;
 	virtual bool IsBusyQuickCheck() const = 0;
-	virtual bool IsEnoughFileDataQueued(uint32 nMinFilePayloadBytes) const = 0;
+	virtual bool IsLowOnFileDataQueued(uint32 nMinFilePayloadBytes) const = 0;
 	virtual bool HasQueues(bool bOnlyStandardPackets = false) const = 0;
 	virtual bool UseBigSendBuffer()					{ return false; }
 };

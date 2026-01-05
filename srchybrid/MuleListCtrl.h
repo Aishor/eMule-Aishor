@@ -33,13 +33,13 @@ class CMuleListCtrl : public CListCtrl
 
 public:
 	CMuleListCtrl(PFNLVCOMPARE pfnCompare = SortProc, LPARAM iParamSort = 0);
-	virtual	~CMuleListCtrl()					{ delete[] m_aColumns; };
+	virtual	~CMuleListCtrl()					{ delete[] m_aColumns; }
 
 	// Default sort proc, this does nothing
 	static int CALLBACK SortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
 	// Sets the list name, used for settings in "preferences.ini"
-	void SetPrefsKey(LPCTSTR lpszName)			{ m_Name = lpszName; };
+	void SetPrefsKey(LPCTSTR lpszName)			{ m_Name = lpszName; }
 
 	// Save to preferences
 	void SaveSettings();
@@ -47,7 +47,7 @@ public:
 	// Load from preferences
 	void LoadSettings();
 
-	DWORD SetExtendedStyle(DWORD dwNewStyle)	{ return CListCtrl::SetExtendedStyle(dwNewStyle | LVS_EX_HEADERDRAGDROP); };
+	DWORD SetExtendedStyle(DWORD dwNewStyle)	{ return CListCtrl::SetExtendedStyle(dwNewStyle | LVS_EX_HEADERDRAGDROP); }
 
 	// Hide the column
 	void HideColumn(int iColumn);
@@ -177,7 +177,7 @@ public:
 		none
 	};
 	EUpdateMode SetUpdateMode(EUpdateMode eUpdateMode);
-	void SetAutoSizeWidth(int iAutoSizeWidth)	{ m_iAutoSizeWidth = iAutoSizeWidth; };
+	void SetAutoSizeWidth(int iAutoSizeWidth)	{ m_iAutoSizeWidth = iAutoSizeWidth; }
 
 	int InsertColumn(int nCol, LPCTSTR lpszColumnHeading, int nFormat = LVCFMT_LEFT, int nWidth = -1, int nSubItem = -1, bool bHiddenByDefault = false);
 
@@ -205,7 +205,7 @@ protected:
 	int MoveItem(int iOldIndex, int iNewIndex);
 	void SetColors();
 	void DrawFocusRect(CDC *pDC, LPCRECT rcItem, BOOL bItemFocused, BOOL bCtrlFocused, BOOL bItemSelected);
-	void InitItemMemDC(CMemoryDC *dc, LPDRAWITEMSTRUCT lpDrawItemStruct, BOOL &bCtrlFocused);
+	void InitItemMemDC(CMemoryDC &dc, LPDRAWITEMSTRUCT lpDrawItemStruct, BOOL &bCtrlFocused);
 	void LocaliseHeaderCtrl(const UINT *const uids, size_t cnt);
 
 	static inline bool HaveIntersection(const RECT &rc1, const RECT &rc2)

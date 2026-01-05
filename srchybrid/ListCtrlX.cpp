@@ -3,7 +3,6 @@
 #include "ListCtrlX.h"
 #include "ListViewSearchDlg.h"
 #include "OtherFunctions.h"
-#include "MenuCmds.h"
 #include "Preferences.h"
 
 #ifdef _DEBUG

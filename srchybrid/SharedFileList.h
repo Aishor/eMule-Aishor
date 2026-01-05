@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -57,13 +57,13 @@ public:
 	void	ClearED2KPublishInfo();
 	void	ClearKadSourcePublishInfo();
 
-	static void	CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile &files, CServer *pServer, CUpDownClient *pClient = NULL);
+	static void	CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile &files, const CServer *pServer, const CUpDownClient *pClient = NULL);
 
 	bool	SafeAddKFile(CKnownFile *toadd, bool bOnlyAdd = false);
 	void	RepublishFile(CKnownFile *pFile);
 	void	SetOutputCtrl(CSharedFilesCtrl *in_ctrl);
 	bool	RemoveFile(CKnownFile *pFile, bool bDeleted = false);	// removes a specific shared file from the list
-	void	UpdateFile(CKnownFile *toupdate);
+	void	UpdateFile(const CKnownFile *toupdate);
 	void	AddFileFromNewlyCreatedCollection(const CString &rstrFilePath)	{ CheckAndAddSingleFile(rstrFilePath); }
 
 	// GUI is not initially updated
@@ -110,7 +110,7 @@ protected:
 
 	void	HashNextFile();
 	bool	IsHashing(const CString &rstrDirectory, const CString &rstrName);
-	void	RemoveFromHashing(CKnownFile *hashed);
+	void	RemoveFromHashing(const CKnownFile *hashed);
 	void	LoadSingleSharedFilesList();
 
 	void	CheckAndAddSingleFile(const CFileFind &ff);

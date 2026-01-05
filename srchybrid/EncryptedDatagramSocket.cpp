@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -99,12 +99,12 @@
 			  which is while not acceptable for encryption fair enough for obfuscation
 */
 #include "stdafx.h"
+#include "opcodes.h"
 #include "EncryptedDatagramSocket.h"
 #include "emule.h"
 #include "md5sum.h"
 #include "Log.h"
 #include "preferences.h"
-#include "packets.h"
 #include "Statistics.h"
 #include "safefile.h"
 #include "kademlia/kademlia/prefs.h"
@@ -157,7 +157,7 @@ int CEncryptedDatagramSocket::DecryptReceivedClient(BYTE *pbyBufIn, int nBufLen,
 	*nReceiverVerifyKey = 0;
 	*nSenderVerifyKey = 0;
 
-	if (nResult <= CRYPT_HEADER_SIZE /*|| !thePrefs.IsCryptLayerEnabled()*/)
+	if (nResult <= (int)CRYPT_HEADER_SIZE /*|| !thePrefs.IsCryptLayerEnabled()*/)
 		return nResult;
 
 	Crypt_Header_Struct &crypt = *reinterpret_cast<Crypt_Header_Struct*>(pbyBufIn);
@@ -380,7 +380,7 @@ int CEncryptedDatagramSocket::DecryptReceivedServer(BYTE *pbyBufIn, int nBufLen,
 	int nResult = nBufLen;
 	*ppbyBufOut = pbyBufIn;
 
-	if (nResult <= CRYPT_HEADER_SIZE || !thePrefs.IsCryptLayerEnabled() || dwBaseKey == 0)
+	if (nResult <= (int)CRYPT_HEADER_SIZE || !thePrefs.IsCryptLayerEnabled() || dwBaseKey == 0)
 		return nResult;
 
 	Crypt_Header_Struct &crypt = *reinterpret_cast<Crypt_Header_Struct*>(pbyBufIn);

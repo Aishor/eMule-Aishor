@@ -44,7 +44,7 @@ void CListBoxST::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 
 	CString sText;
 	CListBox::GetText(lpMeasureItemStruct->itemID, sText);
-	RECT rcItem = { 0, 0, (LONG)lpMeasureItemStruct->itemWidth, (LONG)lpMeasureItemStruct->itemHeight };
+	RECT rcItem{0, 0, (LONG)lpMeasureItemStruct->itemWidth, (LONG)lpMeasureItemStruct->itemHeight};
 
 	CDC *pDC = GetDC();
 	int nHeight = pDC->DrawText(sText, &rcItem, DT_WORDBREAK | DT_EXPANDTABS | DT_CALCRECT);
@@ -291,20 +291,16 @@ int CListBoxST::ReplaceItemData(int nIndex, DWORD_PTR dwItemData, LPVOID pData, 
 			return LB_ERR;
 		}
 
-	if (lpLBData) {
-		if ((byMask & MASK_DWDATA) == MASK_DWDATA)
-			lpLBData->dwItemData = dwItemData;
-		if ((byMask & MASK_LPDATA) == MASK_LPDATA)
-			lpLBData->pData = pData;
-		if ((byMask & MASK_NIMAGE) == MASK_NIMAGE)
-			lpLBData->nImage = nImage;
-		if ((byMask & MASK_DWFLAGS) == MASK_DWFLAGS)
-			lpLBData->dwFlags = dwFlags;
+	if (byMask & MASK_DWDATA)
+		lpLBData->dwItemData = dwItemData;
+	if (byMask & MASK_LPDATA)
+		lpLBData->pData = pData;
+	if (byMask & MASK_NIMAGE)
+		lpLBData->nImage = nImage;
+	if (byMask & MASK_DWFLAGS)
+		lpLBData->dwFlags = dwFlags;
 
-		return CListBox::SetItemDataPtr(nIndex, lpLBData);
-	}
-
-	return LB_ERR;
+	return CListBox::SetItemDataPtr(nIndex, lpLBData);
 } // End of ReplaceItemData
 
 void CListBoxST::DeleteItemData(int nIndex)

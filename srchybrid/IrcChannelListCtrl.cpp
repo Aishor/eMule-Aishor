@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 #include "IrcWnd.h"
 #include "IrcMain.h"
 #include "emule.h"
-#include "MemDC.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -73,6 +72,7 @@ void CIrcChannelListCtrl::Init()
 	InsertColumn(1, _T(""), LVCFMT_RIGHT, 50);	//IDS_UUSERS
 	InsertColumn(2, _T(""), LVCFMT_LEFT, 350);	//IDS_DESCRIPTION
 
+	Localize();
 	LoadSettings();
 	SetSortArrow();
 	SortItems(&SortProc, MAKELONG(GetSortItem(), !GetSortAscending()));
@@ -168,7 +168,7 @@ void CIrcChannelListCtrl::OnNmDblClk(LPNMHDR, LRESULT *pResult)
 void CIrcChannelListCtrl::OnContextMenu(CWnd*, CPoint point)
 {
 	int iCurSel = GetNextItem(-1, LVIS_SELECTED | LVIS_FOCUSED);
-	CTitleMenu menuChannel;
+	CTitledMenu menuChannel;
 	menuChannel.CreatePopupMenu();
 	menuChannel.AddMenuTitle(GetResString(IDS_IRC_CHANNEL));
 	menuChannel.AppendMenu(MF_STRING, Irc_Join, GetResString(IDS_IRC_JOIN));

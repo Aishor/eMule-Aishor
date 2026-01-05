@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -127,7 +127,7 @@ void CMuleToolbarCtrl::Init()
 
 	size_t lLen = 0;
 	UINT uid = IDS_MAIN_BTN_CONNECT;
-	for (int i = 0; ; ++i) {
+	for (unsigned i = 0; ; ++i) {
 		const CString &str(GetResString(uid));
 		int iLen = str.GetLength() + 1;
 		memcpy(cButtonStrings + lLen, (LPCTSTR)str, iLen * sizeof(TCHAR));
@@ -203,7 +203,7 @@ void CMuleToolbarCtrl::SetAllButtonsStrings()
 	else
 		uid = IDS_MAIN_BTN_CONNECT;
 
-	for (int i = 0; ; ++i) {
+	for (unsigned i = 0; ; ++i) {
 		const CString &str(GetResString(uid));
 		_tcsncpy_s(TBStrings[i], _countof(TBStrings[i]), str, _TRUNCATE);
 		tbbi.pszText = TBStrings[i];
@@ -260,17 +260,17 @@ void CMuleToolbarCtrl::SetAllButtonsWidth()
 		if (!thePrefs.GetUseReBarToolbar()) {
 			GetClientRect(&r);
 			int bc = GetButtonCount();
-			int iMaxPossible = r.Width() / (bc ? bc : 1);
-
+			int iMaxPossible = r.Width();
+			if (bc)
+				iMaxPossible /= bc;
 			// if the buttons are too big, reduce their size
 			if (iCalcSize > iMaxPossible)
 				iCalcSize = iMaxPossible;
-		} else {
-			if (iCalcSize < 56)
-				iCalcSize = 56;
-			else if (iCalcSize > 72)
+		} else if (iCalcSize < 56)
+			iCalcSize = 56;
+		else if (iCalcSize > 72)
 				iCalcSize = 72;
-		}
+
 		SetButtonWidth(iCalcSize, iCalcSize);
 	} else {
 		int iSmallIconsButtonHeight;
@@ -310,7 +310,7 @@ void CMuleToolbarCtrl::OnNmRClick(LPNMHDR, LRESULT *pResult)
 		if (!thePrefs.GetSkinProfile().IsEmpty())
 			theApp.ApplySkin(thePrefs.GetSkinProfile());
 
-		*pResult = TRUE;
+		*pResult = 1;
 		return;
 	}
 
@@ -467,25 +467,24 @@ void CMuleToolbarCtrl::OnNmRClick(LPNMHDR, LRESULT *pResult)
 	::GetCursorPos(&point);
 	menuToolbar.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 
-	*pResult = TRUE;
+	*pResult = 1;
 }
 
 void CMuleToolbarCtrl::OnTbnQueryDelete(LPNMHDR, LRESULT *pResult)
 {
-	*pResult = TRUE;
+	*pResult = 1;
 }
 
 void CMuleToolbarCtrl::OnTbnQueryInsert(LPNMHDR, LRESULT *pResult)
 {
-	*pResult = TRUE;
+	*pResult = 1;
 }
 
 void CMuleToolbarCtrl::OnTbnGetButtonInfo(LPNMHDR pNMHDR, LRESULT *pResult)
 {
 	LPNMTOOLBAR pNMTB = reinterpret_cast<LPNMTOOLBAR>(pNMHDR);
-	if ((size_t)pNMTB->iItem >= _countof(TBButtons))
-		*pResult = FALSE;
-	else {
+	*pResult = static_cast<LRESULT>((size_t)pNMTB->iItem >= _countof(TBButtons));
+	if (*pResult) {
 		CString strText(TBStrings[pNMTB->iItem]);
 		strText.Remove(_T('&'));
 		_tcsncpy(pNMTB->pszText, strText, pNMTB->cchText - 1);
@@ -493,7 +492,6 @@ void CMuleToolbarCtrl::OnTbnGetButtonInfo(LPNMHDR pNMHDR, LRESULT *pResult)
 		pNMTB->tbButton = TBButtons[pNMTB->iItem];
 		if (m_eLabelType == LabelsRight)
 			pNMTB->tbButton.fsStyle |= TBSTYLE_AUTOSIZE;
-		*pResult = TRUE;
 	}
 }
 

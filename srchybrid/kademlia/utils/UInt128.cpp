@@ -38,17 +38,12 @@ their client on the eMule forum.
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64))
+#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM64))
 #pragma intrinsic(_byteswap_ulong)
 #endif
 
 using namespace Kademlia;
 using namespace CryptoPP;
-
-CUInt128::CUInt128()
-{
-	SetValue(0ul);
-}
 
 CUInt128::CUInt128(bool bFill)
 {
@@ -56,17 +51,7 @@ CUInt128::CUInt128(bool bFill)
 		m_u64Data[0] = _UI64_MAX;
 		m_u64Data[1] = _UI64_MAX;
 	} else
-		SetValue(0ul);
-}
-
-CUInt128::CUInt128(ULONG uValue)
-{
-	SetValue(uValue);
-}
-
-CUInt128::CUInt128(const byte *pbyValueBE)
-{
-	SetValueBE(pbyValueBE);
+		SetZero();
 }
 
 CUInt128::CUInt128(const CUInt128 &uValue, UINT uNumBits)
@@ -94,7 +79,7 @@ CUInt128& CUInt128::SetValue(ULONG uValue)
 
 CUInt128& CUInt128::SetValueBE(const byte *pbyValueBE)
 {
-	SetValue(0ul);
+	SetZero();
 	for (int iIndex = 0; iIndex < 16; ++iIndex)
 		m_uData[iIndex / 4] |= ((ULONG)pbyValueBE[iIndex]) << (8 * (3 - (iIndex % 4)));
 	return *this;
@@ -103,9 +88,7 @@ CUInt128& CUInt128::SetValueBE(const byte *pbyValueBE)
 CUInt128& CUInt128::SetValueRandom()
 {
 	AutoSeededRandomPool rng;
-	byte byRandomBytes[16];
-	rng.GenerateBlock(byRandomBytes, 16);
-	SetValueBE(byRandomBytes);
+	rng.GenerateBlock((CryptoPP::byte*)m_uData, 16);
 	return *this;
 }
 
@@ -115,7 +98,7 @@ CUInt128& CUInt128::SetValueGUID()
 	if (CoCreateGuid(&guid) == S_OK) {
 		m_uData[0] = guid.Data1;
 		m_uData[1] = ((ULONG)guid.Data2) << 16 | guid.Data3;
-#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64))
+#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM64))
 		m_uData[2] = _byteswap_ulong(*(ULONG*)guid.Data4);
 		m_uData[3] = _byteswap_ulong(*(ULONG*)&guid.Data4[4]);
 #else
@@ -123,7 +106,7 @@ CUInt128& CUInt128::SetValueGUID()
 		m_uData[3] = ((ULONG)guid.Data4[4]) << 24 | ((ULONG)guid.Data4[5]) << 16 | ((ULONG)guid.Data4[6]) << 8 | ((ULONG)guid.Data4[7]);
 #endif
 	} else
-		SetValue(0ul);
+		SetZero();
 	return *this;
 }
 
@@ -133,7 +116,7 @@ UINT CUInt128::GetBitNumber(UINT uBit) const
 		return 0;
 	int iLongNum = uBit / 32;
 	int iShift = 31 - (uBit % 32);
-	return ((m_uData[iLongNum] >> iShift) & 1);
+	return (m_uData[iLongNum] >> iShift) & 1;
 }
 
 CUInt128& CUInt128::SetBitNumber(UINT uBit, UINT uValue)
@@ -151,11 +134,6 @@ CUInt128& CUInt128::Xor(const CUInt128 &uValue)
 	m_u64Data[0] ^= uValue.m_u64Data[0];
 	m_u64Data[1] ^= uValue.m_u64Data[1];
 	return *this;
-}
-
-CUInt128& CUInt128::XorBE(const byte *pbyValueBE)
-{
-	return Xor(CUInt128(pbyValueBE));
 }
 
 void CUInt128::ToHexString(CString &str) const
@@ -188,7 +166,7 @@ void CUInt128::ToBinaryString(CString &str, bool bTrim) const
 
 void CUInt128::ToByteArray(byte *pby) const
 {
-#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64))
+#if (_MSC_FULL_VER > 13009037) && (defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM64))
 	((uint32*)pby)[0] = _byteswap_ulong(m_uData[0]);
 	((uint32*)pby)[1] = _byteswap_ulong(m_uData[1]);
 	((uint32*)pby)[2] = _byteswap_ulong(m_uData[2]);
@@ -283,7 +261,7 @@ CUInt128& CUInt128::ShiftLeft(UINT uBits)
 	if ((uBits == 0) || (CompareTo(0) == 0))
 		return *this;
 	if (uBits > 127) {
-		SetValue(0ul);
+		SetZero();
 		return *this;
 	}
 
@@ -297,93 +275,4 @@ CUInt128& CUInt128::ShiftLeft(UINT uBits)
 	}
 	memcpy(m_uData, uResult, sizeof uResult);
 	return *this;
-}
-
-const byte* CUInt128::GetData() const
-{
-	return (byte*)m_uData;
-}
-
-byte* CUInt128::GetDataPtr() const
-{
-	return (byte*)m_uData;
-}
-
-ULONG CUInt128::Get32BitChunk(int iVal) const
-{
-	return m_uData[iVal];
-}
-
-CUInt128& CUInt128::operator+ (const CUInt128 &uValue)
-{
-	return Add(uValue);
-}
-CUInt128& CUInt128::operator- (const CUInt128 &uValue)
-{
-	return Subtract(uValue);
-}
-CUInt128& CUInt128::operator= (const CUInt128 &uValue)
-{
-	return SetValue(uValue);
-}
-bool CUInt128::operator< (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) < 0);
-}
-bool CUInt128::operator> (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) > 0);
-}
-bool CUInt128::operator<= (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) <= 0);
-}
-bool CUInt128::operator>= (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) >= 0);
-}
-bool CUInt128::operator== (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) == 0);
-}
-bool CUInt128::operator!= (const CUInt128 &uValue) const
-{
-	return (CompareTo(uValue) != 0);
-}
-
-CUInt128& CUInt128::operator+ (ULONG uValue)
-{
-	return Add(uValue);
-}
-CUInt128& CUInt128::operator- (ULONG uValue)
-{
-	return Subtract(uValue);
-}
-CUInt128& CUInt128::operator= (ULONG uValue)
-{
-	return SetValue(uValue);
-}
-bool CUInt128::operator< (ULONG uValue) const
-{
-	return (CompareTo(uValue) < 0);
-}
-bool CUInt128::operator> (ULONG uValue) const
-{
-	return (CompareTo(uValue) > 0);
-}
-bool CUInt128::operator<= (ULONG uValue) const
-{
-	return (CompareTo(uValue) <= 0);
-}
-bool CUInt128::operator>= (ULONG uValue) const
-{
-	return (CompareTo(uValue) >= 0);
-}
-bool CUInt128::operator== (ULONG uValue) const
-{
-	return (CompareTo(uValue) == 0);
-}
-bool CUInt128::operator!= (ULONG uValue) const
-{
-	return (CompareTo(uValue) != 0);
 }

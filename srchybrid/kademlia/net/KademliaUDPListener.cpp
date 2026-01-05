@@ -1,6 +1,6 @@
 /*
 Copyright (C)2003 Barry Dunne (https://www.emule-project.net)
-Copyright (C)2007-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+Copyright (C)2007-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 
 
 This program is free software; you can redistribute it and/or
@@ -37,7 +37,6 @@ their client on the eMule forum.
 #include "emuledlg.h"
 #include "ipfilter.h"
 #include "KadContactListCtrl.h"
-#include "kademliawnd.h"
 #include "listensocket.h"
 #include "Log.h"
 #include "opcodes.h"
@@ -436,12 +435,12 @@ bool CKademliaUDPListener::AddContact_KADEMLIA2(const byte *pbyData, uint32 uLen
 	for (unsigned uTags = byteIO.ReadByte(); uTags > 0; --uTags) {
 		const CKadTag *pTag = byteIO.ReadTag();
 
-		if (!pTag->m_name.Compare(TAG_SOURCEUPORT)) {
+		if (pTag->m_name == TAG_SOURCEUPORT) {
 			if (pTag->IsInt() && (uint16)pTag->GetInt() > 0)
 				uUDPPort = (uint16)pTag->GetInt();
 			else
 				ASSERT(0);
-		} else if (!pTag->m_name.Compare(TAG_KADMISCOPTIONS)) {
+		} else if (pTag->m_name == TAG_KADMISCOPTIONS){
 			if (pTag->IsInt() && (uint16)pTag->GetInt() > 0) {
 				bUDPFirewalled = (pTag->GetInt() & 0x01) > 0;
 				bTCPFirewalled = (pTag->GetInt() & 0x02) > 0;
@@ -462,9 +461,7 @@ bool CKademliaUDPListener::AddContact_KADEMLIA2(const byte *pbyData, uint32 uLen
 		POSITION pos2 = pos;
 		const FetchNodeID_Struct &fnode = listFetchNodeIDRequests.GetNext(pos);
 		if (fnode.dwIP == uIP && fnode.dwTCPPort == uTCPPort) {
-			CString strID;
-			uID.ToHexString(strID);
-			DebugLog(_T("Result Addcontact: %s"), (LPCTSTR)strID);
+			DebugLog(_T("Result Addcontact: %s"), (LPCTSTR)uID.ToHexString());
 			uchar uchID[16];
 			uID.ToByteArray(uchID);
 			fnode.pRequester->KadSearchNodeIDByIPResult(KCSR_SUCCEEDED, uchID);
@@ -998,7 +995,7 @@ SSearchTerm* CKademliaUDPListener::CreateSearchExpressionTree(CSafeMemFile &file
 			pSearchTerm->m_pTag = new Kademlia::CKadTagStr(strTagName, strValue);
 			if (s_pstrDbgSearchExpr) {
 				if (lenTagName == 1)
-					s_pstrDbgSearchExpr->AppendFormat(_T(" Tag%02X=\"%ls\""), (BYTE)strTagName[0], (LPCTSTR)strValue);
+					s_pstrDbgSearchExpr->AppendFormat(_T(" Tag%02X=\"%ls\""), (byte)strTagName[0], (LPCTSTR)strValue);
 				else
 					s_pstrDbgSearchExpr->AppendFormat(_T(" \"%hs\"=\"%ls\""), (LPCSTR)strTagName, (LPCTSTR)strValue);
 			}
@@ -1044,7 +1041,7 @@ SSearchTerm* CKademliaUDPListener::CreateSearchExpressionTree(CSafeMemFile &file
 
 			if (s_pstrDbgSearchExpr)
 				if (uLenTagName == 1)
-					s_pstrDbgSearchExpr->AppendFormat(_T(" Tag%02X%s%I64u"), (BYTE)strTagName[0], _aOps[mmop].pszOp, ullValue);
+					s_pstrDbgSearchExpr->AppendFormat(_T(" Tag%02X%s%I64u"), (byte)strTagName[0], _aOps[mmop].pszOp, ullValue);
 				else
 					s_pstrDbgSearchExpr->AppendFormat(_T(" \"%hs\"%s%I64u"), (LPCSTR)strTagName, _aOps[mmop].pszOp, ullValue);
 
@@ -1214,13 +1211,13 @@ void CKademliaUDPListener::Process_KADEMLIA2_PUBLISH_KEY_REQ(const byte *pbyPack
 			for (unsigned uTags = byteIO.ReadByte(); uTags > 0; --uTags) {
 				pTag = byteIO.ReadTag();
 				if (pTag) {
-					if (!pTag->m_name.Compare(TAG_FILENAME)) {
+					if (pTag->m_name == TAG_FILENAME) {
 						if (pEntry->GetCommonFileName().IsEmpty()) {
 							pEntry->SetFileName(pTag->GetStr());
 							if (bDbgInfo)
 								sInfo.AppendFormat(_T("  Name=\"%ls\""), (LPCTSTR)pEntry->GetCommonFileName());
 						}
-					} else if (!pTag->m_name.Compare(TAG_FILESIZE)) {
+					} else if (pTag->m_name == TAG_FILESIZE) {
 						if (pEntry->m_uSize == 0) {
 							if (pTag->IsBsob() && pTag->GetBsobSize() == 8)
 								pEntry->m_uSize = *((uint64*)pTag->GetBsob());
@@ -1229,7 +1226,7 @@ void CKademliaUDPListener::Process_KADEMLIA2_PUBLISH_KEY_REQ(const byte *pbyPack
 							if (bDbgInfo)
 								sInfo.AppendFormat(_T("  Size=%I64u"), pEntry->m_uSize);
 						}
-					} else if (!pTag->m_name.Compare(TAG_KADAICHHASHPUB)) {
+					} else if (pTag->m_name == TAG_KADAICHHASHPUB) {
 						if (pTag->IsBsob() && pTag->GetBsobSize() == CAICHHash::GetHashSize()) {
 							if (pEntry->GetAICHHashCount() == 0) {
 								pEntry->AddRemoveAICHHash(CAICHHash((uchar*)pTag->GetBsob()), true);
@@ -1311,70 +1308,70 @@ void CKademliaUDPListener::Process_KADEMLIA2_PUBLISH_SOURCE_REQ(const byte *pbyP
 		bool bAddUDPPortTag = true;
 		for (unsigned uTags = byteIO.ReadByte(); uTags > 0; --uTags) {
 			pTag = byteIO.ReadTag();
-			if (pTag) {
-				if (!pTag->m_name.Compare(TAG_SOURCETYPE)) {
-					if (!pEntry->m_bSource) {
-						pEntry->AddTag(new CKadTagUInt(TAG_SOURCEIP, pEntry->m_uIP));
-						pEntry->m_bSource = true;
-						pEntry->AddTag(pTag);
-						pTag = NULL;
-					}
-				} else if (!pTag->m_name.Compare(TAG_FILESIZE)) {
-					if (pEntry->m_uSize == 0) {
-						if (pTag->IsBsob() && pTag->GetBsobSize() == 8)
-							pEntry->m_uSize = *((uint64*)pTag->GetBsob());
-						else
-							pEntry->m_uSize = pTag->GetInt();
-						if (bDbgInfo)
-							sInfo.AppendFormat(_T("  Size=%I64u"), pEntry->m_uSize);
-					}
-				} else if (!pTag->m_name.Compare(TAG_SOURCEPORT)) {
-					if (pEntry->m_uTCPPort == 0) {
-						pEntry->m_uTCPPort = (uint16)pTag->GetInt();
-						pEntry->AddTag(pTag);
-						pTag = NULL;
-					}
-				} else if (!pTag->m_name.Compare(TAG_SOURCEUPORT)) {
-					if (bAddUDPPortTag && pTag->IsInt() && (uint16)pTag->GetInt() > 0) {
-						pEntry->m_uUDPPort = (uint16)pTag->GetInt();
-						bAddUDPPortTag = false;
-						pEntry->AddTag(pTag);
-						pTag = NULL;
-					}
-				} else if (!pTag->m_name.Compare(TAG_SERVERIP)) {
-					//drop lowID sources with unreachable buddy (Enig123)
-					if (pTag->IsInt()) {
-						LPCTSTR p = NULL;
-						uint32 buddyip = (uint32)pTag->GetInt();
-						//if (!IsGoodIP(buddyip)) {
-						//	if (thePrefs.GetLogFilteredIPs())
-						//		p = _T("bad");
-						//} else
-						if (theApp.ipfilter->IsFiltered(buddyip)) {
-							if (thePrefs.GetLogFilteredIPs())
-								p = _T("IP-filtered");
-						} else if (theApp.clientlist->IsBannedClient(buddyip)) {
-							if (thePrefs.GetLogBannedClients())
-								p = _T("banned");
-						} else {
-							pEntry->AddTag(pTag);
-							pTag = NULL;
-						}
-
-						if (pTag) {
-							pEntry->m_bSource = false;
-							if (p)
-								AddDebugLogLine(false, _T("Publish request from source %s with %s buddy IP=%s"), (LPCTSTR)ipstr(htonl(uIP)), p, (LPCTSTR)ipstr(buddyip));
-						}
-					}
-				} else {
-					//TODO: Filter tags
+			if (!pTag)
+				continue;
+			if (pTag->m_name == TAG_SOURCETYPE) {
+				if (!pEntry->m_bSource) {
+					pEntry->AddTag(new CKadTagUInt(TAG_SOURCEIP, pEntry->m_uIP));
+					pEntry->m_bSource = true;
 					pEntry->AddTag(pTag);
-					pTag = NULL; //do not delete
+					pTag = NULL;
 				}
-				delete pTag;
-				pTag = NULL;
+			} else if (pTag->m_name == TAG_FILESIZE) {
+				if (pEntry->m_uSize == 0) {
+					if (pTag->IsBsob() && pTag->GetBsobSize() == 8)
+						pEntry->m_uSize = *((uint64*)pTag->GetBsob());
+					else
+						pEntry->m_uSize = pTag->GetInt();
+					if (bDbgInfo)
+						sInfo.AppendFormat(_T("  Size=%I64u"), pEntry->m_uSize);
+				}
+			} else if (pTag->m_name == TAG_SOURCEPORT) {
+				if (pEntry->m_uTCPPort == 0) {
+					pEntry->m_uTCPPort = (uint16)pTag->GetInt();
+					pEntry->AddTag(pTag);
+					pTag = NULL;
+				}
+			} else if (pTag->m_name == TAG_SOURCEUPORT) {
+				if (bAddUDPPortTag && pTag->IsInt() && (uint16)pTag->GetInt() > 0) {
+					pEntry->m_uUDPPort = (uint16)pTag->GetInt();
+					bAddUDPPortTag = false;
+					pEntry->AddTag(pTag);
+					pTag = NULL;
+				}
+			} else if (pTag->m_name == TAG_SERVERIP) {
+				//drop lowID sources with unreachable buddy (Enig123)
+				if (pTag->IsInt()) {
+					LPCTSTR p = NULL;
+					uint32 buddyip = (uint32)pTag->GetInt();
+					//if (!IsGoodIP(buddyip)) {
+					//	if (thePrefs.GetLogFilteredIPs())
+					//		p = _T("bad");
+					//} else
+					if (theApp.ipfilter->IsFiltered(buddyip)) {
+						if (thePrefs.GetLogFilteredIPs())
+							p = _T("IP-filtered");
+					} else if (theApp.clientlist->IsBannedClient(buddyip)) {
+						if (thePrefs.GetLogBannedClients())
+							p = _T("banned");
+					} else {
+						pEntry->AddTag(pTag);
+						pTag = NULL;
+					}
+
+					if (pTag) {
+						pEntry->m_bSource = false;
+						if (p)
+							AddDebugLogLine(false, _T("Publish request from source %s with %s buddy IP=%s"), (LPCTSTR)ipstr(htonl(uIP)), p, (LPCTSTR)ipstr(buddyip));
+					}
+				}
+			} else {
+				//TODO: Filter tags
+				pEntry->AddTag(pTag);
+				pTag = NULL; //do not delete
 			}
+			delete pTag;
+			pTag = NULL;
 		}
 		if (bAddUDPPortTag)
 			pEntry->AddTag(new CKadTagUInt(TAG_SOURCEUPORT, pEntry->m_uUDPPort));
@@ -1540,10 +1537,10 @@ void CKademliaUDPListener::Process_KADEMLIA2_PUBLISH_NOTES_REQ(const byte *pbyPa
 		for (unsigned uTags = byteIO.ReadByte(); uTags > 0; --uTags) {
 			pTag = byteIO.ReadTag();
 			if (pTag) {
-				if (!pTag->m_name.Compare(TAG_FILENAME)) {
+				if (pTag->m_name == TAG_FILENAME) {
 					if (pEntry->GetCommonFileName().IsEmpty())
 						pEntry->SetFileName(pTag->GetStr());
-				} else if (!pTag->m_name.Compare(TAG_FILESIZE)) {
+				} else if (pTag->m_name == TAG_FILESIZE) {
 					if (pEntry->m_uSize == 0)
 						pEntry->m_uSize = pTag->GetInt();
 				} else {
@@ -1706,7 +1703,7 @@ void CKademliaUDPListener::Process_KADEMLIA_FINDBUDDY_REQ(const byte *pbyPacketD
 	contact.SetTCPPort(uTCPPort);
 	contact.SetUDPPort(uUDPPort);
 	contact.SetClientID(userID);
-	if (!theApp.clientlist->IncomingBuddy(&contact, &BuddyID))
+	if (!theApp.clientlist->IncomingBuddy(&contact, BuddyID))
 		return; // cancelled for some reason, don't send a response
 
 	CSafeMemFile fileIO2(34);

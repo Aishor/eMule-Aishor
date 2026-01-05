@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,6 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
+#include <algorithm>
 #include "emule.h"
 #include "Opcodes.h"
 #include "LastCommonRouteFinder.h"
@@ -22,8 +23,6 @@
 #include "UpDownClient.h"
 #include "Preferences.h"
 #include "Pinger.h"
-#include "emuledlg.h"
-#include <algorithm>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -38,9 +37,9 @@ LastCommonRouteFinder::LastCommonRouteFinder()
 	, m_eventPrefs(FALSE)
 	, m_pingDelaysTotal()
 	, m_LowestInitialPingAllowed(20)
-	, m_minUpload(1024)
+	, m_minUpload(1)
 	, m_maxUpload(UNLIMITED)
-	, m_CurUpload(1024)
+	, m_CurUpload(1)
 	, m_upload(UNLIMITED)
 	, m_iPingToleranceMilliseconds(200)
 	, m_iNumberOfPingsForAverage()
@@ -169,11 +168,6 @@ CurrentPingStruct LastCommonRouteFinder::GetCurrentPing()
 	return returnVal;
 }
 
-bool LastCommonRouteFinder::AcceptNewClient()
-{
-	return acceptNewClient || !m_enabled; // if enabled, then return acceptNewClient, otherwise return true
-}
-
 bool LastCommonRouteFinder::SetPrefs(const CurrentParamStruct &cur)
 {
 	prefsLocker.Lock();
@@ -201,7 +195,7 @@ bool LastCommonRouteFinder::SetPrefs(const CurrentParamStruct &cur)
 	// this would show, resize or hide the ping info area in status bar
 	bool bSetStatusBar = m_enabled || m_bUseMillisecondPingTolerance != cur.bUseMillisecondPingTolerance;
 
-	bool bSetEvent = !cur.bEnabled || m_enabled;
+	bool bSetEvent = !cur.bEnabled || !m_enabled;
 
 	m_bUseMillisecondPingTolerance = cur.bUseMillisecondPingTolerance;
 	m_enabled = cur.bEnabled;
@@ -214,11 +208,6 @@ bool LastCommonRouteFinder::SetPrefs(const CurrentParamStruct &cur)
 	if (bSetEvent)
 		m_eventPrefs.SetEvent();
 	return bSetStatusBar;
-}
-
-void LastCommonRouteFinder::InitiateFastReactionPeriod()
-{
-	::InterlockedExchange8(&m_initiateFastReactionPeriod, 1);
 }
 
 /**
@@ -234,7 +223,7 @@ void LastCommonRouteFinder::EndThread()
 	m_eventPrefs.SetEvent();
 	m_eventNewTraceRouteHost.SetEvent();
 
-	// wait for the thread to signal that it has stopped looping.
+	// wait for the thread to signal that looping has stopped
 	m_eventThreadEnded.Lock();
 }
 
@@ -429,7 +418,7 @@ UINT LastCommonRouteFinder::RunInternal()
 
 									lastCommonHost = curHost;
 									lastCommonTTL = ttl;
-								} else { //lastSuccedingPingAddress != 0
+								} else { //lastSuccessfulPingAddress != 0
 									foundLastCommonHost = true;
 									hostToPing = lastSuccessfulPingAddress;
 
@@ -615,8 +604,9 @@ UINT LastCommonRouteFinder::RunInternal()
 
 				DWORD diffTick = ::GetTickCount();
 				if (::InterlockedExchange8(&m_initiateFastReactionPeriod, 0)) {
-					theApp.QueueDebugLogLine(false, GetResString(IDS_USS_MANUALUPLOADLIMITDETECTED));
-					theApp.QueueLogLine(true, GetResString(IDS_USS_MANUALUPLOADLIMITDETECTED));
+					const CString &s(GetResString(IDS_USS_MANUALUPLOADLIMITDETECTED));
+					theApp.QueueDebugLogLine(false, s);
+					theApp.QueueLogLine(true, s);
 
 					// the first 60 seconds will use hardcoded up/down slowness that is faster
 					initTime = diffTick;
@@ -624,29 +614,25 @@ UINT LastCommonRouteFinder::RunInternal()
 				} else
 					diffTick -= initTime;
 
-				uint32 mul; // = 0;
 				if (diffTick < SEC2MS(20))
-					mul = 4;
-				else if (diffTick < SEC2MS(30))
-					mul = 1;
-				else if (diffTick < SEC2MS(40))
-					mul = 2;
-				else if (diffTick < SEC2MS(60))
-					mul = 3;
-				else
-					mul = 0;
-					/*if (diffTick < SEC2MS(61)) {
-					prefsLocker.Lock();
-					upload = m_CurUpload; //that might set a low value for no reason
-					prefsLocker.Unlock();
-				}*/
-				if (mul) { //25%, 50%, 75% and 100%
-					goingUpDivider = goingUpDivider * mul / 4;
-					goingDownDivider = goingDownDivider * mul / 4;
+					goingUpDivider = goingDownDivider = 1;
+				else {
+					uint32 mul = 0;
+					if (diffTick < SEC2MS(30))
+						mul = 1;
+					else if (diffTick < SEC2MS(40))
+						mul = 2;
+					else if (diffTick < SEC2MS(60))
+						mul = 3;
+					else if (diffTick < SEC2MS(61))
+						upload = m_CurUpload;
+					if (mul) { //25%, 50%, 75%
+						goingDownDivider = goingDownDivider * mul / 4;
+						goingUpDivider = goingUpDivider * mul / 4;
+					}
+					goingDownDivider = max(goingDownDivider, 1);
+					goingUpDivider = max(goingUpDivider, 1);
 				}
-
-				goingDownDivider = max(goingDownDivider, 1);
-				goingUpDivider = max(goingUpDivider, 1);
 
 				uint32 soll_ping;
 				if (useMillisecondPingTolerance)
@@ -710,7 +696,7 @@ UINT LastCommonRouteFinder::RunInternal()
 					while (!pingDelays.IsEmpty() && (uint32)pingDelays.GetCount() > numberOfPingsForAverage)
 						m_pingDelaysTotal -= pingDelays.RemoveHead();
 
-					uint32 pingAverage = Median(pingDelays); //(pingDelaysTotal/pingDelays.GetCount());
+					uint32 pingAverage = Median(pingDelays); //(m_pingDelaysTotal/pingDelays.GetCount());
 					int normalized_ping = pingAverage - initial_ping;
 
 					//{
@@ -721,7 +707,7 @@ UINT LastCommonRouteFinder::RunInternal()
 					//}
 
 					pingLocker.Lock();
-					m_pingAverage = (uint32)pingAverage;
+					m_pingAverage = pingAverage;
 					m_lowestPing = initial_ping;
 					pingLocker.Unlock();
 
@@ -735,11 +721,10 @@ UINT LastCommonRouteFinder::RunInternal()
 
 						// lower the speed
 						sint64 ulDiff = hping * 1024 * 10 / goingDownDivider / initial_ping;
+						//theApp.QueueDebugLogLine(false,_T("UploadSpeedSense: Down! Ping cur %i ms. Ave %I64i ms %i values. New Upload %i + %I64i = %I64i"), raw_ping, m_pingDelaysTotal/pingDelays.GetCount(), pingDelays.GetCount(), upload, ulDiff, upload+ulDiff);
 
-						//theApp.QueueDebugLogLine(false,_T("UploadSpeedSense: Down! Ping cur %i ms. Ave %I64i ms %i values. New Upload %i + %I64i = %I64i"), raw_ping, pingDelaysTotal/pingDelays.GetCount(), pingDelays.GetCount(), upload, ulDiff, upload+ulDiff);
 						// prevent underflow
 						upload = (upload > -ulDiff) ? (uint32)(upload + ulDiff) : 0;
-
 					} else if (hping > 0) {
 						//Ping lower than max allowed
 						acceptNewClient = true;
@@ -747,8 +732,8 @@ UINT LastCommonRouteFinder::RunInternal()
 						if (curUpload + 30 * 1024 > upload) {
 							// raise the speed
 							sint64 ulDiff = hping * 1024 * 10 / (goingUpDivider * (sint64)initial_ping);
+							//theApp.QueueDebugLogLine(false,_T("UploadSpeedSense: Up! Ping cur %i ms. Ave %I64i ms %i values. New Upload %i + %I64i = %I64i"), raw_ping, m_pingDelaysTotal/pingDelays.GetCount(), pingDelays.GetCount(), upload, ulDiff, upload+ulDiff);
 
-							//theApp.QueueDebugLogLine(false,_T("UploadSpeedSense: Up! Ping cur %i ms. Ave %I64i ms %i values. New Upload %i + %I64i = %I64i"), raw_ping, pingDelaysTotal/pingDelays.GetCount(), pingDelays.GetCount(), upload, ulDiff, upload+ulDiff);
 							// prevent overflow
 							upload = (_I32_MAX - upload > ulDiff) ? (uint32)(upload + ulDiff) : _I32_MAX;
 						}
@@ -795,10 +780,9 @@ uint32 LastCommonRouteFinder::Median(const UInt32Clist &list)
 
 	std::sort(arr, arr + size);
 
-	double returnVal = arr[size / 2 - (size & 1)];
-	returnVal = (returnVal + arr[size / 2]) / 2;
+	uint32 returnVal = (arr[size / 2 - (size & 1)] + arr[size / 2]) / 2;
 
 	delete[] arr;
 
-	return (uint32)returnVal;
+	return returnVal;
 }

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -39,42 +39,42 @@ public:
 	~CEMSocket();
 
 	virtual void SendPacket(Packet *packet, bool controlpacket = true, uint32 actualPayloadSize = 0, bool bForceImmediateSend = false);
-	bool	IsConnected() const				{ return byConnected == EMS_CONNECTED; }
-	uint8	GetConState() const				{ return byConnected; }
-	void	SetConState(uint8 val)			{ sendLocker.Lock(); byConnected = val; sendLocker.Unlock(); }
-	virtual bool IsRawDataMode() const		{ return false; }
+	bool	IsConnected() const								{ return byConnected == EMS_CONNECTED; }
+	uint8	GetConState() const								{ return byConnected; }
+	void	SetConState(uint8 val)							{ sendLocker.Lock(); byConnected = val; sendLocker.Unlock(); }
+	virtual bool IsRawDataMode() const						{ return false; }
 	void	SetDownloadLimit(uint32 limit);
 	void	DisableDownloadLimit();
 	BOOL	AsyncSelect(long lEvent);
 	virtual bool IsBusyExtensiveCheck();
 	virtual bool IsBusyQuickCheck() const;
 	virtual bool HasQueues(bool bOnlyStandardPackets = false) const;
-	virtual bool IsEnoughFileDataQueued(uint32 nMinFilePayloadBytes) const;
+	virtual bool IsLowOnFileDataQueued(uint32 nMinFilePayloadBytes) const;
 	virtual bool UseBigSendBuffer();
-	INT_PTR	DbgGetStdQueueCount() const		{ return standardpacket_queue.GetCount(); }
+	INT_PTR	DbgGetStdQueueCount() const						{ return standardpacket_queue.GetCount(); }
 
-	virtual DWORD GetTimeOut() const		{ return m_uTimeOut; }
-	virtual void SetTimeOut(DWORD uTimeOut) { m_uTimeOut = uTimeOut; }
+	virtual DWORD GetTimeOut() const						{ return m_uTimeOut; }
+	virtual void SetTimeOut(DWORD uTimeOut)					{ m_uTimeOut = uTimeOut; }
 
 	virtual bool Connect(const CString &sHostAddress, UINT nHostPort);
 	virtual BOOL Connect(const LPSOCKADDR pSockAddr, int iSockAddrLen);
-	virtual int Receive(void *lpBuf, int nBufLen, int nFlags = 0);
+	virtual int	Receive(void *lpBuf, int nBufLen, int nFlags = 0);
 
-	virtual void	OnClose(int nErrorCode);
-	virtual void	OnSend(int nErrorCode);
-	virtual void	OnReceive(int nErrorCode);
+	virtual void OnClose(int nErrorCode);
+	virtual void OnSend(int nErrorCode);
+	virtual void OnReceive(int nErrorCode);
 
 	void InitProxySupport();
 	virtual void RemoveAllLayers();
-	const CString GetLastProxyError() const	{ return m_strLastProxyError; }
-	bool GetProxyConnectFailed() const		{ return m_bProxyConnectFailed; }
+	const CString GetLastProxyError() const					{ return m_strLastProxyError; }
+	bool GetProxyConnectFailed() const						{ return m_bProxyConnectFailed; }
 
-	CString GetFullErrorMessage(DWORD dwError);
+	CString GetFullErrorMessage(DWORD dwError) const;
 
-	DWORD GetLastCalledSend() const			{ return lastCalledSend; }
-	uint64 GetSentBytesCompleteFileSinceLastCallAndReset();
-	uint64 GetSentBytesPartFileSinceLastCallAndReset();
-	uint64 GetSentBytesControlPacketSinceLastCallAndReset();
+	DWORD GetLastCalledSend() const							{ return lastCalledSend; }
+	uint64 GetSentBytesCompleteFileSinceLastCallAndReset()	{ return (uint64)::InterlockedExchange64((LONG64*)&m_numberOfSentBytesCompleteFile, 0); }
+	uint64 GetSentBytesPartFileSinceLastCallAndReset()		{ return (uint64)::InterlockedExchange64((LONG64*)&m_numberOfSentBytesPartFile, 0); }
+	//uint64 GetSentBytesControlPacketSinceLastCallAndReset()	{ return (uint64)::InterlockedExchange64((LONG64*)&m_numberOfSentBytesControlPacket, 0); }
 	uint32 GetSentPayloadSinceLastCall(bool bReset);
 	void TruncateQueues();
 
@@ -134,11 +134,11 @@ private:
 	CCriticalSection sendLocker;
 	uint64	m_numberOfSentBytesCompleteFile;
 	uint64	m_numberOfSentBytesPartFile;
-	uint64	m_numberOfSentBytesControlPacket;
+	//uint64	m_numberOfSentBytesControlPacket;
 	DWORD	lastCalledSend;
 	DWORD	lastSent;
 	DWORD	lastFinishedStandard;
-	uint32	m_actualPayloadSize;			// Payloadsize of the data currently in sendbuffer
+	uint32	m_actualPayloadSize;			// Payload size of the data currently in sendbuffer
 	uint32	m_actualPayloadSizeSent;
 	bool	m_currentPacket_is_controlpacket;
 	bool	m_currentPackageIsFromPartFile;

@@ -1,4 +1,3 @@
-#pragma once
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by emule.rc
@@ -1024,8 +1023,6 @@
 #define IDS_WRN_INCFILE_RESERVED        1080
 #define IDS_WRN_TEMPFILES_RESERVED      1081
 #define IDS_WRN_INCTEMP_SAME            1082
-//***#define                            1083
-//***#define                            1084
 #define IDS_SHOWDWLPERCENTAGE           1085
 #define IDS_TBN_ONNEWDOWNLOAD           1086
 #define IDS_ARTIST                      1087
@@ -1208,7 +1205,6 @@
 #define IDS_NEWMSG                      1266
 #define IDS_PREF_STARTNEXTFILECATONLY   1267
 #define IDS_LOG_ULDL_EVENTS             1268
-//#define IDS_PEERCACHE_ENABLED           1269
 #define IDS_IRC_EMULEPROTO_ALLOWADDFRIEND 1270
 #define IDS_SOURCESWAPBLOCKED           1271
 #define IDS_TRICKLING                   1272
@@ -1240,9 +1236,6 @@
 #define IDS_WIZ_STARTWITHWINDOWS        1298
 #define IDS_KAD_WAITCBK                 1299
 #define IDS_KAD_TOOMANDYKADLKPS         1300
-//#define IDS_PCDS_CLIENTWAIT             1301
-//#define IDS_PCDS_CACHEWAIT              1302
-//#define IDS_CACHE                       1303
 #define IDS_INDEXED                     1304
 #define IDS_KADINFO_SRC                 1305
 #define IDS_KADINFO_KEYW                1306
@@ -1314,7 +1307,6 @@
 #define IDS_EXTRACT_META_DATA           1367
 #define IDS_META_DATA_MEDIADET          1368
 #define IDS_META_DATA_ID3LIB            1369
-#define IDS_COMCTRL32_DLL_TOOOLD        1370
 #define IDS_ASREGEXPR                   1371
 #define IDS_STATIC_REGEXP               1372
 #define IDS_CARE4ALL                    1373
@@ -1656,7 +1648,6 @@
 #define IDC_TEMPFILES                   2144
 #define IDC_WIZ_APPLY_BUTTON            2149
 #define IDC_WIZ_CANCEL_BUTTON           2153
-//#define IDC_UNCLIST                     2155
 #define IDC_PORT                        2162
 #define IDC_APPLY                       2164
 #define IDC_UPLOAD_CAP                  2166
@@ -2121,7 +2112,6 @@
 #define IDC_STATIC133x                  2743
 #define IDC_CDIDENT                     2744
 #define IDC_UNCADD                      2745
-//#define IDC_UNCREM                      2746
 #define IDC_SEC_MISC                    2747
 #define IDC_SEC_OBFUSCATIONBOX          2748
 #define IDC_MMPASSWORDFIELD             2749

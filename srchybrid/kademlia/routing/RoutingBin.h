@@ -45,9 +45,9 @@ namespace Kademlia
 		~CRoutingBin();
 		CRoutingBin();
 		bool AddContact(CContact *pContact);
-		void SetAlive(CContact *pContact);
+		void SetAlive(const CContact *pContact);
 		void SetTCPPort(uint32 uIP, uint16 uUDPPort, uint16 uTCPPort);
-		void RemoveContact(CContact *pContact, bool bNoTrackingAdjust = false);
+		void RemoveContact(CContact *const pContact, bool bNoTrackingAdjust = false);
 		CContact* GetContact(const CUInt128 &uID);
 		CContact* GetContact(uint32 uIP, uint16 nPort, bool bTCPPort);
 		CContact* GetOldest();

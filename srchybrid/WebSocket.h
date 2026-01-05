@@ -1,7 +1,5 @@
 #pragma once
 
-#include "mbedtls/ssl.h"
-
 class CWebServer;
 
 void StartSockets(CWebServer *pThis);
@@ -10,7 +8,7 @@ void StopSockets();
 class CWebSocket
 {
 public:
-	void SetParent(CWebServer *pParent);
+	void SetParent(CWebServer *pParent)		{ m_pParent = pParent; }
 	CWebServer *m_pParent;
 
 	class CChunk
@@ -21,14 +19,14 @@ public:
 		CChunk *m_pNext;
 		DWORD m_dwSize;
 
-		~CChunk()						{ delete[] m_pData; }
+		~CChunk()			{ delete[] m_pData; }
 	};
 
 	CChunk *m_pHead; // tails of what has to be sent
 	CChunk *m_pTail;
 
 	char *m_pBuf;
-	mbedtls_ssl_context *m_ssl;
+	void *m_ssl; //mbedtls_ssl_context *
 	SOCKET m_hSocket;
 	DWORD m_dwRecv;
 	DWORD m_dwBufSize;
@@ -39,9 +37,9 @@ public:
 	bool m_bCanSend;
 	bool m_bValid;
 
-	void OnReceived(void *pData, DWORD dwSize, const in_addr inad); // must be implemented
+	void OnReceived(const void *pData, DWORD dwSize, const in_addr inad); // must be implemented
 	void SendData(const void *pData, DWORD dwDataSize);
-	void SendData(LPCSTR szText)		{ SendData(szText, (DWORD)strlen(szText)); }
+	void SendData(LPCSTR szText)			{ SendData(szText, (DWORD)strlen(szText)); }
 	void SendContent(LPCSTR szStdResponse, const void *pContent, DWORD dwContentSize);
 	void SendContent(LPCSTR szStdResponse, const CString &rstr);
 	void SendReply(LPCSTR szReply);

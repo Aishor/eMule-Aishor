@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 
 #define	DEFAULT_NICK			thePrefs.GetHomepageBaseURL()
 #define	DEFAULT_TCP_PORT_OLD	4662
-#define	DEFAULT_UDP_PORT_OLD	(DEFAULT_TCP_PORT_OLD+10)
+#define	DEFAULT_UDP_PORT_OLD	(DEFAULT_TCP_PORT_OLD + 10)
 
 #define PORTTESTURL			_T("https://porttest.emule-project.net/connectiontest.php?tcpport=%i&udpport=%i&lang=%i")
 
@@ -53,21 +53,22 @@ class CPartFileWriteThread;
 
 struct SLogItem;
 
-enum AppState
+enum AppState : uint8
 {
 	APP_STATE_STARTING = 0,	//initialization phase
 	APP_STATE_RUNNING,
-	APP_STATE_ASKCLOSE,		//exit confirmation dialog is active
+	APP_STATE_ASKCLOSE,		//exit dialog is on screen
 	APP_STATE_SHUTTINGDOWN,
-	APP_STATE_DONE			//shutdown completed
+	APP_STATE_DONE			//shutdown has completed
 };
 
 class CemuleApp : public CWinApp
 {
 public:
 	explicit CemuleApp(LPCTSTR lpszAppName = NULL);
-	bool IsRunning() const;
-	bool IsClosing() const;
+	// Barry - To find out if app is running or shutting/shut down
+	bool IsRunning() const	{ return m_app_state == APP_STATE_RUNNING || m_app_state == APP_STATE_ASKCLOSE; }
+	bool IsClosing() const	{ return m_app_state == APP_STATE_SHUTTINGDOWN || m_app_state == APP_STATE_DONE; }
 
 	// ZZ:UploadSpeedSense -->
 	UploadBandwidthThrottler *uploadBandwidthThrottler;
@@ -102,7 +103,6 @@ public:
 	static const TCHAR	*m_sPlatform;
 
 	HANDLE		m_hMutexOneInstance;
-	int			m_iDfltImageListColorFlags;
 	CFont		m_fontHyperText;
 	CFont		m_fontDefaultBold;
 	CFont		m_fontSymbol;
@@ -119,6 +119,7 @@ public:
 	CMutex		hashing_mut;
 	CString		m_strPendingLink;
 	COPYDATASTRUCT sendstruct;
+	int			m_iDfltImageListColorFlags;
 	AppState	m_app_state; // defines application state
 
 // Implementierung
@@ -146,10 +147,10 @@ public:
 	void		UpdateReceivedBytes(uint32 bytesToAdd);
 	void		UpdateSentBytes(uint32 bytesToAdd, bool sentToFriend = false);
 	int			GetFileTypeSystemImageIdx(LPCTSTR pszFilePath, int iLength = -1, bool bNormalsSize = false);
-	HIMAGELIST	GetSystemImageList()							{ return m_hSystemImageList; }
-	HIMAGELIST	GetBigSystemImageList()							{ return m_hBigSystemImageList; }
-	CSize		GetSmallSytemIconSize()							{ return m_sizSmallSystemIcon; }
-	CSize		GetBigSytemIconSize()							{ return m_sizBigSystemIcon; }
+	HIMAGELIST	GetSystemImageList() const						{ return m_hSystemImageList; }
+	HIMAGELIST	GetBigSystemImageList() const					{ return m_hBigSystemImageList; }
+	CSize		GetSmallSytemIconSize() const					{ return m_sizSmallSystemIcon; }
+	CSize		GetBigSytemIconSize() const						{ return m_sizBigSystemIcon; }
 	void		CreateBackwardDiagonalBrush();
 	void		CreateAllFonts();
 	const CString& GetDefaultFontFaceName();
@@ -158,7 +159,8 @@ public:
 	bool		IsFirewalled();
 	bool		CanDoCallback(CUpDownClient *client);
 	uint32		GetID();
-	uint32		GetED2KPublicIP() const;	// return current (valid) public IP or 0 if unknown (ignore KAD connection)
+	// return current (valid) public IP or 0 if unknown (ignore KAD connection)
+	uint32		GetED2KPublicIP() const							{ return m_dwPublicIP; }
 	uint32		GetPublicIP() const;		// return current (valid) public IP or 0 if unknown
 	void		SetPublicIP(const uint32 dwIP);
 	void		ResetStandByIdleTimer();
@@ -197,7 +199,7 @@ public:
 	void		ClearLogQueue(bool bDebugPendingMsgs = false);
 	// Elandal:ThreadSafeLogging <--
 
-	bool		DidWeAutoStart()								{ return m_bAutoStart; }
+	bool		DidWeAutoStart() const							{ return m_bAutoStart; }
 	void		ResetStandbyOff()								{ m_bStandbyOff = false; }
 
 protected:

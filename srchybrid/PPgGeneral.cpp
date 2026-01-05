@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -308,6 +308,8 @@ void CPPgGeneral::OnLangChange()
 #define SBITS _T("32/")
 #elif defined _M_X64
 #define SBITS _T("64/")
+#elif defined _M_ARM64
+#define SBITS _T("arm64/")
 #else
 #define SBITS
 #endif

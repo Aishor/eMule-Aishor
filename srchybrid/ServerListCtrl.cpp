@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,8 +15,6 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <share.h>
-#include <io.h>
 #include "emule.h"
 #include "ServerListCtrl.h"
 #include "OtherFunctions.h"
@@ -195,7 +193,6 @@ void CServerListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	const CServer *pServer = reinterpret_cast<CServer*>(lpDrawItemStruct->itemData);
 	if (!pServer || theApp.IsClosing())
 		return;
-
 	CRect rcItem(lpDrawItemStruct->rcItem);
 	CMemoryDC dc(CDC::FromHandle(lpDrawItemStruct->hDC), rcItem);
 	BOOL bCtrlFocused;
@@ -235,13 +232,13 @@ void CServerListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					UINT uOverlayImage = pServer->SupportsObfuscationTCP() ? 2 : 0;
 
 					rcItem.left = itemLeft + sm_iIconOffset;
-					const POINT point = { rcItem.left, rcItem.top + iIconY };
+					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
 					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;
-				dc.DrawText(sItem, -1, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
+				dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 			}
 		}
 		itemLeft += iColumnWidth;
@@ -305,8 +302,8 @@ bool CServerListCtrl::AddServer(const CServer *pServer, bool bAddToList, bool bR
 	if (!theApp.serverlist->AddServer(pServer, bAddTail))
 		return false;
 	if (bAddToList) {
-		int iItem = InsertItem(LVIF_TEXT | LVIF_PARAM, bAddTail ? GetItemCount() : 0, pServer->GetListName(), 0, 0, 0, (LPARAM)pServer);
-		Update(iItem);
+		InsertItem(LVIF_TEXT | LVIF_PARAM, bAddTail ? GetItemCount() : 0, _T(""), 0, 0, 0, (LPARAM)pServer);
+		RefreshServer(pServer);
 	}
 	ShowServerCount();
 	return true;
@@ -347,7 +344,7 @@ void CServerListCtrl::OnContextMenu(CWnd*, CPoint point)
 		bFirstItem = false;
 	}
 
-	CTitleMenu ServerMenu;
+	CTitledMenu ServerMenu;
 	ServerMenu.CreatePopupMenu();
 	ServerMenu.AddMenuTitle(GetResString(IDS_EM_SERVER), true);
 
@@ -553,8 +550,11 @@ void CServerListCtrl::RefreshServer(const CServer *pServer)
 {
 	if (pServer && !theApp.IsClosing()) {
 		int iItem = FindServer(pServer);
-		if (iItem >= 0)
+		if (iItem >= 0) {
+			for (int i = 0; i <= 14; ++i) //column autosizing requires item text
+				SetItemText(iItem, i, GetItemDisplayText(pServer, i));
 			Update(iItem);
+		}
 	}
 }
 

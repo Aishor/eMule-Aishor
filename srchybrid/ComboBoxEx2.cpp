@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -53,7 +53,7 @@ BOOL CComboBoxEx2::PreTranslateMessage(MSG *pMsg)
 	if (pMsg->message == WM_KEYDOWN) {
 		TCHAR uChar = (TCHAR)::MapVirtualKey((UINT)pMsg->wParam, MAPVK_VK_TO_CHAR);
 		if (uChar != 0) {
-			const TCHAR str[2] = { uChar, _T('\0') };
+			const TCHAR str[2] = {uChar, _T('\0')};
 			if (SelectString(-1, str) != CB_ERR)
 				return TRUE;
 		}
@@ -116,7 +116,7 @@ HWND GetComboBoxEditCtrl(const CComboBox &cb)
 {
 	for (CWnd *pWnd = cb.GetWindow(GW_CHILD); pWnd; pWnd = pWnd->GetNextWindow()) {
 		TCHAR szClassName[MAX_PATH];
-		if (GetClassName(*pWnd, szClassName, _countof(szClassName)))
+		if (::GetClassName(*pWnd, szClassName, _countof(szClassName)))
 			if (_tcsicmp(szClassName, _T("EDIT")) == 0)
 				return pWnd->m_hWnd;
 	}

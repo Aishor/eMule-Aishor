@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
 #include "ClientStateDefs.h"
 #include "opcodes.h"
 #include "OtherFunctions.h"
+#include "ring.h"
 
 class CClientReqSocket;
 class CFriend;
@@ -27,7 +28,6 @@ class CClientCredits;
 class CAbstractFile;
 class CKnownFile;
 class Packet;
-class CxImage;
 struct Requested_Block_Struct;
 class CSafeMemFile;
 class CEMSocket;
@@ -94,7 +94,7 @@ public:
 	void			SetUserName(LPCTSTR pszNewName);
 	uint32			GetIP() const									{ return m_dwUserIP; }
 	//Only use this when you know the real IP or when your clearing it.
-	void			SetIP(uint32 val)								{ m_dwUserIP = val; m_nConnectIP = val; }
+	void			SetIP(uint32 val)								{ m_dwUserIP = m_nConnectIP = val; }
 
 	inline bool		HasLowID() const								{ return ::IsLowID(m_nUserIDHybrid); }
 	uint32			GetConnectIP() const							{ return m_nConnectIP; }
@@ -177,8 +177,8 @@ public:
 	void			ProcessPublicIPAnswer(const BYTE *pbyData, UINT uSize);
 	void			SendPublicIPRequest();
 	uint8			GetKadVersion()	const							{ return m_byKadVersion; }
-	bool			SendBuddyPingPong()								{ return ::GetTickCount() >= m_dwLastBuddyPingPongTime; }
-	bool			AllowIncomeingBuddyPingPong()					{ return ::GetTickCount() >= m_dwLastBuddyPingPongTime + MIN2MS(3); }
+	bool			SendBuddyPingPong()	const						{ return ::GetTickCount() >= m_dwLastBuddyPingPongTime; }
+	bool			AllowIncomingBuddyPingPong() const				{ return ::GetTickCount() >= m_dwLastBuddyPingPongTime + MIN2MS(3); }
 	void			SetLastBuddyPingPongTime()						{ m_dwLastBuddyPingPongTime = ::GetTickCount() + MIN2MS(10); }
 	void			ProcessFirewallCheckUDPRequest(CSafeMemFile &data);
 	void			SendSharedDirectories();
@@ -196,7 +196,7 @@ public:
 	bool			HasPassedSecureIdent(bool bPassIfUnavailable) const;
 	// preview
 	void			SendPreviewRequest(const CAbstractFile &rForFile);
-	void			SendPreviewAnswer(const CKnownFile *pForFile, CxImage **imgFrames, uint8 nCount);
+	void			SendPreviewAnswer(const CKnownFile *pForFile, HBITMAP *imgFrames, uint8 nCount);
 	void			ProcessPreviewReq(const uchar *pachPacket, uint32 nSize);
 	void			ProcessPreviewAnswer(const uchar *pachPacket, uint32 nSize);
 	bool			GetPreviewSupport() const						{ return m_fSupportsPreview && GetViewSharedFilesSupport(); }
@@ -268,8 +268,8 @@ public:
 
 	bool			ProcessExtendedInfo(CSafeMemFile &data, CKnownFile *tempreqfile);
 	uint16			GetUpPartCount() const							{ return m_nUpPartCount; }
-	void			DrawUpStatusBar(CDC *dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const;
-	bool			IsUpPartAvailable(UINT uPart) const				{ return (m_abyUpPartStatus && uPart < m_nUpPartCount && m_abyUpPartStatus[uPart]);	}
+	void			DrawUpStatusBar(CDC &dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const;
+	bool			IsUpPartAvailable(UINT uPart) const				{ return m_abyUpPartStatus && uPart < m_nUpPartCount && m_abyUpPartStatus[uPart];	}
 	uint8*			GetUpPartStatus() const							{ return m_abyUpPartStatus; }
 	float			GetCombinedFilePrioAndCredit();
 	uint8			GetDataCompressionVersion() const				{ return m_byDataCompVer; }
@@ -282,7 +282,7 @@ public:
 	EDownloadState	GetDownloadState() const						{ return m_eDownloadState; }
 	void			SetDownloadState(EDownloadState nNewState, LPCTSTR pszReason = _T("Unspecified"));
 	DWORD			GetLastAskedTime(const CPartFile *pFile = NULL) const;
-	void			SetLastAskedTime()								{ m_fileReaskTimes[m_reqfile] = ::GetTickCount(); }
+	void			SetLastAskedTime();
 	bool			IsPartAvailable(UINT uPart) const				{ return m_abyPartStatus && uPart < m_nPartCount && m_abyPartStatus[uPart]; }
 	uint8*			GetPartStatus() const							{ return m_abyPartStatus; }
 	uint16			GetPartCount() const							{ return m_nPartCount; }
@@ -291,7 +291,7 @@ public:
 	void			SetRemoteQueueRank(UINT nr, bool bUpdateDisplay = false);
 	bool			IsRemoteQueueFull() const						{ return m_bRemoteQueueFull; }
 	void			SetRemoteQueueFull(bool flag)					{ m_bRemoteQueueFull = flag; }
-	void			DrawStatusBar(CDC *dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const;
+	void			DrawStatusBar(CDC &dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const;
 	bool			AskForDownload();
 	virtual void	SendFileRequest();
 	void			SendStartupLoadReq();
@@ -363,7 +363,7 @@ public:
 	bool			IsSpammer() const								{ return m_fIsSpammer; }
 	void			SetSpammer(bool bVal);
 	bool			GetMessageFiltered() const						{ return m_fMessageFiltered; }
-	void			SetMessageFiltered(bool bVal);
+	void			SetMessageFiltered(bool bVal)					{ m_fMessageFiltered = static_cast<int>(bVal); }
 
 
 	//KadIPCheck
@@ -450,8 +450,8 @@ protected:
 	void	SendHashSetRequest();
 
 	bool	DoSwap(CPartFile *SwapTo, bool bRemoveCompletely, LPCTSTR reason); // ZZ:DownloadManager
-	bool	RecentlySwappedForSourceExchange()		{ return ::GetTickCount() < lastSwapForSourceExchangeTick + SEC2MS(30); } // ZZ:DownloadManager
-	void	SetSwapForSourceExchangeTick()			{ lastSwapForSourceExchangeTick = ::GetTickCount(); } // ZZ:DownloadManager
+	bool	RecentlySwappedForSourceExchange() const	{ return ::GetTickCount() < lastSwapForSourceExchangeTick + SEC2MS(30); } // ZZ:DownloadManager
+	void	SetSwapForSourceExchangeTick()				{ lastSwapForSourceExchangeTick = ::GetTickCount(); } // ZZ:DownloadManager
 
 	uint32	m_nConnectIP;	// holds the supposed IP or (after we had a connection) the real IP
 	uint32	m_dwUserIP;		// holds 0 (real IP not yet available) or the real IP (after we had a connection)
@@ -552,11 +552,6 @@ protected:
 	UINT		m_slotNumber;
 	uchar		requpfileid[MDX_DIGEST_SIZE];
 
-	typedef struct
-	{
-		uint32	datalen;
-		DWORD	timestamp;
-	} TransferredData;
 	CTypedPtrList<CPtrList, Requested_File_Struct*>	 m_RequestedFiles_list;
 
 	//////////////////////////////////////////////////////////
@@ -584,19 +579,19 @@ protected:
 	bool		m_bReaskPending;
 	bool		m_bUDPPending;
 	bool		m_bTransferredDownMini;
+	bool		m_bSourceExchangeSwapped; // ZZ:DownloadManager
 
 	//////////////////////////////////////////////////////////
 	// Upload data rate computation
 	//
 	UINT		m_nUpDatarate;
 	uint64		m_nSumForAvgUpDataRate;
-	CList<TransferredData> m_AverageUDR_list;
-
+	CRing<TransferredData> m_AverageUDR_hist;
 	//////////////////////////////////////////////////////////
 	// Download data rate computation
 	//
 	uint64		m_nSumForAvgDownDataRate;
-	CList<TransferredData> m_AverageDDR_list;
+	CRing<TransferredData> m_AverageDDR_hist;
 	UINT		m_nDownDatarate;
 	UINT		m_nDownDataRateMS;
 
@@ -648,6 +643,4 @@ protected:
 		 m_fDirectUDPCallback : 1,
 		 m_fSupportsFileIdent : 1; // 0 bits left
 	UINT m_fHashsetRequestingAICH : 1; // 31 bits left
-
-	bool	m_bSourceExchangeSwapped; // ZZ:DownloadManager
 };

@@ -21,7 +21,7 @@ static char THIS_FILE[] = __FILE__;
 #define SCREEN_RIGHT	345
 #define SCREEN_BOTTOM	296
 
-const RECT CCreditsDlg::m_rectScreen = { SCREEN_LEFT, SCREEN_TOP, SCREEN_RIGHT, SCREEN_BOTTOM };
+const RECT CCreditsDlg::m_rectScreen{SCREEN_LEFT, SCREEN_TOP, SCREEN_RIGHT, SCREEN_BOTTOM};
 
 /////////////////////////////////////////////////////////////////////////////
 // CCreditsDlg dialog

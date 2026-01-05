@@ -10,7 +10,7 @@ protected:
 public:
 	explicit CTrayDialog(UINT uIDD, CWnd *pParent = NULL);   // standard constructor
 
-	void TraySetMinimizeToTray(bool *pbMinimizeToTray);
+	void TraySetMinimizeToTray(bool *pbMinimizeToTray)	{ m_pbMinimizeToTray = pbMinimizeToTray; }
 	BOOL TraySetMenu(UINT nResourceID);
 	BOOL TraySetMenu(HMENU hMenu);
 	BOOL TraySetMenu(LPCTSTR lpszMenuName);
@@ -22,7 +22,7 @@ public:
 	void TraySetIcon(HICON hIcon, bool bDelete = false);
 	void TraySetIcon(UINT nResourceID);
 	void TraySetIcon(LPCTSTR lpszResourceName);
-	bool TrayIconVisible();
+	bool TrayIconVisible() const						{ return m_bTrayIconVisible; }
 
 	virtual void TrayMinimizeToTrayChange();
 	virtual void RestoreWindow();

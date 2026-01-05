@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -296,6 +296,8 @@ bool IsEqualFOURCC(FOURCC fccA, FOURCC fccB)
 	return true;
 }
 
+#pragma warning(push)
+#pragma warning(disable:4701) //local variable 'fcc'
 CString GetVideoFormatDisplayName(DWORD biCompression)
 {
 	CString sName;
@@ -323,7 +325,7 @@ CString GetVideoFormatDisplayName(DWORD biCompression)
 		{
 			sName = CStringA((LPCSTR)&biCompression, 4);
 			DWORD fcc;
-			for (int i = 0; i < sizeof(DWORD); ++i)
+			for (unsigned i = 0; i < sizeof(DWORD); ++i)
 				((byte*)&fcc)[i] = (byte)toupper(((unsigned char*)&biCompression)[i]);
 
 			switch (fcc) {
@@ -418,6 +420,7 @@ CString GetVideoFormatDisplayName(DWORD biCompression)
 		sName += pFormat;
 	return sName;
 }
+#pragma warning(pop)
 
 CString GetVideoFormatName(DWORD biCompression)
 {
@@ -1028,13 +1031,17 @@ typedef struct
 	DWORD	id;
 	DWORD	size;
 } SRmChunkHdr;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct
 {
 	DWORD   file_version;
 	DWORD   num_headers;
 } SRmRMF;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct
 {
 	DWORD   max_bit_rate;
@@ -1049,7 +1056,9 @@ typedef struct
 	WORD    num_streams;
 	WORD    flags;
 } SRmPROP;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct
 {
 	WORD    stream_number;
@@ -1729,17 +1738,18 @@ bool GetAttributeEx(IWMHeaderInfo3 *pIWMHeaderInfo, WORD wStream, LPCWSTR pwszNa
 class CFileStream : public IStream
 {
 public:
-	static HRESULT OpenFile(LPCTSTR pszFileName, IStream **ppStream,
-		DWORD dwDesiredAccess = GENERIC_READ,
-		DWORD dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE,
-		DWORD dwCreationDisposition = OPEN_EXISTING,
-		DWORD grfMode = STGM_READ | STGM_SHARE_DENY_NONE)
+	static HRESULT OpenFile(LPCTSTR pszFileName
+			, IStream **ppStream
+			, DWORD dwDesiredAccess = GENERIC_READ
+			, DWORD dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE
+			, DWORD dwCreationDisposition = OPEN_EXISTING
+			, DWORD grfMode = STGM_READ | STGM_SHARE_DENY_NONE)
 	{
 		HANDLE hFile = ::CreateFile(pszFileName, dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile == INVALID_HANDLE_VALUE)
 			return HRESULT_FROM_WIN32(::GetLastError());
 		CFileStream *pFileStream = new CFileStream(hFile, grfMode);
-		return pFileStream->QueryInterface(__uuidof(*ppStream), (void **)ppStream);
+		return pFileStream->QueryInterface(__uuidof(*ppStream), (void**)ppStream);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1946,7 +1956,7 @@ public:
 	~CWmvCoreDLL()
 	{
 		if (m_hLib)
-			FreeLibrary(m_hLib);
+			::FreeLibrary(m_hLib);
 	}
 
 	bool Initialize()
@@ -1959,10 +1969,10 @@ public:
 			// If WMP64 is installed, WMVCORE.DLL is not available.
 			// If WMP9+ is installed, WMVCORE.DLL is available.
 			//
-			m_hLib = LoadLibrary(_T("wmvcore.dll"));
+			m_hLib = ::LoadLibrary(_T("wmvcore.dll"));
 			if (m_hLib != NULL) {
-				(FARPROC &)m_pfnWMCreateEditor = GetProcAddress(m_hLib, "WMCreateEditor");
-				(FARPROC &)m_pfnWMCreateSyncReader = GetProcAddress(m_hLib, "WMCreateSyncReader");
+				(FARPROC &)m_pfnWMCreateEditor = ::GetProcAddress(m_hLib, "WMCreateEditor");
+				(FARPROC &)m_pfnWMCreateSyncReader = ::GetProcAddress(m_hLib, "WMCreateSyncReader");
 			}
 		}
 		return m_pfnWMCreateEditor != NULL;
@@ -2089,7 +2099,8 @@ bool GetWMHeaders(LPCTSTR pszFileName, SMediaInfo *mi, bool &rbIsWM, bool bFullI
 						//
 						if (!bFullInfo) {
 							LPCTSTR pszExt = ::PathFindExtension(pszFileName);
-							if (_tcsicmp(pszExt, _T(".mp3")) != 0 && _tcsicmp(pszExt, _T(".mpa")) != 0 && _tcsicmp(pszExt, _T(".wav")) != 0)
+							pszExt += static_cast<int>(*pszExt != _T('\0'));
+							if (_tcsicmp(pszExt, _T("mp3")) && _tcsicmp(pszExt, _T("mpa")) && _tcsicmp(pszExt, _T("wav")))
 								throw new CNotSupportedException();
 						}
 						mi->strFileFormat = _T("MP3");

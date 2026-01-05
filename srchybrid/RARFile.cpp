@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -24,17 +24,16 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-LPCTSTR CRARFile::sUnrar_download = _T("Download latest version of '")
-									UNRAR_DLL_NAME
+LPCTSTR CRARFile::sUnrar_download = _T("Download latest version of '") UNRAR_DLL_NAME
 									_T("' from https://www.rarlab.com and copy the DLL into eMule installation folder.");
 
 CRARFile::CRARFile()
-	: m_hLibUnRar(NULL)
-	, m_hArchive(NULL)
-	, m_pfnRAROpenArchiveEx(NULL)
-	, m_pfnRARCloseArchive(NULL)
-	, m_pfnRARReadHeaderEx(NULL)
-	, m_pfnRARProcessFileW(NULL)
+	: m_hLibUnRar()
+	, m_hArchive()
+	, m_pfnRAROpenArchiveEx()
+	, m_pfnRARCloseArchive()
+	, m_pfnRARReadHeaderEx()
+	, m_pfnRARProcessFileW()
 {
 }
 
@@ -42,24 +41,24 @@ CRARFile::~CRARFile()
 {
 	Close();
 	if (m_hLibUnRar)
-		VERIFY(FreeLibrary(m_hLibUnRar));
+		VERIFY(::FreeLibrary(m_hLibUnRar));
 }
 
 bool CRARFile::InitUnRarLib()
 {
 	if (m_hLibUnRar == NULL) {
-		m_hLibUnRar = LoadLibrary(UNRAR_DLL_NAME);
+		m_hLibUnRar = ::LoadLibrary(UNRAR_DLL_NAME);
 		if (m_hLibUnRar) {
-			(FARPROC&)m_pfnRAROpenArchiveEx = GetProcAddress(m_hLibUnRar, "RAROpenArchiveEx");
-			(FARPROC&)m_pfnRARCloseArchive = GetProcAddress(m_hLibUnRar, "RARCloseArchive");
-			(FARPROC&)m_pfnRARReadHeaderEx = GetProcAddress(m_hLibUnRar, "RARReadHeaderEx");
-			(FARPROC&)m_pfnRARProcessFileW = GetProcAddress(m_hLibUnRar, "RARProcessFileW");
+			(FARPROC&)m_pfnRAROpenArchiveEx = ::GetProcAddress(m_hLibUnRar, "RAROpenArchiveEx");
+			(FARPROC&)m_pfnRARCloseArchive = ::GetProcAddress(m_hLibUnRar, "RARCloseArchive");
+			(FARPROC&)m_pfnRARReadHeaderEx = ::GetProcAddress(m_hLibUnRar, "RARReadHeaderEx");
+			(FARPROC&)m_pfnRARProcessFileW = ::GetProcAddress(m_hLibUnRar, "RARProcessFileW");
 			if (m_pfnRAROpenArchiveEx == NULL
 				|| m_pfnRARCloseArchive == NULL
 				|| m_pfnRARReadHeaderEx == NULL
 				|| m_pfnRARProcessFileW == NULL)
 			{
-				FreeLibrary(m_hLibUnRar);
+				::FreeLibrary(m_hLibUnRar);
 				m_hLibUnRar = NULL;
 			}
 		}

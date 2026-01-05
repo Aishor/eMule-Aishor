@@ -619,7 +619,7 @@ bool CAsyncSocketExLayer::CreateNext(UINT nSocketPort, int nSocketType, long lEv
 	return ret;
 }
 
-int CAsyncSocketExLayer::DoLayerCallback(int nType, WPARAM wParam, LPARAM lParam, const char* const str /*=NULL*/)
+int CAsyncSocketExLayer::DoLayerCallback(int nType, WPARAM wParam, LPARAM lParam, const char *const str /*=NULL*/)
 {
 	if (m_pOwnerSocket) {
 		int nError = WSAGetLastError();
@@ -712,11 +712,6 @@ BOOL CAsyncSocketExLayer::ShutDownNext(int nHow /*=CAsyncSocket::sends*/)
 		return shutdown(m_pOwnerSocket->GetSocketHandle(), nHow);
 	}
 	return m_pNextLayer->ShutDownNext(nHow);
-}
-
-ADDRESS_FAMILY CAsyncSocketExLayer::GetFamily() const
-{
-	return m_nFamily;
 }
 
 bool CAsyncSocketExLayer::SetFamily(ADDRESS_FAMILY nFamily)

@@ -53,12 +53,12 @@ namespace Kademlia
 		CContact& operator=(const CContact &k1)			{ Copy(k1); return *this; }
 
 		void	GetClientID(CUInt128 &uId) const		{ uId.SetValue(m_uClientID); }
-		CUInt128 GetClientID() const					{ return m_uClientID; }
+		const CUInt128& GetClientID() const				{ return m_uClientID; }
 		void	GetClientID(CString &sId) const;
 		void	SetClientID(const CUInt128 &uClientID);
 		void	GetDistance(CUInt128 &uDistance) const	{ uDistance.SetValue(m_uDistance); }
 		void	GetDistance(CString &sDistance) const;
-		CUInt128 GetDistance() const					{ return m_uDistance; }
+		const CUInt128& GetDistance() const				{ return m_uDistance; }
 		uint32	GetIPAddress() const					{ return m_uIp; }
 		uint32	GetNetIP() const						{ return m_uNetIp; }
 		void	GetIPAddress(CString &sIp) const;
@@ -74,7 +74,7 @@ namespace Kademlia
 		void	CheckingType();
 		bool	GetGuiRefs() const						{ return m_bGuiRefs; }
 		void	SetGuiRefs(bool bRefs)					{ m_bGuiRefs = bRefs; }
-		bool	InUse() const							{ return (m_uInUse > 0); }
+		bool	InUse() const							{ return m_uInUse > 0; }
 		void	IncUse()								{ ++m_uInUse; }
 		void	DecUse();
 		uint8	GetVersion() const						{ return m_uVersion; }

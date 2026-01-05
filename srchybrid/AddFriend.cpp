@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -70,13 +70,13 @@ BOOL CAddFriend::OnInitDialog()
 		SetDlgItemText(IDC_USERNAME, m_pShowFriend->m_strName);
 		SetDlgItemText(IDC_USERHASH, (m_pShowFriend->HasUserhash() ? md4str(m_pShowFriend->m_abyUserhash) : _T("")));
 
-		if (m_pShowFriend->m_dwLastSeen) {
-			CTime t((time_t)m_pShowFriend->m_dwLastSeen);
+		if (m_pShowFriend->m_tLastSeen) {
+			CTime t(m_pShowFriend->m_tLastSeen);
 			SetDlgItemText(IDC_EDIT2, t.Format(thePrefs.GetDateTimeFormat()));
 		}
 		SetDlgItemText(IDC_AFKADID, GetResString(m_pShowFriend->HasKadID() ? IDS_KNOWN : IDS_UNKNOWN));
-		/*if (m_pShowFriend->m_dwLastChatted) {
-			CTime t((time_t)m_pShowFriend->m_dwLastChatted);
+		/*if (m_pShowFriend->m_tLastChatted) {
+			CTime t(m_pShowFriend->m_tLastChatted);
 			SetDlgItemText(IDC_LAST_CHATTED, t.Format(thePrefs.GetDateTimeFormat()));
 		}*/
 

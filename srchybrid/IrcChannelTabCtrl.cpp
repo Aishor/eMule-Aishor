@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -32,7 +32,6 @@
 #include "IrcWnd.h"
 #include "IrcMain.h"
 #include "otherfunctions.h"
-#include "MenuCmds.h"
 #include "HTRichEditCtrl.h"
 #include "UserMsgs.h"
 
@@ -192,7 +191,7 @@ Channel* CIrcChannelTabCtrl::NewChannel(const CString &sChannel, Channel::EType 
 #endif
 			)
 		{
-			RECT rcTopic = { rcChannelPane.left, rcChannelPane.top, rcChannelPane.right, rcChannelPane.top + IRC_TITLE_WND_DFLT_HEIGHT };
+			RECT rcTopic{rcChannelPane.left, rcChannelPane.top, rcChannelPane.right, rcChannelPane.top + IRC_TITLE_WND_DFLT_HEIGHT};
 			pChannel->m_wndTopic.Create(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_NOHIDESEL, rcTopic, m_pParent, IDC_TITLEWINDOW);
 			pChannel->m_wndTopic.ModifyStyleEx(0, WS_EX_STATICEDGE, SWP_FRAMECHANGED);
 			pChannel->m_wndTopic.SendMessage(EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN, MAKELONG(3, 3));
@@ -222,7 +221,7 @@ Channel* CIrcChannelTabCtrl::NewChannel(const CString &sChannel, Channel::EType 
 				pChannel->m_wndTitle.AddLine(_T("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ^°1234567890!\"§$%&/()=?´`²³{[]}ß\\öäüÖÄÜ+*~#',.-;:_"));
 #endif
 
-			RECT rcSplitter = { rcChannelPane.left, rcTopic.bottom, rcChannelPane.right, rcTopic.bottom + IRC_CHANNEL_SPLITTER_HEIGHT };
+			RECT rcSplitter{rcChannelPane.left, rcTopic.bottom, rcChannelPane.right, rcTopic.bottom + IRC_CHANNEL_SPLITTER_HEIGHT};
 			pChannel->m_wndSplitter.CreateWnd(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, rcSplitter, m_pParent, IDC_SPLITTER_IRC_CHANNEL);
 			pChannel->m_wndSplitter.SetRange(rcTopic.top + IRC_TITLE_WND_MIN_HEIGHT + IRC_CHANNEL_SPLITTER_HEIGHT / 2, rcTopic.top + IRC_TITLE_WND_MAX_HEIGHT - IRC_CHANNEL_SPLITTER_HEIGHT / 2);
 			rcLog.top = rcSplitter.bottom;
@@ -534,7 +533,7 @@ void CIrcChannelTabCtrl::ChatSend(CString sSend)
 		return;
 	m_pCurrentChannel->m_sTabd.Empty();
 	m_pCurrentChannel->m_sTyped.Empty();
-	if (m_pCurrentChannel->m_astrHistory.GetCount() == thePrefs.GetMaxChatHistoryLines())
+	if (m_pCurrentChannel->m_astrHistory.GetCount() >= thePrefs.GetMaxChatHistoryLines())
 		m_pCurrentChannel->m_astrHistory.RemoveAt(0);
 	m_pCurrentChannel->m_astrHistory.Add(sSend);
 	m_pCurrentChannel->m_iHistoryPos = (int)m_pCurrentChannel->m_astrHistory.GetCount();

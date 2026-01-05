@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2003-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2003-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,6 @@
 #include "stdafx.h"
 #include "emule.h"
 #include "PreviewDlg.h"
-#include "CxImage/xImage.h"
 #include "OtherFunctions.h"
 #include "SearchFile.h"
 
@@ -90,9 +89,8 @@ void PreviewDlg::ShowImage(int nNumber)
 		nNumber = nImageCount - 1;
 
 	m_nCurrentImage = nNumber;
-	HBITMAP hbitmap = m_ImageStatic.SetBitmap(m_pFile->GetPreviews()[nNumber]->MakeBitmap(m_ImageStatic.GetDC()->m_hDC));
-	if (hbitmap)
-		::DeleteObject(hbitmap);
+	m_ImageStatic.SetBitmap(m_pFile->GetPreviews()[nNumber]);
+
 	CString strInfo;
 	strInfo.Format(_T("Image %i of %i"), nNumber + 1, nImageCount);
 	SetDlgItemText(IDC_PREVIEW_INFO, strInfo);

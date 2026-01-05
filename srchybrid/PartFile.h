@@ -1,4 +1,5 @@
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//this file is part of eMule
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -18,7 +19,7 @@
 #include "DeadSourceList.h"
 #include "CorruptionBlackBox.h"
 
-enum EPartFileStatus
+enum EPartFileStatus : uint8
 {
 	PS_READY			= 0,
 	PS_EMPTY			= 1,
@@ -69,7 +70,7 @@ enum EPartFileLoadResult
 #define	FILE_COMPLETION_THREAD_SUCCESS	0x0001
 #define	FILE_COMPLETION_THREAD_RENAMED	0x0002
 
-enum EPartFileOp
+enum EPartFileOp : uint8
 {
 	PFOP_NONE = 0,
 	PFOP_HASHING,
@@ -81,7 +82,6 @@ enum EPartFileOp
 class CSearchFile;
 class CUpDownClient;
 enum EDownloadState : uint8;
-class CxImage;
 class CSafeMemFile;
 class CED2KFileLink;
 
@@ -114,7 +114,7 @@ struct PartFileBufferedData
 	BYTE *data;						// Barry - This is the data to be written
 	Requested_Block_Struct *block;	// Barry - This is the requested block that this data relates to
 	DWORD dwError;					// returned from the writing thread
-	byte flushed;					// 0 - ready 1 - sent to writing thread 2 - error 3 - written
+	byte flushed;					// 0 - ready; 1 - sent to writing thread; 2 - error; 3 - written
 };
 
 typedef CTypedPtrList<CPtrList, CUpDownClient*> CUpDownClientPtrList;
@@ -131,7 +131,7 @@ public:
 	explicit CPartFile(const CED2KFileLink &fileLink, UINT cat = 0);
 	virtual	~CPartFile();
 
-	bool	IsPartFile() const							{ return (status != PS_COMPLETE); }
+	bool	IsPartFile() const							{ return status != PS_COMPLETE; }
 
 	// eD2K filename
 	virtual void SetFileName(LPCTSTR pszFileName, bool bReplaceInvalidFileSystemChars = false, bool bRemoveControlChars = false); // 'bReplaceInvalidFileSystemChars' is set to 'false' for backward compatibility!
@@ -171,8 +171,8 @@ public:
 
 	void	AddGap(uint64 start, uint64 end);
 	void	FillGap(uint64 start, uint64 end);
-	void	DrawStatusBar(CDC *dc, const CRect &rect, bool bFlat);
-	virtual void	DrawShareStatusBar(CDC *dc, LPCRECT rect, bool onlygreyrect, bool bFlat) const;
+	void	DrawStatusBar(CDC &dc, const CRect &rect, bool bFlat);
+	virtual void	DrawShareStatusBar(CDC &dc, LPCRECT rect, bool onlygreyrect, bool bFlat) const;
 	bool	IsComplete(uint64 start, uint64 end) const;
 	bool	IsCompleteSafe(uint64 start, uint64 end) const;
 	bool	IsComplete(UINT uPart) const;
@@ -182,7 +182,7 @@ public:
 	bool	IsPureGap(uint64 start, uint64 end) const;
 	bool	IsAlreadyRequested(uint64 start, uint64 end, bool bCheckBuffers = false) const;
 	bool	ShrinkToAvoidAlreadyRequested(uint64 &start, uint64 &end) const;
-	bool	IsCorruptedPart(UINT partnumber) const		{ return (corrupted_list.Find((uint16)partnumber) != NULL); }
+	bool	IsCorruptedPart(UINT partnumber) const		{ return corrupted_list.Find((uint16)partnumber) != NULL; }
 	uint64	GetTotalGapSizeInRange(uint64 uRangeStart, uint64 uRangeEnd) const;
 	uint64	GetTotalGapSizeInPart(UINT uPart) const;
 	void	UpdateCompletedInfos();
@@ -289,7 +289,7 @@ public:
 	//preview
 	bool CopyPartFile(CArray<Gap_Struct> &raFilled, const CString &tempFileName);
 	virtual bool GrabImage(uint8 nFramesToGrab, double dStartTime, bool bReduceColor, uint16 nMaxWidth, void *pSender);
-	virtual void GrabbingFinished(CxImage **imgResults, uint8 nFramesGrabbed, void *pSender);
+	virtual void GrabbingFinished(HBITMAP *imgResults, uint8 nFramesGrabbed, void *pSender);
 
 	void	FlushBuffersExceptionHandler(CFileException *ex);
 	void	FlushBuffersExceptionHandler();
@@ -373,7 +373,6 @@ private:
 	CString m_fullname;
 	CString m_partmetfilename;
 	CAICHRecoveryHashSet *m_pAICHRecoveryHashSet;
-	float	m_percentcompleted;
 	EMFileSize	m_completedsize;
 	uint64	m_uTransferred;
 	uint64	m_uCorruptionLoss;
@@ -401,6 +400,7 @@ private:
 	uint32	m_LastNoNeededCheck;
 	uint32	m_uPartsSavedDueICH;
 	uint32	m_datarate;
+	float	m_percentcompleted;
 	EPartFileStatus	status;
 	volatile EPartFileOp m_eFileOp;
 	byte	m_refresh; //delay counter for display
@@ -414,4 +414,5 @@ private:
 	bool	m_bAutoDownPriority;
 	bool	m_bDelayDelete;
 	bool	m_bpreviewprio;
+	bool	m_bUpdateMet;
 };

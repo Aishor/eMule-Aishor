@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -21,10 +21,7 @@
 #include "HTRichEditCtrl.h"
 #include "ED2KLink.h"
 #include "kademlia/kademlia/kademlia.h"
-#include "kademlia/kademlia/prefs.h"
-#include "kademlia/utils/MiscUtils.h"
 #include "emuledlg.h"
-#include "WebServer.h"
 #include "CustomAutoComplete.h"
 #include "Server.h"
 #include "ServerList.h"
@@ -56,7 +53,6 @@ BEGIN_MESSAGE_MAP(CServerWnd, CResizableDialog)
 	ON_BN_CLICKED(IDC_UPDATESERVERMETFROMURL, OnBnClickedUpdateServerMetFromUrl)
 	ON_BN_CLICKED(IDC_LOGRESET, OnBnClickedResetLog)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB3, OnTcnSelchangeTab3)
-	ON_NOTIFY(EN_LINK, IDC_SERVMSG, OnEnLinkServerBox)
 	ON_BN_CLICKED(IDC_ED2KCONNECT, OnBnConnect)
 	ON_WM_SYSCOLORCHANGE()
 	ON_WM_CTLCOLOR()
@@ -108,7 +104,6 @@ BOOL CServerWnd::OnInitDialog()
 		theApp.m_fontLog.CreateFontIndirect(&lf);
 	}
 
-	ReplaceRichEditCtrl(GetDlgItem(IDC_MYINFOLIST), this, GetDlgItem(IDC_SSTATIC)->GetFont());
 	CResizableDialog::OnInitDialog();
 
 	// using ES_NOHIDESEL is actually not needed, but it helps to get around a tricky window update problem!
@@ -133,7 +128,8 @@ BOOL CServerWnd::OnInitDialog()
 		servermsgbox->AppendText(_T("\n"));
 		// MOD Note: Do not remove this part - Merkur
 		m_strClickNewVersion.Format(_T("%s %s %s"), (LPCTSTR)GetResString(IDS_EMULEW), (LPCTSTR)GetResString(IDS_EMULEW3), (LPCTSTR)GetResString(IDS_EMULEW2));
-		servermsgbox->AppendHyperLink(NULL, NULL, m_strClickNewVersion, NULL);
+		servermsgbox->SetAutoURLDetect(TRUE);
+		servermsgbox->AppendHyperLink(m_strClickNewVersion, NULL, thePrefs.GetVersionCheckURL(), NULL);
 		// MOD Note: end
 		servermsgbox->AppendText(_T("\n\n"));
 	}
@@ -677,23 +673,6 @@ void CServerWnd::ShowNetworkInfo()
 {
 	CNetworkInfoDlg dlg;
 	dlg.DoModal();
-}
-
-void CServerWnd::OnEnLinkServerBox(LPNMHDR pNMHDR, LRESULT *pResult)
-{
-	ENLINK *pEnLink = reinterpret_cast<ENLINK*>(pNMHDR);
-	if (pEnLink && pEnLink->msg == WM_LBUTTONDOWN) {
-		CString strUrl;
-		servermsgbox->GetTextRange(pEnLink->chrg.cpMin, pEnLink->chrg.cpMax, strUrl);
-		if (strUrl == m_strClickNewVersion) {
-			// MOD Note: Do not remove this part - Merkur
-			strUrl = thePrefs.GetVersionCheckURL();
-			// MOD Note: end
-		}
-		BrowserOpen(strUrl, NULL);
-		*pResult = 1;
-	} else
-		*pResult = 0;
 }
 
 void CServerWnd::UpdateControlsState()

@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -49,11 +49,6 @@ CRichEditCtrlX::CRichEditCtrlX()
 {
 	m_cfDef.cbSize = (UINT)sizeof m_cfDef;
 	m_cfKeyword.cbSize = (UINT)sizeof m_cfKeyword;
-}
-
-void CRichEditCtrlX::SetDisableSelectOnFocus(bool bDisable)
-{
-	m_bDisableSelectOnFocus = bDisable;
 }
 
 void CRichEditCtrlX::SetSyntaxColoring(LPCTSTR *ppszKeywords, LPCTSTR pszSeparators)

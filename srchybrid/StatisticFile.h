@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -31,20 +31,20 @@ public:
 	{
 	}
 
-	void	MergeFileStats(CStatisticFile *toMerge);
+	void	MergeFileStats(const CStatisticFile *toMerge);
 	void	AddRequest();
 	void	AddAccepted();
 	void	AddTransferred(uint64 bytes);
 
-	UINT	GetRequests() const				{ return requested; }
-	UINT	GetAccepts() const				{ return accepted; }
-	uint64	GetTransferred() const			{ return transferred; }
-	UINT	GetAllTimeRequests() const		{ return alltimerequested; }
-	UINT	GetAllTimeAccepts() const		{ return alltimeaccepted; }
-	uint64	GetAllTimeTransferred() const	{ return alltimetransferred; }
-	void	SetAllTimeRequests(uint32 nVal);
-	void	SetAllTimeAccepts(uint32 nVal);
-	void	SetAllTimeTransferred(uint64 nVal);
+	UINT	GetRequests() const					{ return requested; }
+	UINT	GetAccepts() const					{ return accepted; }
+	uint64	GetTransferred() const				{ return transferred; }
+	UINT	GetAllTimeRequests() const			{ return alltimerequested; }
+	UINT	GetAllTimeAccepts() const			{ return alltimeaccepted; }
+	uint64	GetAllTimeTransferred() const		{ return alltimetransferred; }
+	void	SetAllTimeRequests(uint32 nVal)		{ alltimerequested = nVal; }
+	void	SetAllTimeAccepts(uint32 nVal)		{ alltimeaccepted = nVal; }
+	void	SetAllTimeTransferred(uint64 nVal)	{ alltimetransferred = nVal; }
 
 	CKnownFile *fileParent;
 

@@ -40,11 +40,11 @@ public:
 		: CDC()
 		, m_oldBitmap()
 		, m_oldFont()
+		, m_pDC(pDC)
 		, m_bFlushed()
 	{
 		ASSERT(pDC != NULL);
 
-		m_pDC = pDC;
 		m_bMemDC = !pDC->IsPrinting();
 
 		// Get the rectangle to draw
@@ -103,9 +103,9 @@ public:
 			m_bFlushed = true;
 			if (m_bMemDC) {
 				// Copy the off-screen bitmap onto the screen.
-				m_pDC->BitBlt(m_rect.left, m_rect.top,
-					m_rect.Width(), m_rect.Height(), this,
-					m_rect.left, m_rect.top, SRCCOPY);
+				m_pDC->BitBlt(m_rect.left, m_rect.top
+					, m_rect.Width(), m_rect.Height(), this
+					, m_rect.left, m_rect.top, SRCCOPY);
 
 	  // Swap back the original bitmap.
 				SelectObject(m_oldBitmap);

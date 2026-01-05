@@ -1,5 +1,6 @@
-// Microsoft Visual C++ generated resource script.
+﻿// Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
 #include "gl_ES.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -19,7 +20,6 @@
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GLC)
 #ifdef _WIN32
 LANGUAGE 0x56, 0x1
-#pragma code_page(65001)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED

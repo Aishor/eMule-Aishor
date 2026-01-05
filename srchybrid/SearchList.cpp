@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -25,10 +25,8 @@
 #include "UpDownClient.h"
 #include "SafeFile.h"
 #include "SharedFileList.h"
-#include "KnownFileList.h"
 #include "DownloadQueue.h"
 #include "PartFile.h"
-#include "CxImage/xImage.h"
 #include "kademlia/utils/uint128.h"
 #include "Kademlia/Kademlia/Entry.h"
 #include "Kademlia/Kademlia/SearchManager.h"
@@ -703,10 +701,10 @@ void CSearchList::AddResultCount(uint32 nSearchID, const uchar *hash, UINT nCoun
 }
 
 // FIXME LARGE FILES
-void CSearchList::KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt128 *pFileID, LPCTSTR name
-	, uint64 size, LPCTSTR type, UINT uKadPublishInfo
-	, CArray<CAICHHash> &raAICHHashes, CArray<uint8, uint8> &raAICHHashPopularity
-	, SSearchTerm *pQueriedSearchTerm, UINT numProperties, ...)
+void CSearchList::KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt128 *pFileID
+					, LPCTSTR name, uint64 size, LPCTSTR type, UINT uKadPublishInfo
+					, CArray<CAICHHash> &raAICHHashes, CArray<uint8, uint8> &raAICHHashPopularity
+					, SSearchTerm *pQueriedSearchTerm, UINT numProperties, ...)
 {
 	va_list args;
 	va_start(args, numProperties);
@@ -739,7 +737,7 @@ void CSearchList::KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt1
 	++tagcount;
 	verifierEntry.m_uSize = size;
 
-	if (type != NULL && type[0] != _T('\0')) {
+	if (type && *type) {
 		CTag tagType(FT_FILETYPE, type);
 		tagType.WriteTagToFile(temp, eStrEncode);
 		++tagcount;
@@ -750,17 +748,17 @@ void CSearchList::KademliaSearchKeyword(uint32 nSearchID, const Kademlia::CUInt1
 	for (; numProperties > 0; --numProperties) {
 		UINT uPropType = va_arg(args, UINT);
 		LPCSTR pszPropName = va_arg(args, LPCSTR);
-		LPVOID pvPropValue = va_arg(args, LPVOID);
+		LPCTSTR pvPropValue = va_arg(args, LPCTSTR);
 		if (uPropType == TAGTYPE_STRING) {
-			if ((LPCTSTR)pvPropValue != NULL && ((LPCTSTR)pvPropValue)[0] != _T('\0')) {
+			if (pvPropValue && *pvPropValue) {
 				if (strlen(pszPropName) == 1) {
-					CTag tagProp((uint8)*pszPropName, (LPCTSTR)pvPropValue);
+					CTag tagProp((uint8)*pszPropName, pvPropValue);
 					tagProp.WriteTagToFile(temp, eStrEncode);
 				} else {
-					CTag tagProp(pszPropName, (LPCTSTR)pvPropValue);
+					CTag tagProp(pszPropName, pvPropValue);
 					tagProp.WriteTagToFile(temp, eStrEncode);
 				}
-				verifierEntry.AddTag(new Kademlia::CKadTagStr(pszPropName, (LPCTSTR)pvPropValue));
+				verifierEntry.AddTag(new Kademlia::CKadTagStr(pszPropName, pvPropValue));
 				++tagcount;
 			}
 		} else if (uPropType == TAGTYPE_UINT32) {
@@ -1408,7 +1406,7 @@ void CSearchList::SaveSpamFilter()
 		}
 
 		for (const CUDPServerRecordMap::CPair *pair = m_mUDPServerRecords.PGetFirstAssoc(); pair != NULL; pair = m_mUDPServerRecords.PGetNextAssoc(pair)) {
-			const uint32 buf[3] = { pair->key, pair->value->m_nResults, pair->value->m_nSpamResults };
+			const uint32 buf[3] = {pair->key, pair->value->m_nResults, pair->value->m_nSpamResults};
 			CTag tag(SP_UDPSERVERSPAMRATIO, sizeof(buf), (const BYTE*)buf);
 			tag.WriteNewEd2kTag(file);
 			++nCount;

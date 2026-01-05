@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( devs@emule-project.net / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( devs@emule-project.net / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -27,9 +27,7 @@
 #include "MenuCmds.h"
 #include "PartFile.h"
 #include "CatDialog.h"
-#include "InputBox.h"
 #include "UserMsgs.h"
-#include "SharedFileList.h"
 #include "SharedFilesWnd.h"
 #include "HelpIDs.h"
 
@@ -84,7 +82,7 @@ END_MESSAGE_MAP()
 
 CTransferWnd::CTransferWnd(CWnd* /*pParent =NULL*/)
 	: CResizableFormView(CTransferWnd::IDD)
-	, m_pLastMousePoint(POINT{ -1, -1 })
+	, m_pLastMousePoint(POINT{-1, -1})
 	, m_uWnd2(wnd2Uploading)
 	, m_pDragImage()
 	, m_dwShowListIDC()
@@ -402,11 +400,10 @@ void CTransferWnd::UpdateListCount(EWnd2 listindex, int iCount /*=-1*/)
 			{
 				uint32 itemCount = (iCount < 0) ? uploadlistctrl.GetItemCount() : iCount;
 				uint32 activeCount = (uint32)theApp.uploadqueue->GetActiveUploadsCount();
-				const CString &sUploading(GetResString(IDS_UPLOADING));
 				if (activeCount >= itemCount)
-					strBuffer.Format(_T("%s (%u)"), (LPCTSTR)sUploading, itemCount);
+					strBuffer.Format(_T("%s (%u)"), (LPCTSTR)GetResString(IDS_UPLOADING), itemCount);
 				else
-					strBuffer.Format(_T("%s (%u/%u)"), (LPCTSTR)sUploading, activeCount, itemCount);
+					strBuffer.Format(_T("%s (%u/%u)"), (LPCTSTR)GetResString(IDS_UPLOADING), activeCount, itemCount);
 				m_btnWnd2.SetWindowText(strBuffer);
 			}
 			break;
@@ -432,11 +429,10 @@ void CTransferWnd::UpdateListCount(EWnd2 listindex, int iCount /*=-1*/)
 		if (listindex == wnd2Uploading) {
 			uint32 itemCount = (iCount < 0) ? uploadlistctrl.GetItemCount() : iCount;
 			uint32 activeCount = (uint32)theApp.uploadqueue->GetActiveUploadsCount();
-			const CString &sUploading(GetResString(IDS_UPLOADING));
 			if (activeCount >= itemCount)
-				strBuffer.Format(_T("%s (%u)"), (LPCTSTR)sUploading, itemCount);
+				strBuffer.Format(_T("%s (%u)"), (LPCTSTR)GetResString(IDS_UPLOADING), itemCount);
 			else
-				strBuffer.Format(_T("%s (%u/%u)"), (LPCTSTR)sUploading, activeCount, itemCount);
+				strBuffer.Format(_T("%s (%u/%u)"), (LPCTSTR)GetResString(IDS_UPLOADING), activeCount, itemCount);
 			m_btnWnd1.SetWindowText(strBuffer);
 		}
 		break;
@@ -693,7 +689,7 @@ void CTransferWnd::OnNmRClickDltab(LPNMHDR, LRESULT *pResult)
 	PrioMenu.AppendMenu(MF_STRING, MP_PRIOHIGH, GetResString(IDS_PRIOHIGH));
 	PrioMenu.CheckMenuItem(MP_PRIOHIGH, category_Struct && category_Struct->prio == PR_HIGH ? MF_CHECKED : MF_UNCHECKED);
 
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	CString sCat(GetResString(IDS_CAT));
 	if (m_rightclickindex)
@@ -841,7 +837,7 @@ void CTransferWnd::OnLButtonUp(UINT /*nFlags*/, CPoint /*point*/)
 		delete m_pDragImage;
 		m_pDragImage = NULL;
 
-		if (m_nDropIndex >= 0 && (downloadlistctrl.curTab == 0 || (UINT)m_nDropIndex != downloadlistctrl.curTab)) {
+		if (m_nDropIndex >= 0 && (downloadlistctrl.m_curTab == 0 || (UINT)m_nDropIndex != downloadlistctrl.m_curTab)) {
 			// for multi-selections
 			CTypedPtrList<CPtrList, CPartFile*> selectedList;
 			for (POSITION pos = downloadlistctrl.GetFirstSelectedItemPosition(); pos != NULL;) {
@@ -855,11 +851,11 @@ void CTransferWnd::OnLButtonUp(UINT /*nFlags*/, CPoint /*point*/)
 
 			while (!selectedList.IsEmpty())
 				selectedList.RemoveHead()->SetCategory(m_nDropIndex);
-			m_dlTab.SetCurSel(downloadlistctrl.curTab);
+			m_dlTab.SetCurSel(downloadlistctrl.m_curTab);
 			downloadlistctrl.UpdateCurrentCategoryView();
 			UpdateCatTabTitles();
 		} else
-			m_dlTab.SetCurSel(downloadlistctrl.curTab);
+			m_dlTab.SetCurSel(downloadlistctrl.m_curTab);
 		downloadlistctrl.Invalidate();
 	}
 }
@@ -1554,7 +1550,7 @@ void CTransferWnd::OnDisableList()
 
 void CTransferWnd::OnWnd1BtnDropDown(LPNMHDR, LRESULT*)
 {
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.EnableIcons();
 
@@ -1575,7 +1571,7 @@ void CTransferWnd::OnWnd1BtnDropDown(LPNMHDR, LRESULT*)
 
 void CTransferWnd::OnWnd2BtnDropDown(LPNMHDR, LRESULT*)
 {
-	CTitleMenu menu;
+	CTitledMenu menu;
 	menu.CreatePopupMenu();
 	menu.EnableIcons();
 

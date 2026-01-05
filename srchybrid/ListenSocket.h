@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -67,8 +67,8 @@ protected:
 
 	virtual bool PacketReceived(Packet *packet);
 
-	bool	ProcessPacket(const BYTE *packet, uint32 size, UINT opcode);
-	bool	ProcessExtPacket(const BYTE *packet, uint32 size, UINT opcode, UINT uRawSize);
+	void	ProcessPacket(const BYTE *packet, uint32 size, UINT opcode);
+	void	ProcessExtPacket(const BYTE *packet, uint32 size, UINT opcode, UINT uRawSize);
 	void	PacketToDebugLogLine(LPCTSTR protocol, const uchar *packet, uint32 size, UINT opcode);
 	void	SetConState(SocketState val);
 
@@ -99,7 +99,7 @@ public:
 	bool	TooManySockets(bool bIgnoreInterval = false);
 	uint32	GetMaxConnectionReached()	{ return maxconnectionreached; }
 	bool    IsValidSocket(CClientReqSocket *totest);
-	void	AddConnection();
+	void	AddConnection()				{ ++m_OpenSocketsInterval; }
 	void	RecalculateStats();
 	void	ReStartListening();
 	void	Debug_ClientDeleted(CUpDownClient *deleted);

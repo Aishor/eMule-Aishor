@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 #pragma once
 #include "MeterIcon.h"
 #include "TaskbarNotifier.h"
-#include "TitleMenu.h"
+#include "TitledMenu.h"
 #include "TrayDialog.h"
 
 namespace Kademlia
@@ -73,14 +73,14 @@ public:
 	explicit CemuleDlg(CWnd *pParent = NULL);
 	~CemuleDlg();
 
-	CImageList& GetClientIconList();
+	CImageList& GetClientIconList()				{ return m_IconList; }
 	void ShowConnectionState();
 	void ShowNotifier(LPCTSTR pszText, TbnMsg nMsgType, LPCTSTR pszLink = NULL, bool bForceSoundOFF = false);
 	void SendNotificationMail(TbnMsg nMsgType, LPCTSTR pszText);
 	void ShowUserCount();
 	void ShowMessageState(UINT nIcon);
 	void SetActiveDialog(CWnd *dlg);
-	CWnd* GetActiveDialog() const			{ return activewnd; }
+	CWnd* GetActiveDialog() const				{ return activewnd; }
 	void ShowTransferRate(bool bForceAll = false);
 	void ShowPing();
 	void Localize();
@@ -169,7 +169,7 @@ protected:
 	HICON			m_icoSysTrayDisconnected;	// do not use this icon for anything but the system tray!!!
 	HICON			m_icoSysTrayLowID;			// do not use this icon for anything but the system tray!!!
 	CImageList		imagelist;
-	CTitleMenu		trayPopup;
+	CTitledMenu		trayPopup;
 	CMuleSystrayDlg	*m_pSystrayDlg;
 	CMainFrameDropTarget *m_pDropTarget;
 	CMenu			m_SysMenuOptions;

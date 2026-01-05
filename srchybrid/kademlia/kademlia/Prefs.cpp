@@ -41,7 +41,6 @@ their client on the eMule forum.
 #include "kademlia/kademlia/kademlia.h"
 #include "kademlia/kademlia/indexed.h"
 #include "kademlia/routing/RoutingZone.h"
-#include "kademlia/utils/MiscUtils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -75,7 +74,7 @@ void CPrefs::Init(LPCTSTR szFilename)
 	m_uTotalNotes = 0;
 	m_uTotalStoreNotes = 0;
 	m_bPublish = false;
-	m_uClientHash.SetValue(CUInt128(thePrefs.GetUserHash()));
+	m_uClientHash = CUInt128(thePrefs.GetUserHash());
 	m_uIP = 0;
 	m_uIPLast = 0;
 	m_bFindBuddy = false;
@@ -231,165 +230,15 @@ void CPrefs::SetKademliaFiles()
 	m_uKademliaFiles = nKadAverage * m_uKademliaUsers;
 }
 
-void CPrefs::GetKadID(CUInt128 &uID) const
-{
-	uID.SetValue(m_uClientID);
-}
-
-void CPrefs::GetKadID(CString &sID) const
-{
-	m_uClientID.ToHexString(sID);
-}
-
-void CPrefs::SetKadID(const CUInt128 &puID)
-{
-	m_uClientID = puID;
-}
-
-CUInt128 CPrefs::GetKadID() const
-{
-	return m_uClientID;
-}
-
-void CPrefs::GetClientHash(CUInt128 &uID) const
-{
-	uID.SetValue(m_uClientHash);
-}
-
-void CPrefs::GetClientHash(CString &sID) const
-{
-	m_uClientHash.ToHexString(sID);
-}
-
-void CPrefs::SetClientHash(const CUInt128 &puID)
-{
-	m_uClientHash = puID;
-}
-
-CUInt128 CPrefs::GetClientHash() const
-{
-	return m_uClientHash;
-}
-
-uint32 CPrefs::GetIPAddress() const
-{
-	return m_uIP;
-}
-
 bool CPrefs::GetRecheckIP() const
 {
-	return (m_uRecheckip < KADEMLIAFIREWALLCHECKS);
+	return m_uRecheckip < KADEMLIAFIREWALLCHECKS;
 }
 
 void CPrefs::SetRecheckIP()
 {
 	m_uRecheckip = 0;
 	SetFirewalled();
-}
-
-void CPrefs::IncRecheckIP()
-{
-	++m_uRecheckip;
-}
-
-void CPrefs::SetLastContact()
-{
-	m_tLastContact = time(NULL);
-}
-
-time_t CPrefs::GetLastContact() const
-{
-	return m_tLastContact;
-}
-
-uint8 CPrefs::GetTotalFile() const
-{
-	return m_uTotalFile;
-}
-
-void CPrefs::SetTotalFile(uint8 uVal)
-{
-	m_uTotalFile = uVal;
-}
-
-uint8 CPrefs::GetTotalStoreSrc() const
-{
-	return m_uTotalStoreSrc;
-}
-
-void CPrefs::SetTotalStoreSrc(uint8 uVal)
-{
-	m_uTotalStoreSrc = uVal;
-}
-
-uint8 CPrefs::GetTotalStoreKey() const
-{
-	return m_uTotalStoreKey;
-}
-
-void CPrefs::SetTotalStoreKey(uint8 uVal)
-{
-	m_uTotalStoreKey = uVal;
-}
-
-uint8 CPrefs::GetTotalSource() const
-{
-	return m_uTotalSource;
-}
-
-void CPrefs::SetTotalSource(uint8 uVal)
-{
-	m_uTotalSource = uVal;
-}
-
-uint8 CPrefs::GetTotalNotes() const
-{
-	return m_uTotalNotes;
-}
-
-void CPrefs::SetTotalNotes(uint8 uVal)
-{
-	m_uTotalNotes = uVal;
-}
-
-uint8 CPrefs::GetTotalStoreNotes() const
-{
-	return m_uTotalStoreNotes;
-}
-
-void CPrefs::SetTotalStoreNotes(uint8 uVal)
-{
-	m_uTotalStoreNotes = uVal;
-}
-
-uint32 CPrefs::GetKademliaUsers() const
-{
-	return m_uKademliaUsers;
-}
-
-void CPrefs::SetKademliaUsers(uint32 uVal)
-{
-	m_uKademliaUsers = uVal;
-}
-
-uint32 CPrefs::GetKademliaFiles() const
-{
-	return m_uKademliaFiles;
-}
-
-bool CPrefs::GetPublish() const
-{
-	return m_bPublish;
-}
-
-void CPrefs::SetPublish(bool bVal)
-{
-	m_bPublish = bVal;
-}
-
-void CPrefs::SetFindBuddy(bool bVal)
-{
-	m_bFindBuddy = bVal;
 }
 
 uint32 CPrefs::GetUDPVerifyKey(uint32 dwTargetIP)
@@ -404,16 +253,6 @@ uint32 CPrefs::GetUDPVerifyKey(uint32 dwTargetIP)
 bool CPrefs::GetUseExternKadPort() const
 {
 	return m_bUseExternKadPort && !Kademlia::CKademlia::IsRunningInLANMode();
-}
-
-void CPrefs::SetUseExternKadPort(bool bVal)
-{
-	m_bUseExternKadPort = bVal;
-}
-
-uint16 CPrefs::GetExternalKadPort() const
-{
-	return m_nExternKadPort;
 }
 
 #define EXTERNAL_PORT_ASKIPS	3

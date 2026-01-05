@@ -19,7 +19,7 @@ CString GetResString(UINT uStringID, WORD wLanguageID)
 	if (s_hLangDLL)
 		(void)resString.LoadString(s_hLangDLL, uStringID, wLanguageID);
 	if (resString.IsEmpty())
-		(void)resString.LoadString(GetModuleHandle(NULL), uStringID, LANGID_EN_US);
+		(void)resString.LoadString(::GetModuleHandle(NULL), uStringID, LANGID_EN_US);
 	return resString;
 }
 
@@ -29,7 +29,7 @@ CString GetResString(UINT uStringID)
 	if (s_hLangDLL)
 		(void)resString.LoadString(s_hLangDLL, uStringID);
 	if (resString.IsEmpty())
-		(void)resString.LoadString(GetModuleHandle(NULL), uStringID);
+		(void)resString.LoadString(::GetModuleHandle(NULL), uStringID);
 	return resString;
 }
 
@@ -143,32 +143,32 @@ static SLanguage s_aLanguages[] =
 
 static void InitLanguages(const CString &rstrLangDir1, const CString &rstrLangDir2)
 {
-	bool bFirstDir = rstrLangDir1.CompareNoCase(rstrLangDir2) != 0;
+	bool bSameDir = EqualPaths(rstrLangDir1, rstrLangDir2);
 	CFileFind ff;
 	for (BOOL bFound = ff.FindFile(rstrLangDir1 + _T("*.dll")); bFound;) {
 		bFound = ff.FindNextFile();
 		if (ff.IsDirectory())
 			continue;
-		TCHAR szLandDLLFileName[_MAX_FNAME];
-		_tsplitpath(ff.GetFileName(), NULL, NULL, szLandDLLFileName, NULL);
+		TCHAR szLangDLLFileName[_MAX_FNAME];
+		_tsplitpath(ff.GetFileName(), NULL, NULL, szLangDLLFileName, NULL);
 
 		for (SLanguage *pLang = s_aLanguages; pLang->lid; ++pLang)
-			if (_tcsicmp(pLang->pszISOLocale, szLandDLLFileName) == 0) {
+			if (_tcsicmp(pLang->pszISOLocale, szLangDLLFileName) == 0) {
 				pLang->bSupported = true;
 				break;
 			}
 
-		if (!bFound && bFirstDir) {
+		if (!bFound && !bSameDir) {
 			bFound = ff.FindFile(rstrLangDir2 + _T("*.dll"));
-			bFirstDir = false;
+			bSameDir = true;
 		}
 	}
 }
 
 static void FreeLangDLL()
 {
-	if (s_hLangDLL != NULL && s_hLangDLL != GetModuleHandle(NULL)) {
-		VERIFY(FreeLibrary(s_hLangDLL));
+	if (s_hLangDLL != NULL && s_hLangDLL != ::GetModuleHandle(NULL)) {
+		VERIFY(::FreeLibrary(s_hLangDLL));
 		s_hLangDLL = NULL;
 	}
 }
@@ -182,36 +182,10 @@ void CPreferences::GetLanguages(CWordArray &aLanguageIDs)
 	}
 }
 
-LANGID CPreferences::GetLanguageID()
-{
-	return m_wLanguageID;
-}
-
-void CPreferences::SetLanguageID(LANGID lid)
-{
-	m_wLanguageID = lid;
-}
-
 static bool CheckLangDLLVersion(const CString &rstrLangDLL)
 {
-	bool bResult = false;
-	DWORD dwUnused;
-	DWORD dwVerInfSize = GetFileVersionInfoSize(const_cast<LPTSTR>((LPCTSTR)rstrLangDLL), &dwUnused);
-	if (dwVerInfSize != 0) {
-		LPBYTE pucVerInf = (LPBYTE)malloc(dwVerInfSize);
-		if (pucVerInf) {
-			if (GetFileVersionInfo(const_cast<LPTSTR>((LPCTSTR)rstrLangDLL), 0, dwVerInfSize, pucVerInf)) {
-				VS_FIXEDFILEINFO *pFileInf;
-				UINT uLen;
-				if (VerQueryValue(pucVerInf, _T("\\"), (LPVOID*)&pFileInf, &uLen))
-					bResult = (pFileInf->dwProductVersionMS == theApp.m_dwProductVersionMS
-							&& pFileInf->dwProductVersionLS == theApp.m_dwProductVersionLS);
-			}
-			free(pucVerInf);
-		}
-	}
-
-	return bResult;
+	ULONGLONG ullVersion = GetModuleVersion((LPCTSTR)rstrLangDLL);
+	return (HIDWORD(ullVersion) == theApp.m_dwProductVersionMS && LODWORD(ullVersion) == theApp.m_dwProductVersionLS);
 }
 
 static bool LoadLangLib(const CString &rstrLangDir1, const CString &rstrLangDir2, LANGID lid)
@@ -228,14 +202,14 @@ static bool LoadLangLib(const CString &rstrLangDir1, const CString &rstrLangDir2
 			CString strLangDLL;
 			strLangDLL.Format(_T("%s%s.dll"), (LPCTSTR)rstrLangDir1, pLang->pszISOLocale);
 			if (CheckLangDLLVersion(strLangDLL)) {
-				s_hLangDLL = LoadLibrary(strLangDLL);
+				s_hLangDLL = ::LoadLibrary(strLangDLL);
 				if (s_hLangDLL)
 					return true;
 			}
 			if (rstrLangDir1.CompareNoCase(rstrLangDir2) != 0) {
 				strLangDLL.Format(_T("%s%s.dll"), (LPCTSTR)rstrLangDir2, pLang->pszISOLocale);
 				if (CheckLangDLLVersion(strLangDLL)) {
-					s_hLangDLL = LoadLibrary(strLangDLL);
+					s_hLangDLL = ::LoadLibrary(strLangDLL);
 					if (s_hLangDLL)
 						return true;
 				}
@@ -283,12 +257,13 @@ bool CPreferences::IsLanguageSupported(LANGID lidSelected)
 		return true;
 	const CString &sInst(GetMuleDirectory(EMULE_INSTLANGDIR));
 	const CString &sAdd(GetMuleDirectory(EMULE_ADDLANGDIR, false));
+	bool bSameDir = EqualPaths(sInst, sAdd);
 	InitLanguages(sInst, sAdd);
 	for (const SLanguage *pLang = s_aLanguages; pLang->lid; ++pLang)
 		if (pLang->lid == lidSelected && pLang->bSupported) {
 			CString sDLL;
 			sDLL.Format(_T("%s.dll"), pLang->pszISOLocale);
-			return CheckLangDLLVersion(sInst + sDLL) || CheckLangDLLVersion(sAdd + sDLL);
+			return CheckLangDLLVersion(sInst + sDLL) || (!bSameDir && CheckLangDLLVersion(sAdd + sDLL));
 		}
 
 	return false;
@@ -340,7 +315,7 @@ void CPreferences::InitThreadLocale()
 		//	- MBCS->Unicode conversions (e.g. search results).
 		//	- Unicode->MBCS conversions (e.g. publishing local files (names) in network, or savint text files on local disk)...
 		LCID lcid = MAKESORTLCID(lidSystem, uSortIdUser, uSortVerUser);
-		SetThreadLocale(lcid);
+		::SetThreadLocale(lcid);
 
 		// if we set the thread locale (see comments above) we also have to specify the proper
 		// code page for the C-RTL, otherwise we may not be able to store some strings as MBCS

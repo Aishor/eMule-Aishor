@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -124,6 +124,12 @@ struct IPHeader
 	ULONG source_ip;
 	ULONG dest_ip;
 };
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+#endif
 
 // ICMP header for DEST_UNREACH and TTL_EXPIRE replies
 struct ICMPHeader

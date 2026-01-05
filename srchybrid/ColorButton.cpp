@@ -48,14 +48,14 @@ IMPLEMENT_DYNCREATE(CColorButton, CButton)
 // Method:	CColorButton::CColorButton()
 // Notes:	Default Constructor.
 //***********************************************************************
-CColorButton::CColorButton() :
-	_Inherited(),
-	m_Color(CLR_DEFAULT),
-	m_DefaultColor(::GetSysColor(COLOR_APPWORKSPACE)),
-	m_strDefaultText(_T("Automatic")),
-	m_strCustomText(_T("More Colors...")),
-	m_bPopupActive(FALSE),
-	m_bTrackSelection(FALSE)
+CColorButton::CColorButton()
+	: _Inherited()
+	, m_Color(CLR_DEFAULT)
+	, m_DefaultColor(::GetSysColor(COLOR_APPWORKSPACE))
+	, m_strDefaultText(_T("Automatic"))
+	, m_strCustomText(_T("More Colors..."))
+	, m_bPopupActive(FALSE)
+	, m_bTrackSelection(FALSE)
 {
 }
 
@@ -68,16 +68,6 @@ CColorButton::~CColorButton()
 }
 
 //***********************************************************************
-// Method:	CColorButton::GetColor()
-// Notes:	None.
-//***********************************************************************
-COLORREF CColorButton::GetColor() const
-{
-	return m_Color;
-}
-
-
-//***********************************************************************
 // Method:	CColorButton::SetColor()
 // Notes:	None.
 //***********************************************************************
@@ -87,62 +77,6 @@ void CColorButton::SetColor(COLORREF dwColor)
 
 	if (::IsWindow(m_hWnd))
 		RedrawWindow();
-}
-
-
-//***********************************************************************
-// Method:	CColorButton::GetDefaultColor()
-// Notes:	None.
-//***********************************************************************
-COLORREF CColorButton::GetDefaultColor() const
-{
-	return m_DefaultColor;
-}
-
-//***********************************************************************
-// Method:	CColorButton::SetDefaultColor()
-// Notes:	None.
-//***********************************************************************
-void CColorButton::SetDefaultColor(COLORREF dwColor)
-{
-	m_DefaultColor = dwColor;
-}
-
-//***********************************************************************
-// Method:	CColorButton::SetCustomText()
-// Notes:	None.
-//***********************************************************************
-void CColorButton::SetCustomText(LPCTSTR tszText)
-{
-	m_strCustomText = tszText;
-}
-
-//***********************************************************************
-// Method:	CColorButton::SetDefaultText()
-// Notes:	None.
-//***********************************************************************
-void CColorButton::SetDefaultText(LPCTSTR tszText)
-{
-	m_strDefaultText = tszText;
-}
-
-
-//***********************************************************************
-// Method:	CColorButton::SetTrackSelection()
-// Notes:	None.
-//***********************************************************************
-void CColorButton::SetTrackSelection(BOOL bTrack)
-{
-	m_bTrackSelection = bTrack;
-}
-
-//***********************************************************************
-// Method:	CColorButton::GetTrackSelection()
-// Notes:	None.
-//***********************************************************************
-BOOL CColorButton::GetTrackSelection() const
-{
-	return m_bTrackSelection;
 }
 
 //***********************************************************************
@@ -339,14 +273,10 @@ void CColorButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	//**                     Draw Color
 	//******************************************************
 	if ((state & ODS_DISABLED) == 0) {
-		pDC->FillSolidRect(&rDraw,
-			(m_Color == CLR_DEFAULT)
-			? m_DefaultColor
-			: m_Color);
+		pDC->FillSolidRect(&rDraw
+			, (m_Color == CLR_DEFAULT) ? m_DefaultColor : m_Color);
 
-		FrameRect(pDC->m_hDC,
-			&rDraw,
-			(HBRUSH)GetStockObject(BLACK_BRUSH));
+		FrameRect(pDC->m_hDC, &rDraw, (HBRUSH)GetStockObject(BLACK_BRUSH));
 	}
 }
 

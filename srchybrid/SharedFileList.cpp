@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -15,8 +15,6 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
-#include <io.h>
-#include <sys/stat.h>
 #include "emule.h"
 #include "KnownFileList.h"
 #include "SharedFileList.h"
@@ -24,26 +22,23 @@
 #include "Kademlia/Kademlia/Kademlia.h"
 #include "kademlia/kademlia/search.h"
 #include "kademlia/kademlia/SearchManager.h"
-#include "kademlia/kademlia/prefs.h"
 #include "kademlia/kademlia/Tag.h"
 #include "DownloadQueue.h"
 #include "Statistics.h"
 #include "Preferences.h"
 #include "UpDownClient.h"
-#include "KnownFile.h"
 #include "ServerConnect.h"
 #include "SafeFile.h"
 #include "Server.h"
 #include "PartFile.h"
 #include "emuledlg.h"
 #include "SharedFilesWnd.h"
-#include "StringConversion.h"
 #include "ClientList.h"
 #include "Log.h"
 #include "Collection.h"
 #include "kademlia/kademlia/UDPFirewallTester.h"
-#include "md5sum.h"
 #include "ImportParts.h"
+#include "MD5Sum.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -73,7 +68,7 @@ public:
 		SetPublishedCount(0);
 	}
 
-	const Kademlia::CUInt128 &GetKadID() const			{ return m_nKadID; }
+	const Kademlia::CUInt128& GetKadID() const			{ return m_nKadID; }
 	const Kademlia::CKadTagValueString &GetKeyword() const { return m_strKeyword; }
 	int GetRefCount() const								{ return m_aFiles.GetSize(); }
 	const CSimpleKnownFileArray &GetReferences() const	{ return m_aFiles; }
@@ -412,11 +407,11 @@ int CAddFileThread::Run()
 	if (!(m_pOwner || m_partfile) || m_strFilename.IsEmpty() || theApp.IsClosing())
 		return 0;
 
-	(void)CoInitialize(NULL);
+	(void)::CoInitialize(NULL);
 
 	if (m_partfile && m_partfile->GetFileOp() == PFOP_IMPORTPARTS) {
 		ImportParts();
-		CoUninitialize();
+		::CoUninitialize();
 		return 0;
 	}
 
@@ -433,15 +428,15 @@ int CAddFileThread::Run()
 	else
 		Log(_T("%s \"%s\""), (LPCTSTR)GetResString(IDS_HASHINGFILE), strFilePath);
 
-	CKnownFile *newKnown = new CKnownFile();
-	if (!theApp.IsClosing() && newKnown->CreateFromFile(m_strDirectory, m_strFilename, m_partfile)) { // SLUGFILLER: SafeHash - in case of shutdown while still hashing
-		newKnown->SetSharedDirectory(m_strSharedDir);
-		if (m_partfile && m_partfile->GetFileOp() == PFOP_HASHING)
-			m_partfile->SetFileOp(PFOP_NONE);
-		if (!theApp.emuledlg->PostMessage(TM_FINISHEDHASHING, (m_pOwner ? 0 : (WPARAM)m_partfile), (LPARAM)newKnown))
-			delete newKnown;
-	} else {
-		if (!theApp.IsClosing()) {
+	if (!theApp.IsClosing()) {
+		CKnownFile *newKnown = new CKnownFile();
+		if (newKnown->CreateFromFile(m_strDirectory, m_strFilename, m_partfile)) { // SLUGFILLER: SafeHash - in case of shutdown while still hashing
+			newKnown->SetSharedDirectory(m_strSharedDir);
+			if (m_partfile && m_partfile->GetFileOp() == PFOP_HASHING)
+				m_partfile->SetFileOp(PFOP_NONE);
+			if (!theApp.emuledlg->PostMessage(TM_FINISHEDHASHING, (m_pOwner ? 0 : (WPARAM)m_partfile), (LPARAM)newKnown))
+				delete newKnown;
+		} else {
 			if (m_partfile && m_partfile->GetFileOp() == PFOP_HASHING)
 				m_partfile->SetFileOp(PFOP_NONE);
 
@@ -453,13 +448,13 @@ int CAddFileThread::Run()
 				if (!theApp.emuledlg->PostMessage(TM_HASHFAILED, 0, (LPARAM)hashed))
 					delete hashed;
 			}
+			// SLUGFILLER: SafeHash
+			delete newKnown;
 		}
-		// SLUGFILLER: SafeHash
-		delete newKnown;
 	}
 
 	hashingLock.Unlock();
-	CoUninitialize();
+	::CoUninitialize();
 	return 0;
 }
 
@@ -884,10 +879,8 @@ void CSharedFileList::ClearKadSourcePublishInfo()
 }
 
 void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile &files
-	, CServer *pServer, CUpDownClient *pClient)
+	, const CServer *pServer, const CUpDownClient *pClient)
 {
-	UINT uEmuleVer = (pClient && pClient->IsEmuleClient()) ? pClient->GetVersion() : 0;
-
 	// NOTE: This function is used for creating the offered file packet for Servers _and_ for Clients.
 	files.WriteHash16(cur_file->GetFileHash());
 
@@ -895,11 +888,13 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 	//    shared files to some other client. In each case we send our IP+Port only, if
 	//    we have a HighID.
 	// *) Newer eservers also support 2 special IP+port values which are used to hold basic file status info.
+	uint32 uTCPflags;
 	uint32 nClientID = 0;
 	uint16 nClientPort = 0;
 	if (pServer) {
+		uTCPflags = pServer->GetTCPFlags();
 		// we use the 'TCP-compression' server feature flag as indicator for a 'newer' server.
-		if (pServer->GetTCPFlags() & SRV_TCPFLG_COMPRESSION) {
+		if (uTCPflags & SRV_TCPFLG_COMPRESSION) {
 			if (cur_file->IsPartFile()) {
 				// publishing an incomplete file
 				nClientID = 0xFCFCFCFC;
@@ -916,9 +911,12 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 				nClientPort = thePrefs.GetPort();
 			}
 		}
-	} else if (theApp.IsConnected() && !theApp.IsFirewalled()) {
-		nClientID = theApp.GetID();
-		nClientPort = thePrefs.GetPort();
+	} else {
+		uTCPflags = 0;
+		if (theApp.IsConnected() && !theApp.IsFirewalled()) {
+			nClientID = theApp.GetID();
+			nClientPort = thePrefs.GetPort();
+		}
 	}
 	files.WriteUInt32(nClientID);
 	files.WriteUInt16(nClientPort);
@@ -966,7 +964,7 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 
 	// NOTE: Archives and CD-Images are published+searched with file type "Pro"
 	bool bAddedFileType = false;
-	if (pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_TYPETAGINTEGER)) {
+	if (uTCPflags & SRV_TCPFLG_TYPETAGINTEGER) {
 		// Send integer file type tags to newer servers
 		EED2KFileType eFileType = GetED2KFileTypeSearchID(GetED2KFileTypeID(cur_file->GetFileName()));
 		if (eFileType >= ED2KFT_AUDIO && eFileType <= ED2KFT_CDIMAGE) {
@@ -979,17 +977,18 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 		//	- newer servers, in case there is no integer type available for the file type (e.g. emulecollection)
 		//	- older servers
 		//	- all clients
-		const CString &strED2KFileType(GetED2KFileTypeSearchTerm(GetED2KFileTypeID(cur_file->GetFileName())));
-		if (!strED2KFileType.IsEmpty())
-			tags.Add(new CTag(FT_FILETYPE, strED2KFileType));
+		LPCTSTR const pED2KFileType = GetED2KFileTypeSearchTerm(GetED2KFileTypeID(cur_file->GetFileName()));
+		if (*pED2KFileType)
+			tags.Add(new CTag(FT_FILETYPE, pED2KFileType));
 	}
 
+	UINT uEmuleVer = (pClient && pClient->IsEmuleClient()) ? pClient->GetVersion() : 0;
 	// eserver 16.4+ does not need the FT_FILEFORMAT tag at all nor does any eMule client. This tag
 	// was used for older (very old) eDonkey servers only. -> We send it only to non-eMule clients.
 	if (pServer == NULL && uEmuleVer == 0) {
-		LPCTSTR pDot = ::PathFindExtension(cur_file->GetFileName());
-		if (*pDot && pDot[1]) {
-			CString strExt(pDot + 1); //skip the dot
+		LPCTSTR const pDot = ::PathFindExtension(cur_file->GetFileName());
+		if (pDot[0] && pDot[1]) {
+			CString strExt(&pDot[1]); //skip the dot
 			tags.Add(new CTag(FT_FILEFORMAT, strExt.MakeLower())); // file extension without a "."
 		}
 	}
@@ -1028,22 +1027,20 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 					continue;
 
 				if (_aMetaTags[i].nED2KType == TAGTYPE_STRING && pTag->IsStr()) {
-					if (pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_NEWTAGS))
+					if (uTCPflags & SRV_TCPFLG_NEWTAGS)
 						tags.Add(new CTag(_aMetaTags[i].nName, pTag->GetStr()));
 					else
 						tags.Add(new CTag(_aMetaTags[i].pszED2KName, pTag->GetStr()));
 				} else if (_aMetaTags[i].nED2KType == TAGTYPE_UINT32 && pTag->IsInt()) {
-					if (pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_NEWTAGS))
+					if (uTCPflags & SRV_TCPFLG_NEWTAGS)
 						tags.Add(new CTag(_aMetaTags[i].nName, pTag->GetInt()));
 					else
 						tags.Add(new CTag(_aMetaTags[i].pszED2KName, pTag->GetInt()));
 				} else if (_aMetaTags[i].nName == FT_MEDIA_LENGTH && pTag->IsInt()) {
 					ASSERT(_aMetaTags[i].nED2KType == TAGTYPE_STRING);
 					// All 'eserver' versions and eMule versions >= 0.42.4 support the media length tag with type 'integer'
-					if ((pServer != NULL && (pServer->GetTCPFlags() & SRV_TCPFLG_COMPRESSION))
-						|| uEmuleVer >= MAKE_CLIENT_VERSION(0, 42, 4))
-					{
-						if (pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_NEWTAGS))
+					if ((uTCPflags & SRV_TCPFLG_COMPRESSION) || uEmuleVer >= MAKE_CLIENT_VERSION(0, 42, 4)) {
+						if (uTCPflags & SRV_TCPFLG_NEWTAGS)
 							tags.Add(new CTag(_aMetaTags[i].nName, pTag->GetInt()));
 						else
 							tags.Add(new CTag(_aMetaTags[i].pszED2KName, pTag->GetInt()));
@@ -1056,7 +1053,7 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 	}
 
 	EUTF8str eStrEncode;
-	if ((pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_UNICODE)) || !pClient || pClient->GetUnicodeSupport())
+	if ((uTCPflags & SRV_TCPFLG_UNICODE) || !pClient || pClient->GetUnicodeSupport())
 		eStrEncode = UTF8strRaw;
 	else
 		eStrEncode = UTF8strNone;
@@ -1065,7 +1062,7 @@ void CSharedFileList::CreateOfferedFilePacket(CKnownFile *cur_file, CSafeMemFile
 	for (int i = 0; i < tags.GetSize(); ++i) {
 		const CTag *pTag = tags[i];
 		//TRACE(_T("  %s\n"), pTag->GetFullInfo(DbgGetFileMetaTagName));
-		if (pServer && (pServer->GetTCPFlags() & SRV_TCPFLG_NEWTAGS) || (uEmuleVer >= MAKE_CLIENT_VERSION(0, 42, 7)))
+		if ((uTCPflags & SRV_TCPFLG_NEWTAGS) || (uEmuleVer >= MAKE_CLIENT_VERSION(0, 42, 7)))
 			pTag->WriteNewEd2kTag(files, eStrEncode);
 		else
 			pTag->WriteTagToFile(files, eStrEncode);
@@ -1192,7 +1189,7 @@ bool CSharedFileList::IsHashing(const CString &rstrDirectory, const CString &rst
 	return false;
 }
 
-void CSharedFileList::RemoveFromHashing(CKnownFile *hashed)
+void CSharedFileList::RemoveFromHashing(const CKnownFile *hashed)
 {
 	for (POSITION pos = currentlyhashing_list.GetHeadPosition(); pos != NULL;) {
 		POSITION posLast = pos;
@@ -1214,14 +1211,14 @@ void CSharedFileList::HashFailed(UnknownFile_Struct *hashed)
 		if (pFile->strName.CompareNoCase(hashed->strName) == 0 && EqualPaths(pFile->strDirectory, hashed->strDirectory)) {
 			currentlyhashing_list.RemoveAt(posLast);
 			delete pFile;
-			HashNextFile();			// start next hash if possible, but only if a previous hash finished
+			HashNextFile();		// start another hash, but only if the previous one had finished
 			break;
 		}
 	}
 	delete hashed;
 }
 
-void CSharedFileList::UpdateFile(CKnownFile *toupdate)
+void CSharedFileList::UpdateFile(const CKnownFile *toupdate)
 {
 	output->UpdateFile(toupdate);
 }
@@ -1547,7 +1544,7 @@ void CSharedFileList::CheckAndAddSingleFile(const CFileFind &ff)
 			TRACE(_T("%hs: File already in shared file list: %s \"%s\"\n"), __FUNCTION__, (LPCTSTR)md4str(pFileInMap->GetFileHash()), (LPCTSTR)pFileInMap->GetFilePath());
 			TRACE(_T("%hs: File to add:                      %s \"%s\"\n"), __FUNCTION__, (LPCTSTR)md4str(toadd->GetFileHash()), (LPCTSTR)strFoundFilePath);
 			if (!pFileInMap->IsKindOf(RUNTIME_CLASS(CPartFile)) || theApp.downloadqueue->IsPartFile(pFileInMap)) {
-				if (pFileInMap->GetFilePath().CompareNoCase(toadd->GetFilePath()) != 0) //is it actually really the same file in the same place we already share? if so don't bother too much
+				if (strFoundFilePath.CompareNoCase(pFileInMap->GetFilePath()) != 0) //is it actually really the same file in the same place we already share? if so don't bother too much
 					LogWarning(GetResString(IDS_ERR_DUPL_FILES), (LPCTSTR)pFileInMap->GetFilePath(), (LPCTSTR)strFoundFilePath);
 				else
 					DebugLog(_T("File shared twice, might have been a single shared file before - %s"), (LPCTSTR)pFileInMap->GetFilePath());

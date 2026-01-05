@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -58,10 +58,11 @@ public:
 
 	//uint32 GetPingedHost();
 	CurrentPingStruct GetCurrentPing();
-	bool AcceptNewClient();
+	// if enabled, then return acceptNewClient, otherwise return true
+	bool AcceptNewClient()						{ return acceptNewClient || !m_enabled; }
 
 	bool SetPrefs(const CurrentParamStruct &cur);
-	void InitiateFastReactionPeriod();
+	void InitiateFastReactionPeriod()			{ ::InterlockedExchange8(&m_initiateFastReactionPeriod, 1); }
 
 	uint32 GetUpload() const					{ return m_upload; }
 private:

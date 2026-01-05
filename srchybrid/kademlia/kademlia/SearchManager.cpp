@@ -217,7 +217,7 @@ void CSearchManager::FindNode(const CUInt128 &uID, bool bComplete)
 bool CSearchManager::AlreadySearchingFor(const CUInt128 &uTarget)
 {
 	// Check if this target is in the search map.
-	return (m_mapSearches.find(uTarget) != m_mapSearches.end());
+	return m_mapSearches.find(uTarget) != m_mapSearches.end();
 }
 
 bool CSearchManager::IsFWCheckUDPSearch(const CUInt128 &uTarget)
@@ -449,9 +449,7 @@ void CSearchManager::ProcessResult(const CUInt128 &uTarget, const CUInt128 &uAns
 bool CSearchManager::FindNodeSpecial(const CUInt128 &uID, CKadClientSearcher *pRequester)
 {
 	// Do a node lookup.
-	CString strDbgID;
-	uID.ToHexString(strDbgID);
-	DebugLog(_T("Starting NODESPECIAL Kad Search for %s"), (LPCTSTR)strDbgID);
+	DebugLog(_T("Starting NODESPECIAL Kad Search for %s"), (LPCTSTR)uID.ToHexString());
 	CSearch *pSearch = new CSearch;
 	pSearch->SetSearchType(CSearch::NODESPECIAL);
 	pSearch->m_uTarget = uID;

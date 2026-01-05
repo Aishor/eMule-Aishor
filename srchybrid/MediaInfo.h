@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -53,15 +53,6 @@ protected:
 
 // DirectShow MediaDet
 #ifdef HAVE_QEDIT_H
-#include <strmif.h>
-//#include <uuids.h>
-#define	_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-			EXTERN_C const GUID DECLSPEC_SELECTANY name \
-				= { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
-_DEFINE_GUID(MEDIATYPE_Video, 0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
-_DEFINE_GUID(MEDIATYPE_Audio, 0x73647561, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
-_DEFINE_GUID(FORMAT_VideoInfo,0x05589f80, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a);
-_DEFINE_GUID(FORMAT_WaveFormatEx,0x05589f81, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a);
 //#define MMNODRV		// mmsystem: Installable driver support
 #define MMNOSOUND		// mmsystem: Sound support
 //#define MMNOWAVE		// mmsystem: Waveform support
@@ -79,15 +70,6 @@ _DEFINE_GUID(FORMAT_WaveFormatEx,0x05589f81, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0
 #include <mmsystem.h>
 typedef LONGLONG REFERENCE_TIME;
 #endif//HAVE_QEDIT_H
-typedef struct tagVIDEOINFOHEADER
-{
-	RECT			rcSource;		   // The bit we really want to use
-	RECT			rcTarget;		   // Where the video should go
-	DWORD			dwBitRate;		   // Approximate bit data rate
-	DWORD			dwBitErrorRate;	   // Bit error rate for this stream
-	REFERENCE_TIME	AvgTimePerFrame;   // Average time per frame (100ns units)
-	BITMAPINFOHEADER bmiHeader;
-} VIDEOINFOHEADER;
 
 // Those defines are for 'mmreg.h' which is included by 'vfw.h'
 #define NOMMIDS		 // Multimedia IDs are not defined
@@ -106,12 +88,15 @@ typedef struct tagVIDEOINFOHEADER
 #define NOMCIWND
 #define NOAVICAP
 #define NOMSACM
-#include <windows.h>
 #include <mmiscapi.h>
 #include <mmeapi.h>
 #define MMNOMIXERDEV
 #include <mmddk.h>
+#include <amvideo.h>
+#include <strmif.h>
+#include <uuids.h>
 #include <vfw.h>
+#pragma comment(lib, "strmiids.lib") //for uuids.h
 
 
 /////////////////////////////////////////////////////////////////////////////

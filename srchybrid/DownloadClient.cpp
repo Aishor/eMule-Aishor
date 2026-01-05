@@ -1,5 +1,5 @@
 //this file is part of eMule
-//Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
+//Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -17,7 +17,6 @@
 #include "stdafx.h"
 #include "emule.h"
 #include "UpDownClient.h"
-#include "URLClient.h"
 #include "PartFile.h"
 #include "ListenSocket.h"
 #include "Preferences.h"
@@ -29,11 +28,7 @@
 #include "ClientUDPSocket.h"
 #include "emuledlg.h"
 #include "TransferDlg.h"
-#include "Exceptions.h"
 #include "clientlist.h"
-#include "Kademlia/Kademlia/Kademlia.h"
-#include "Kademlia/Kademlia/Prefs.h"
-#include "Kademlia/Kademlia/Search.h"
 #include "SHAHashSet.h"
 #include "SharedFileList.h"
 #include "Log.h"
@@ -48,7 +43,7 @@ static char THIS_FILE[] = __FILE__;
 //	members of CUpDownClient
 //	which are mainly used for downloading functions
 CBarShader CUpDownClient::s_StatusBar(16);
-void CUpDownClient::DrawStatusBar(CDC *dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const
+void CUpDownClient::DrawStatusBar(CDC &dc, const CRect &rect, bool onlygreyrect, bool  bFlat) const
 {
 	if (g_bLowColorDesktop)
 		bFlat = true;
@@ -298,10 +293,11 @@ void CUpDownClient::SendFileRequest()
 		}
 
 		// OP_SETREQFILEID
-		if (thePrefs.GetDebugClientTCPLevel() > 0)
-			DebugSend("OP_MPSetReqFileID", this, m_reqfile->GetFileHash());
-		if (m_reqfile->GetPartCount() > 1)
+		if (m_reqfile->GetPartCount() > 1) {
+			if (thePrefs.GetDebugClientTCPLevel() > 0)
+				DebugSend("OP_MPSetReqFileID", this, m_reqfile->GetFileHash());
 			dataFileReq.WriteUInt8(OP_SETREQFILEID);
+		}
 
 		if (IsEmuleClient()) {
 			SetRemoteQueueFull(true);
@@ -364,8 +360,8 @@ void CUpDownClient::SendFileRequest()
 		SendPacket(packet);
 
 		// 26-Jul-2003: removed requesting the file status for files <= PARTSIZE for better compatibility
-		// with ed2k protocol (eDonkeyHybrid). if the remote client answers the OP_REQUESTFILENAME
-		// with OP_REQFILENAMEANSWER the file is shared by the remote client. if we know that the file
+		// with ed2k protocol (eDonkeyHybrid). If the remote client answers the OP_REQUESTFILENAME
+		// with OP_REQFILENAMEANSWER the file is shared by the remote client. If we know that the file
 		// is shared, we know also that the file is complete and don't need to request the file status.
 		if (m_reqfile->GetPartCount() > 1) {
 			if (thePrefs.GetDebugClientTCPLevel() > 0)
@@ -686,8 +682,8 @@ void CUpDownClient::SetDownloadState(EDownloadState nNewState, LPCTSTR pszReason
 			ClearDownloadBlockRequests();
 
 			m_nDownDatarate = 0;
-			m_AverageDDR_list.RemoveAll();
 			m_nSumForAvgDownDataRate = 0;
+			m_AverageDDR_hist.RemoveAll();
 
 			if (nNewState == DS_NONE) {
 				delete[] m_abyPartStatus;
@@ -785,7 +781,7 @@ void CUpDownClient::CreateBlockRequests(int blockCount)
 	Requested_Block_Struct **toadd = new Requested_Block_Struct*[blockCount];
 	if (m_reqfile->GetNextRequestedBlock(this, toadd, blockCount))
 		for (int i = 0; i < blockCount; ++i)
-			m_PendingBlocks_list.AddTail(new Pending_Block_Struct{ toadd[i] });
+			m_PendingBlocks_list.AddTail(new Pending_Block_Struct{toadd[i]});
 
 	delete[] toadd;
 }
@@ -1256,24 +1252,24 @@ uint32 CUpDownClient::CalculateDownloadRate()
 {
 	// Patch By BadWolf - Accurate data rate Calculation
 	const DWORD curTick = ::GetTickCount();
-	m_AverageDDR_list.AddTail(TransferredData{ m_nDownDataRateMS, curTick });
+	m_AverageDDR_hist.AddTail(TransferredData{m_nDownDataRateMS, curTick});
 	m_nSumForAvgDownDataRate += m_nDownDataRateMS;
 	m_nDownDataRateMS = 0;
 
-	while (m_AverageDDR_list.GetCount() > 500)
-		m_nSumForAvgDownDataRate -= m_AverageDDR_list.RemoveHead().datalen;
-
-	if (m_AverageDDR_list.GetCount() > 1 && curTick > m_AverageDDR_list.GetHead().timestamp)
-		m_nDownDatarate = (UINT)(SEC2MS(m_nSumForAvgDownDataRate) / (curTick - m_AverageDDR_list.GetHead().timestamp));
+	while (m_AverageDDR_hist.Count() > 500) {
+		m_nSumForAvgDownDataRate -= m_AverageDDR_hist.Head().datalen;
+		m_AverageDDR_hist.RemoveHead();
+	}
+	if (m_AverageDDR_hist.Count() > 1 && curTick > m_AverageDDR_hist.Head().timestamp)
+		m_nDownDatarate = (UINT)(SEC2MS(m_nSumForAvgDownDataRate) / (curTick - m_AverageDDR_hist.Head().timestamp));
 	else
 		m_nDownDatarate = 0;
-
 	// END Patch By BadWolf
+
 	if (++m_cShowDR >= 30) {
 		m_cShowDR = 0;
 		UpdateDisplayedInfo();
 	}
-
 	return m_nDownDatarate;
 }
 
@@ -1668,7 +1664,7 @@ bool CUpDownClient::SwapToAnotherFile(LPCTSTR reason, bool bIgnoreNoNeeded, bool
 		}
 	}
 
-	//if ((!SwapTo || SwapTo == m_reqfile && GetDownloadState() == DS_NONEEDEDPARTS) && bIgnoreNoNeeded){
+	//if ((!SwapTo || SwapTo == m_reqfile && GetDownloadState() == DS_NONEEDEDPARTS) && bIgnoreNoNeeded) {
 	if (printDebug)
 		AddDebugLogLine(DLP_VERYLOW, false, _T("ooo Debug: m_OtherNoNeeded_list"));
 
@@ -1677,7 +1673,7 @@ bool CUpDownClient::SwapToAnotherFile(LPCTSTR reason, bool bIgnoreNoNeeded, bool
 		CPartFile *cur_file = m_OtherNoNeeded_list.GetNext(pos);
 
 		if (printDebug)
-			AddDebugLogLine(DLP_VERYLOW, false, _T("ooo Debug: Checking file: %s "), (LPCTSTR)cur_file->GetFileName());
+			AddDebugLogLine(DLP_VERYLOW, false, _T("ooo Debug: Checking file: %s"), (LPCTSTR)cur_file->GetFileName());
 
 		if (!bRemoveCompletely && !ignoreSuspensions && allowSame && IsSwapSuspended(cur_file, doAgressiveSwapping, true)) {
 			if (printDebug)
@@ -1847,7 +1843,7 @@ void CUpDownClient::DontSwapTo(/*const*/ CPartFile *file)
 			return;
 		}
 	}
-	m_DontSwap_list.AddHead(PartFileStamp{ file, curTick });
+	m_DontSwap_list.AddHead(PartFileStamp{file, curTick});
 }
 
 bool CUpDownClient::IsSwapSuspended(const CPartFile *file, const bool allowShortReaskTime, const bool fileIsNNP)
@@ -2020,6 +2016,11 @@ DWORD CUpDownClient::GetLastAskedTime(const CPartFile *pFile) const
 {
 	const CFileReaskTimesMap::CPair *pair = m_fileReaskTimes.PLookup(pFile ? pFile : m_reqfile);
 	return pair ? pair->value : 0;
+}
+
+void CUpDownClient::SetLastAskedTime()
+{
+	m_fileReaskTimes[m_reqfile] = ::GetTickCount();
 }
 
 // TODO fileident optimize to save some memory
