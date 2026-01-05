@@ -20,19 +20,21 @@ cmd /c copy_libs.bat
 
 # eMule Principal
 Write-Host ""
-Write-Host "[BUILD] eMule Principal..." -ForegroundColor Yellow
-& $msbuild "srchybrid\emule.sln" /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl /flp:logfile=compilation_log_x64.txt
+Write-Host "[BUILD] eMule Principal..." -ForegroundColor Cyan
+# Usar emule.vcxproj directamente para evitar dependencias fantasmas en el .sln
+& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal
 
-if ($LASTEXITCODE -eq 0) {
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] eMule build failed" -ForegroundColor Red
+    exit 1
+} else {
+    Write-Host "[SUCCESS] eMule build complete" -ForegroundColor Green
     Write-Host ""
     Write-Host "========================================"  -ForegroundColor Green
     Write-Host "  BUILD EXITOSO"  -ForegroundColor Green
     Write-Host "========================================" -ForegroundColor Green  
     Write-Host "  Ejecutable: srchybrid\x64\Release\emule.exe" -ForegroundColor Green
     Write-Host "========================================" -ForegroundColor Green
-} else {
-    Write-Host ""
-    Write-Host "========================================"  -ForegroundColor Red
     Write-Host "  BUILD FALLIDO"  -ForegroundColor Red
     Write-Host "========================================" -ForegroundColor Red
     Write-Host "  Revisa: compilation_log_x64.txt" -ForegroundColor Red
