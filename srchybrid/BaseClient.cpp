@@ -2093,7 +2093,7 @@ void CUpDownClient::SendPreviewAnswer(const CKnownFile *pForFile, CxImage **imgF
 		}
 		BYTE *abyResultBuffer = NULL;
 		int32_t nResultSize = 0;
-		if (!cur_frame->Encode(abyResultBuffer, nResultSize, CXIMAGE_FORMAT_PNG)) {
+		if (!cur_frame->Encode(abyResultBuffer, (long &)nResultSize, CXIMAGE_FORMAT_PNG)) {
 			ASSERT(0);
 			return;
 		}

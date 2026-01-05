@@ -1,28 +1,27 @@
-//this file is part of eMule
-//Copyright (C)2017-2023 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
-//
-//This program is free software; you can redistribute it and/or
-//modify it under the terms of the GNU General Public License
-//as published by the Free Software Foundation; either
-//version 2 of the License, or (at your option) any later version.
-//
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
-//
-//You should have received a copy of the GNU General Public License
-//along with this program; if not, write to the Free Software
-//Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#ifndef MBEDTLS_THREADING_ALT_H
+#define MBEDTLS_THREADING_ALT_H
 
-#pragma once
-#ifdef _MSC_VER
-#include <winsock2.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef struct
-{
-	CRITICAL_SECTION cs;
-	char is_valid;
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+typedef struct mbedtls_threading_mutex_t {
+  CRITICAL_SECTION cs;
+  int is_valid;
 } mbedtls_threading_mutex_t;
 
+void threading_mutex_init_alt(mbedtls_threading_mutex_t *mutex);
+void threading_mutex_free_alt(mbedtls_threading_mutex_t *mutex);
+int threading_mutex_lock_alt(mbedtls_threading_mutex_t *mutex);
+int threading_mutex_unlock_alt(mbedtls_threading_mutex_t *mutex);
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* MBEDTLS_THREADING_ALT_H */

@@ -34,7 +34,8 @@
 #include "kademlia/kademlia/Prefs.h"
 #include "kademlia/utils/UInt128.h"
 #include "PerfLog.h"
-#include <sockimpl.h> //for *m_pfnSockTerm()
+#include "mfc_sock_internals.h"
+#include <mbedtls/ssl.h> //for *m_pfnSockTerm()
 #include "LastCommonRouteFinder.h"
 #include "UploadBandwidthThrottler.h"
 #include "ClientList.h"
@@ -1289,7 +1290,7 @@ HICON CemuleApp::LoadIcon(LPCTSTR lpszResourceName, int cx, int cy, UINT uFlags)
 				}
 			} else {
 				// WINBUG???: 'ExtractIcon' does not work well on ICO-files when using the color
-				// scheme 'Windows-Standard (extragroß)' -> always try to use 'LoadImage'!
+				// scheme 'Windows-Standard (extragroï¿½)' -> always try to use 'LoadImage'!
 				//
 				// If the ICO file contains a 16x16 icon, 'LoadImage' will though return a 32x32 icon,
 				// if LR_DEFAULTSIZE is specified! -> always specify the requested size!

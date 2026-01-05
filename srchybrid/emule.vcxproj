@@ -36,8 +36,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v145</PlatformToolset>
-    <UseOfMfc>Static</UseOfMfc>
+    <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -62,7 +63,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;C:\IA\PROGRAMACION\eMule;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;C:\IA\PROGRAMACION\eMule;C:\IA\PROGRAMACION\eMule\id3lib\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:throwingNew</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -73,7 +74,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;C:\IA\PROGRAMACION\cryptopp\Debug\cryptlib.lib;C:\IA\PROGRAMACION\cximage\Debug\cximage.lib;C:\IA\PROGRAMACION\id3lib\Debug\id3lib.lib;C:\IA\PROGRAMACION\libpng\Debug\libpngd.lib;..\mbedtls\visualc\vs2017\$(Platform)\$(Configuration)\mbedtls.lib;C:\IA\PROGRAMACION\miniupnpc\Debug\miniupnpc.lib;C:\IA\PROGRAMACION\ResizableLib\Debug\ResizableLib.lib;C:\IA\PROGRAMACION\zlib\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\Win32\Debug\cryptlib.lib;..\libpng\build\Debug\libpng18_staticd.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;..\miniupnpc\build\Debug\miniupnpc.lib;..\resizablelib\Win32\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\Win32\Debug\zlibstat.lib;..\id3lib\libprj\Debug\id3lib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/safeseh</AdditionalOptions>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -99,7 +100,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;C:\IA\PROGRAMACION\cryptopp\Debug\cryptlib.lib;C:\IA\PROGRAMACION\cximage\Debug\cximage.lib;C:\IA\PROGRAMACION\id3lib\Debug\id3lib.lib;C:\IA\PROGRAMACION\libpng\Debug\libpngd.lib;..\mbedtls\visualc\vs2017\$(Platform)\$(Configuration)\mbedtls.lib;C:\IA\PROGRAMACION\miniupnpc\Debug\miniupnpc.lib;C:\IA\PROGRAMACION\ResizableLib\Debug\ResizableLib.lib;C:\IA\PROGRAMACION\zlib\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;C:\IA\PROGRAMACION\cryptopp\Debug\cryptlib.lib;C:\IA\PROGRAMACION\cximage\Debug\cximage.lib;C:\IA\PROGRAMACION\id3lib\Debug\id3lib.lib;C:\IA\PROGRAMACION\libpng\Debug\libpngd.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;C:\IA\PROGRAMACION\miniupnpc\Debug\miniupnpc.lib;C:\IA\PROGRAMACION\ResizableLib\Debug\ResizableLib.lib;C:\IA\PROGRAMACION\zlib\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <OptimizeReferences>false</OptimizeReferences>
@@ -112,7 +113,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc;..\miniupnpc\include;..\zlib;..\ResizableLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:throwingNew</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -122,7 +123,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;C:\IA\PROGRAMACION\cryptopp\Release\cryptlib.lib;C:\IA\PROGRAMACION\cximage\Release\cximage.lib;C:\IA\PROGRAMACION\id3lib\Release\id3lib.lib;C:\IA\PROGRAMACION\libpng\Release\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\$(Configuration)\mbedtls.lib;C:\IA\PROGRAMACION\miniupnpc\Release\miniupnpc.lib;C:\IA\PROGRAMACION\ResizableLib\Release\ResizableLib.lib;C:\IA\PROGRAMACION\zlib\Release\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;htmlhelp.lib;..\cryptopp\Win32\Output\Release\cryptlib.lib;..\cximage\Release\cximage.lib;..\id3lib\libprj\Release\id3lib.lib;..\libpng\projects\vstudio\libpng\Release\libpng.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;..\miniupnpc\msvc\Release\miniupnpc.lib;..\resizablelib\ResizableLib\Win32\Release\bin\ResizableLib.lib;..\zlib\contrib\vstudio\vc17\x86\ZlibStatRelease\zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/safeseh</AdditionalOptions>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -138,7 +139,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;C:\IA\PROGRAMACION\eMule;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;C:\IA\PROGRAMACION\eMule;C:\IA\PROGRAMACION\eMule\id3lib\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:throwingNew</AdditionalOptions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -148,7 +149,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\$(Configuration)\cryptlib.lib;..\cximage\$(Platform)\$(Configuration)\cximage.lib;..\id3lib\libprj\$(Platform)\$(Configuration)\id3lib.lib;..\libpng\projects\visualc\$(Platform)\$(Configuration)\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\$(Configuration)\mbedtls.lib;..\miniupnpc\msvc\$(Platform)\$(Configuration)\miniupnpc.lib;..\resizablelib\$(Platform)\$(Configuration)\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\$(Configuration)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\$(Configuration)\cryptlib.lib;..\cximage\$(Platform)\$(Configuration)\cximage.lib;..\id3lib\libprj\$(Platform)\$(Configuration)\id3lib.lib;..\libpng\projects\visualc\$(Platform)\$(Configuration)\libpng.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;..\miniupnpc\msvc\Release\miniupnpc.lib;..\resizablelib\$(Platform)\$(Configuration)\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\$(Configuration)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -173,7 +174,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\Debug\cryptlib.lib;..\cximage\$(Platform)\Debug\cximage.lib;..\id3lib\libprj\$(Platform)\Debug\id3lib.lib;..\libpng\projects\visualc\$(Platform)\Debug\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\Debug\mbedtls.lib;..\miniupnpc\msvc\$(Platform)\Debug\miniupnpc.lib;..\resizablelib\$(Platform)\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\Debug\cryptlib.lib;..\cximage\$(Platform)\Debug\cximage.lib;..\id3lib\libprj\$(Platform)\Debug\id3lib.lib;..\libpng\projects\visualc\$(Platform)\Debug\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\Debug\mbedtls.lib;..\miniupnpc\msvc\$(Platform)\Debug\miniupnpc.lib;..\resizablelib\$(Platform)\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/safeseh</AdditionalOptions>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -199,7 +200,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\Debug\cryptlib.lib;..\cximage\$(Platform)\Debug\cximage.lib;..\id3lib\libprj\$(Platform)\Debug\id3lib.lib;..\libpng\projects\visualc\$(Platform)\Debug\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\Debug\mbedtls.lib;..\miniupnpc\msvc\$(Platform)\Debug\miniupnpc.lib;..\resizablelib\$(Platform)\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\Debug\cryptlib.lib;..\cximage\$(Platform)\Debug\cximage.lib;..\id3lib\libprj\$(Platform)\Debug\id3lib.lib;..\libpng\projects\visualc\$(Platform)\Debug\libpng.lib;..\mbedtls\visualc\vs2017\$(Platform)\Debug\mbedtls.lib;..\miniupnpc\msvc\$(Platform)\Debug\miniupnpc.lib;..\resizablelib\$(Platform)\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\Debug\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <OptimizeReferences>false</OptimizeReferences>
@@ -376,7 +377,9 @@
     <ClCompile Include="PPgServer.cpp" />
     <ClCompile Include="PPgStats.cpp" />
     <ClCompile Include="PPgTweaks.cpp" />
-    <ClCompile Include="PPgWebServer.cpp" />
+    <ClCompile Include="PPgWebServer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="PreferencesDlg.cpp" />
     <ClCompile Include="Preview.cpp" />
@@ -403,7 +406,9 @@
     <ClCompile Include="SearchResultsWnd.cpp" />
     <ClCompile Include="SecRunAsUser.cpp" />
     <ClCompile Include="SelfTest.cpp" />
-    <ClCompile Include="SendMail.cpp" />
+    <ClCompile Include="SendMail.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerConnect.cpp" />
     <ClCompile Include="ServerList.cpp" />
@@ -454,14 +459,18 @@
     <ClCompile Include="UploadListCtrl.cpp" />
     <ClCompile Include="UploadQueue.cpp" />
     <ClCompile Include="UPnPImpl.cpp" />
-    <ClCompile Include="UPnPImplMiniLib.cpp" />
+    <ClCompile Include="UPnPImplMiniLib.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="UPnPImplWinServ.cpp" />
     <ClCompile Include="UPnPImplWrapper.cpp" />
     <ClCompile Include="URLClient.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="VisualStylesXP.cpp" />
     <ClCompile Include="WebServer.cpp" />
-    <ClCompile Include="WebSocket.cpp" />
+    <ClCompile Include="WebSocket.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Wizard.cpp" />
     <ClCompile Include="ZIPFile.cpp" />
   </ItemGroup>

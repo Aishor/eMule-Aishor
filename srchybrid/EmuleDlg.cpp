@@ -49,6 +49,7 @@
 #include "ServerConnect.h"
 #include "KnownFileList.h"
 #include "ServerList.h"
+#include <htmlhelp.h>
 #include "Opcodes.h"
 #include "SharedFileList.h"
 #include "ED2KLink.h"
@@ -3059,7 +3060,7 @@ void CemuleDlg::HtmlHelp(DWORD_PTR dwData, UINT nCmd)
 	bool bHelpError = false;
 	CString strHelpError;
 	for (int iTry = 0; iTry < 2; ++iTry) {
-		if (AfxHtmlHelp(pWnd->m_hWnd, pApp->m_pszHelpFilePath, nCmd, dwData))
+		if (::HtmlHelp(pWnd->m_hWnd, pApp->m_pszHelpFilePath, nCmd, dwData))
 			return;
 		bHelpError = true;
 		strHelpError.LoadString(AFX_IDP_FAILED_TO_LAUNCH_HELP);
@@ -3072,7 +3073,7 @@ void CemuleDlg::HtmlHelp(DWORD_PTR dwData, UINT nCmd)
 		} HH_LAST_ERROR;
 		HH_LAST_ERROR hhLastError = {};
 		hhLastError.cbStruct = (int)sizeof hhLastError;
-		if (!AfxHtmlHelp(pWnd->m_hWnd, NULL, HH_GET_LAST_ERROR, reinterpret_cast<DWORD_PTR>(&hhLastError))) {
+		if (!::HtmlHelp(pWnd->m_hWnd, NULL, HH_GET_LAST_ERROR, reinterpret_cast<DWORD_PTR>(&hhLastError))) {
 			if (FAILED(hhLastError.hr)) {
 				if (hhLastError.description) {
 					strHelpError = hhLastError.description;

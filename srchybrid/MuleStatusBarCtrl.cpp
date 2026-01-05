@@ -107,7 +107,7 @@ CString CMuleStatusBarCtrl::GetPaneToolTipText(EStatusBarPane iPane) const
 INT_PTR CMuleStatusBarCtrl::OnToolHitTest(CPoint point, TOOLINFO *pTI) const
 {
 	INT_PTR iHit = CWnd::OnToolHitTest(point, pTI);
-	if (iHit == -1 && pTI != NULL && pTI->cbSize >= sizeof(AFX_OLDTOOLINFO)) {
+	if (iHit == -1 && pTI != NULL && pTI->cbSize >= sizeof(TOOLINFO)) {
 		int iPane = GetPaneAtPosition(point);
 		if (iPane >= 0) {
 			const CString &strToolTipText = GetPaneToolTipText((EStatusBarPane)iPane);
