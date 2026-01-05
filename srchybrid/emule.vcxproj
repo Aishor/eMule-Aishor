@@ -34,11 +34,41 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <CharacterSet>Unicode</CharacterSet>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v145</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='_SpecialBootstrapNodes|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='_SpecialBootstrapNodes|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -46,7 +76,6 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
   <PropertyGroup>
     <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
@@ -74,7 +103,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\Win32\Debug\cryptlib.lib;..\libpng\build\Debug\libpng18_staticd.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;..\miniupnpc\build\Debug\miniupnpc.lib;..\resizablelib\Win32\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\Win32\Debug\zlibstat.lib;..\id3lib\libprj\Debug\id3lib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\Win32\Debug\cryptlib.lib;..\libpng\build\Debug\libpng18_staticd.lib;..\miniupnpc\build\Debug\miniupnpc.lib;..\resizablelib\Win32\Debug\resizablelib.lib;..\zlib\contrib\vstudio\vc\Win32\Debug\zlibstat.lib;..\id3lib\libprj\Debug\id3lib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/safeseh</AdditionalOptions>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -139,7 +168,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;C:\IA\PROGRAMACION;C:\IA\PROGRAMACION\eMule;C:\IA\PROGRAMACION\eMule\id3lib\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\include;C:\IA\PROGRAMACION\eMule-Aishor\mbedtls\tf-psa-crypto\drivers\builtin\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc;..\miniupnpc\include;..\zlib;..\ResizableLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:throwingNew</AdditionalOptions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -147,18 +176,22 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PreprocessorDefinitions>ID3LIB_LINKOPTION=1;MINIUPNP_STATICLIB;SUPPORT_LARGE_FILES;NDEBUG;XP_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\$(Configuration)\cryptlib.lib;..\cximage\$(Platform)\$(Configuration)\cximage.lib;..\id3lib\libprj\$(Platform)\$(Configuration)\id3lib.lib;..\libpng\projects\visualc\$(Platform)\$(Configuration)\libpng.lib;..\mbedtls\visualc\VS2017\Release\mbedTLS.lib;..\miniupnpc\msvc\Release\miniupnpc.lib;..\resizablelib\$(Platform)\$(Configuration)\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\$(Configuration)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>htmlhelp.lib;ADSIId.lib;Bcrypt.lib;crypt32.lib;iphlpapi.lib;version.lib;winmm.lib;ws2_32.lib;..\cryptopp\$(Platform)\$(Configuration)\cryptlib.lib;..\cximage\$(Platform)\$(Configuration)\cximage.lib;..\id3lib\libprj\$(Platform)\$(Configuration)\id3lib.lib;..\libpng\projects\visualc\$(Platform)\$(Configuration)\libpng.lib;..\mbedtls\visualc\VS2017\$(Platform)\$(Configuration)\mbedTLS.lib;..\miniupnpc\msvc\Release\miniupnpc.lib;..\resizablelib\$(Platform)\$(Configuration)\resizablelib.lib;..\zlib\contrib\vstudio\vc\$(Platform)\$(Configuration)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>gdiplus.dll;msimg32.dll;oleacc.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>mpr.lib;rasapi32.lib;secur32.lib;sensapi.lib;vfw32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res/$(TargetName)$(Platform).manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
-      <EnableDpiAwareness>false</EnableDpiAwareness>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='_SpecialBootstrapNodes|Win32'">

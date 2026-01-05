@@ -1,154 +1,87 @@
-# eMule-Aishor
+# eMule-Aishor-Forge
 
-[![Version](https://img.shields.io/badge/version-0.70b--Build26--R1.0-blue.svg)](https://github.com/yourusername/eMule-Aishor/releases)
-[![License](https://img.shields.io/badge/license-GPL%20v2-green.svg)](LICENSE)
-[![Build](https://img.shields.io/badge/build-Visual%20Studio%202022-purple.svg)](https://visualstudio.microsoft.com/)
+## Descripción
+Carpeta de trabajo limpia con todas las dependencias de eMule-Aishor, separada del proyecto principal para compilación y modificaciones experimentales.
 
-**eMule-Aishor** es un fork modernizado del cliente P2P eMule, actualizado para compilar en **Visual Studio 2022** con soporte completo para **Windows 10/11** y arquitectura **Win32/x64**.
+## Dependencias Incluidas
 
----
+### 1. **zlib** - Compresión (v1.3.1.2)
+- **Ubicación**: `zlib/`
+- **Propósito**: Compresión/descompresión de datos
+- **Estado**: ✅ Copiado desde proyecto original
+- **Proyecto**: [zlib](https://github.com/madler/zlib)
 
-## 🚀 Características
+### 2. **mbedtls** - Criptografía TLS (v3.6.2)
+- **Ubicación**: `mbedtls/`
+- **Propósito**: Librería de criptografía y TLS/SSL
+- **Estado**: ⚠️ Requiere fix (archivos de test con errores de threading)
+- **Proyecto**: [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls)
 
-- ✅ **Compilación moderna**: Visual Studio 2022 (PlatformToolset v145)
-- ✅ **Runtime unificado**: `/MD` (Multi-threaded DLL) en todas las dependencias
-- ✅ **Unicode nativo**: Soporte completo para caracteres internacionales
-- ✅ **Dependencias actualizadas**: zlib, mbedTLS, CxImage, CryptoPP, id3lib
-- ✅ **Windows SDK 10.0**: Compatible con Windows 10/11
+### 3. **libpng** - Imágenes PNG (v1.8.0.git)
+- **Ubicación**: `libpng/`
+- **Propósito**: Lectura/escritura de archivos PNG
+- **Estado**: ✅ Copiado desde proyecto original
+- **Proyecto**: [libpng](https://github.com/pnggroup/libpng)
 
----
+### 4. **miniupnpc** - UPnP Client (v1.9)
+- **Ubicación**: `miniupnpc/`
+- **Propósito**: Universal Plug and Play para NAT traversal
+- **Estado**: ✅ Copiado desde proyecto original
+- **Proyecto**: [miniupnp](https://github.com/miniupnp/miniupnp)
 
-## 📦 Compilación
+### 5. **cryptopp** - Crypto++ (v8.9.0)
+- **Ubicación**: `cryptopp/`
+- **Propósito**: Librería de criptografía C++
+- **Estado**: ✅ Copiado desde proyecto original
+- **Proyecto**: [cryptopp](https://github.com/weidai11/cryptopp)
 
-### Requisitos Previos
+### 6. **id3lib** - Tags ID3 (v3.8.3)
+- **Ubicación**: `id3lib/`
+- **Propósito**: Manejo de etiquetas ID3 en archivos MP3
+- **Estado**: ⚠️ Requiere fix (código C++ obsoleto, iostream.h)
+- **Proyecto**: id3lib (SourceForge)
 
-- **Visual Studio 2022 Community** (o superior)
-  - Componente: "Desarrollo para el escritorio con C++"
-  - Windows 10 SDK (10.0.26100.0 o superior)
-- **Git** (para clonar el repositorio)
+### 7. **CxImage** - Procesamiento de Imágenes (v6.0.0)
+- **Ubicación**: `cximage/`
+- **Propósito**: Librería de procesamiento de imágenes multi-formato
+- **Estado**: ⚠️ Requiere fix (incompatible con libpng 1.6+)
+- **Proyecto**: CxImage
 
-### Pasos de Compilación
+### 8. **ResizableLib** - Controles MFC Redimensionables
+- **Ubicación**: `resizablelib/`
+- **Propósito**: Librería para diálogos y controles MFC redimensionables
+- **Estado**: ✅ Copiado desde proyecto original
+- **Proyecto**: [ResizableLib](https://github.com/ppescher/resizablelib)
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/yourusername/eMule-Aishor.git
-   cd eMule-Aishor
-   ```
+## Próximos Pasos
 
-2. **Abrir la solución**
-   ```bash
-   # Desde Visual Studio:
-   # Archivo > Abrir > Proyecto/Solución > srchybrid/emule.sln
-   ```
+### 1. Fix mbedtls
+- Excluir archivos de test del proyecto vcxproj
+- O configurar threading apropiado de Windows
 
-3. **Configurar y Compilar**
-   - Seleccionar configuración: **Release** | **Win32**
-   - Build > Compilar solución (Ctrl+Shift+B)
+### 2. Fix id3lib
+- Actualizar headers: `iostream.h` → `<iostream>`
+- Agregar namespace `std`
+- Definir macros faltantes (`ID3D_NOTICE`)
 
-4. **Ejecutable generado**
-   ```
-   srchybrid/Win32/Release/emule.exe
-   ```
+### 3. Fix CxImage
+- Aplicar parches para libpng 1.6+
+- O usar versión compatible de libpng (1.5.x)
 
-### Compilación desde Línea de Comandos
-
-```powershell
-# Usando MSBuild
-& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
-  srchybrid\emule.vcxproj `
-  /p:Configuration=Release `
-  /p:Platform=Win32 `
-  /p:WindowsTargetPlatformVersion=10.0.26100.0
+## Estructura de Carpetas
+```
+c:\Fragua\eMule-Aishor-Forge\
+├── zlib\           # Compresión
+├── mbedtls\        # Criptografía TLS
+├── libpng\         # Imágenes PNG
+├── miniupnpc\      # UPnP Client
+├── cryptopp\       # Crypto++
+├── id3lib\         # Tags ID3
+├── cximage\        # Procesamiento de imágenes
+└── resizablelib\   # Controles MFC redimensionables
 ```
 
----
-
-## 📚 Documentación
-
-- **[Compilacion.md](docs/Compilacion.md)** - Guía detallada de compilación
-- **[CHANGELOG_COMPILACION.md](docs/CHANGELOG_COMPILACION.md)** - Historial de cambios de compilación
-- **[ESTADO_PROYECTO.md](docs/ESTADO_PROYECTO.md)** - Estado actual del proyecto
-- **[emule-mejoras.md](docs/emule-mejoras.md)** - Mejoras técnicas implementadas
-
----
-
-## 🔧 Dependencias
-
-| Librería | Versión | Configuración |
-|----------|---------|---------------|
-| **zlib** | 1.2.x | `/MD`, v145 |
-| **libpng** | 1.6.x | `/MD`, v145 |
-| **mbedTLS** | 3.x | `/MD`, v145, PSA_CRYPTO=OFF |
-| **id3lib** | 3.8.3 | Enlace estático, v145 |
-| **CryptoPP** | 8.9.0 | `/MD`, v145 |
-| **CxImage** | 7.0.2 | PNG habilitado |
-| **ResizableLib** | - | Unicode, `/MD`, v145 |
-| **MiniUPnPc** | 2.x | Estático, v145 |
-
----
-
-## 📝 Notas de la Versión
-
-### v0.70b-Build26-R1.0 (2026-01-05)
-
-**Cambios principales:**
-- Migración completa a Visual Studio 2022 (PlatformToolset v145)
-- Corrección de orden de includes en `OtherFunctions.cpp` (PCH)
-- Implementación de stubs para mbedTLS (PSA_CRYPTO deshabilitado)
-- Soporte completo para CxImage PNG
-- Unificación de Runtime Library a `/MD`
-
-**⚠️ Nota importante:** Esta versión requiere recompilación de todas las dependencias con Visual Studio 2022.
-
-Ver [RELEASE_v0.70b-Build26-R1.0.md](docs/RELEASE_v0.70b-Build26-R1.0.md) para detalles completos y [CHANGELOG_COMPILACION.md](docs/CHANGELOG_COMPILACION.md) para historial técnico.
-
----
-
-## 🐛 Problemas Conocidos
-
-- **mbedTLS**: PSA_CRYPTO está deshabilitado mediante stubs. Las funciones TLS 1.3 avanzadas están limitadas.
-- **CxImage**: Solo formato PNG habilitado. Otros formatos requieren configuración adicional en `ximacfg.h`.
-
----
-
-## 🤝 Contribuciones
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la licencia **GPL v2**. Ver [LICENSE](LICENSE) para más información.
-
----
-
-## 🔗 Enlaces
-
-- **Proyecto Original eMule**: [emule-project.net](https://www.emule-project.net/)
-- **Documentación**: [docs/](docs/)
-- **Releases**: [GitHub Releases](https://github.com/yourusername/eMule-Aishor/releases)
-
----
-
-## 👨‍💻 Autor
-
-**Aishor Team** - Modernización y mantenimiento
-
----
-
-## 🙏 Agradecimientos
-
-- Equipo original de eMule por el proyecto base
-- Comunidad de desarrolladores de las librerías open-source utilizadas
-- Todos los contribuidores del proyecto
-
----
-
-**Nota**: Este es un proyecto de modernización no oficial de eMule. No está afiliado con el proyecto oficial eMule.
+## Notas
+- Todas las dependencias fueron copiadas desde el proyecto original en `c:\Fragua\eMule-Aishor`
+- Esta carpeta Forge es para trabajo experimental y compilaciones limpias
+- Las modificaciones deben probarse aquí antes de aplicarlas al proyecto principal

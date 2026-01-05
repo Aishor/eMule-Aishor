@@ -1,134 +1,29 @@
-# Build artifacts
+
+# Build Artifacts
+x64/
+Win32/
 *.obj
-*.pch
-*.pdb
-*.idb
-*.ilk
-*.log
 *.tlog
-*.txt
+*.pch
+*.res
+*.idb
+*.pdb
+*.ilk
+*.exp
+# *.lib (Allowed for dependencies)
+*.exe
 *.iobj
 *.ipdb
-*.exp
 
-# Directories
-Win32/
-x64/
-Debug/
-Release/
-ipch/
+# Visual Studio
 .vs/
-*.aps
-
-# Compiled libraries (keep pre-built .lib files)
-!*.lib
-
-# User-specific files
 *.user
+*.aps
 *.suo
-*.sdf
-*.opensdf
-*.db
-*.opendb
 
-# Build logs and temporary files
-build*.log
-compilation*.log
-msbuild.log
-link.log
-rebuild*.txt
-*.ps1
+# Logs
+compilation_log_*.txt
+*.log
 
-# macOS
-.DS_Store
-
-# IDE
-.vscode/
-.idea/
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# ==============================================
-# LIBRERÍAS EXTERNAS - Excluir código fuente
-# Solo mantener: *.vcxproj y *.lib compilados
-# ==============================================
-
-# mbedTLS - Excluir todo excepto includes modificados y build
-mbedtls/*
-!mbedtls/include/
-!mbedtls/include/mbedtls/
-!mbedtls/include/mbedtls/mbedtls_config.h
-!mbedtls/include/mbedtls/threading_alt.h
-!mbedtls/visualc/
-!mbedtls/visualc/VS2017/
-!mbedtls/visualc/VS2017/*.vcxproj
-!mbedtls/visualc/VS2017/Release/
-!mbedtls/visualc/VS2017/Release/*.lib
-
-# CryptoPP - Excluir todo excepto proyecto y lib
-cryptopp/*
-!cryptopp/*.vcxproj
-!cryptopp/*.h
-!cryptopp/Win32/
-!cryptopp/Win32/Output/
-!cryptopp/Win32/Output/Release/
-!cryptopp/Win32/Output/Release/*.lib
-
-# zlib - Excluir todo excepto proyecto y lib
-zlib/*
-!zlib/contrib/
-!zlib/contrib/vstudio/
-!zlib/contrib/vstudio/vc17/
-!zlib/contrib/vstudio/vc17/*.vcxproj
-!zlib/contrib/vstudio/vc17/x86/
-!zlib/contrib/vstudio/vc17/x86/ZlibStatRelease/
-!zlib/contrib/vstudio/vc17/x86/ZlibStatRelease/*.lib
-
-# libpng - Excluir todo excepto proyecto y lib
-libpng/*
-!libpng/projects/
-!libpng/projects/vstudio/
-!libpng/projects/vstudio/libpng/
-!libpng/projects/vstudio/libpng/*.vcxproj
-!libpng/projects/vstudio/libpng/Release/
-!libpng/projects/vstudio/libpng/Release/*.lib
-
-# id3lib - Excluir todo excepto proyecto, headers e includes
-id3lib/*
-!id3lib/include/
-!id3lib/include/*.h
-!id3lib/libprj/
-!id3lib/libprj/*.vcxproj
-!id3lib/libprj/Release/
-!id3lib/libprj/Release/*.lib
-
-# CxImage - Excluir todo excepto headers de config, proyecto y lib
-cximage/*
-!cximage/*.h
-!cximage/*.vcxproj
-!cximage/Release/
-!cximage/Release/*.lib
-
-# ResizableLib - Excluir todo excepto proyecto y lib
-resizablelib/*
-!resizablelib/ResizableLib/
-!resizablelib/ResizableLib/*.vcxproj
-!resizablelib/ResizableLib/Win32/
-!resizablelib/ResizableLib/Win32/Release/
-!resizablelib/ResizableLib/Win32/Release/bin/
-!resizablelib/ResizableLib/Win32/Release/bin/*.lib
-
-# MiniUPnPc - Excluir todo excepto proyecto y lib
-miniupnpc/*
-!miniupnpc/*.vcxproj
-!miniupnpc/msvc/
-!miniupnpc/msvc/Release/
-!miniupnpc/msvc/Release/*.lib
-
-
-# Carpetas de compilaci�n antiguas (VC9/VS2008)
-Debug_vc9/
-Release_vc9/
+# Large/Binary files to ignore if not needed in repo
+*.zip

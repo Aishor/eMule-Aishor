@@ -1,0 +1,547 @@
+**********************************************************************
+** Visual Studio 2026 Developer Command Prompt v18.1.1
+** Copyright (c) 2025 Microsoft Corporation
+**********************************************************************
+[DEBUG:ext\vcvars.bat] Found potential v145 version file: 'Microsoft.VCToolsVersion.VC.14.50.18.0.txt'
+[DEBUG:ext\vcvars.bat] Testing v145 version file: 'Microsoft.VCToolsVersion.VC.14.50.18.0.txt'
+Versión de MSBuild 18.0.5+e22287bf1 para .NET Framework
+Compilación iniciada a las 04/01/2026 23:31:42.
+
+Proyecto "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" en el nodo 1 (Clean destinos).
+ValidateSolutionConfiguration:
+  Compilando la configuración de soluciones "Debug|Win32".
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+El proyecto "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (1) está compilando "C:\Fragua\eMule-Aishor\mbedtls\visualc\VS2017\mbedTLS.vcxproj" (2) en el nodo 1 (Clean destinos).
+_PrepareForClean:
+  Se eliminará el archivo "Debug\mbedTLS\mbedTLS.tlog\mbedTLS.lastbuildstate".
+Compilación del proyecto terminada "C:\Fragua\eMule-Aishor\mbedtls\visualc\VS2017\mbedTLS.vcxproj" (Clean destinos).
+El proyecto "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (1) está compilando "C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj" (3) en el nodo 1 (Clean destinos).
+_PrepareForClean:
+  Se eliminará el archivo "Debug\id3lib.tlog\id3lib.lastbuildstate".
+CoreClean:
+  Se eliminará el archivo "C:\Fragua\eMule-Aishor\id3lib\libprj\Debug\id3lib.lib".
+Compilación del proyecto terminada "C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj" (Clean destinos).
+El proyecto "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (1) está compilando "C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj" (4) en el nodo 1 (Clean destinos).
+_PrepareForClean:
+  Se eliminará el archivo "Debug\cximage.tlog\cximage.lastbuildstate".
+CoreClean:
+  Se eliminará el archivo "C:\Fragua\eMule-Aishor\CxImage\Debug\cximage.lib".
+Compilación del proyecto terminada "C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj" (Clean destinos).
+El proyecto "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (1) está compilando "C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj" (5) en el nodo 1 (Clean destinos).
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj".
+Compilación del proyecto terminada "C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj" (Clean destinos) -- ERROR.
+Compilación del proyecto terminada "C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (Clean destinos) -- ERROR.
+
+ERROR al compilar.
+
+"C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (Clean destino) (1) ->
+(Clean destino) -> 
+  C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+  C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+  C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+  C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+  C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+
+
+"C:\Fragua\eMule-Aishor\srchybrid\emule.sln" (Clean destino) (1) ->
+"C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj" (Clean destino) (5) ->
+  C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj".
+  C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj".
+  C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj".
+  C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj".
+  C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj".
+
+    0 Advertencia(s)
+    10 Errores
+
+Tiempo transcurrido 00:00:00.27
+Versión de MSBuild 18.0.5+e22287bf1 para .NET Framework
+
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.sln.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj". [C:\Fragua\eMule-Aishor\srchybrid\emule.sln]
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\cryptopp\cryptlib.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\libpng\projects\visualc\libpng.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\miniupnpc\msvc\miniupnpc.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\ResizableLib\ResizableLib.vcxproj".
+C:\Fragua\eMule-Aishor\srchybrid\emule.vcxproj.metaproj : error MSB3202: No se encuentra el archivo del proyecto "C:\Fragua\eMule-Aishor\zlib\contrib\vstudio\vc\zlib.vcxproj".
+  ximabmp.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximabmp.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximabmp.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximabmp.cpp(375,26): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  ximaenc.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximaenc.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximaenc.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(74,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(79,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(108,13): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(142,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(173,4): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(365,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(429,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(446,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(513,14): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(524,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(530,13): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(538,29): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(607,9): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(698,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(759,4): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(968,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximaenc.cpp(1000,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  ximage.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximage.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximage.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximage.cpp(177,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximage.cpp(191,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximage.cpp(225,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximage.cpp(552,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  ximainfo.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximainfo.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximainfo.cpp')
+  
+  ximaint.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximaint.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximaint.cpp')
+  
+  ximalpha.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximalpha.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximalpha.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximalpha.cpp(229,4): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximalpha.cpp(303,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximalpha.cpp(328,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  ximapal.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximapal.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximapal.cpp')
+  
+  ximapng.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximapng.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximapng.cpp')
+  
+  ximath.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximath.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximath.cpp')
+  
+  ximatran.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximatran.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximatran.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(897,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1167,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1257,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1273,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1357,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1389,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1419,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(1470,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2026,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2030,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2074,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2143,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2210,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2331,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2378,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2468,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximatran.cpp(2484,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  ximawnd.cpp
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(25,10): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximawnd.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\xiofile.h(117,10): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  (compiling source file 'ximawnd.cpp')
+  
+C:\Fragua\eMule-Aishor\CxImage\ximawnd.cpp(687,6): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximawnd.cpp(1206,3): warning C4996: 'wcsncpy': This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximawnd.cpp(1469,5): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+C:\Fragua\eMule-Aishor\CxImage\ximawnd.cpp(1482,5): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Fragua\eMule-Aishor\CxImage\cximage.vcxproj]
+  xmemfile.cpp
+  Generando código...
+  cximage.vcxproj -> C:\Fragua\eMule-Aishor\CxImage\Debug\cximage.lib
+  c_wrapper.cpp
+  field.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/field.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/field.cpp')
+  
+  field_binary.cpp
+  field_integer.cpp
+  field_string_ascii.cpp
+  field_string_unicode.cpp
+  frame.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame.cpp')
+  
+  frame_impl.cpp
+  frame_parse.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\frame_parse.cpp(152,13): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'char'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\frame_parse.cpp(159,13): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'char'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  frame_render.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/frame_render.cpp')
+  
+  globals.cpp
+  header.cpp
+  header_frame.cpp
+  header_tag.cpp
+C:\Fragua\eMule-Aishor\id3lib\src\header_tag.cpp(113,15): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'uchar'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\header_tag.cpp(114,15): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'uchar'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  helpers.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/helpers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/helpers.cpp')
+  
+  io.cpp
+  io_decorators.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/io_decorators.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/io_decorators.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\io_decorators.cpp(157,18): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_decorators.cpp(173,16): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_decorators.cpp(178,26): warning C4244: '=': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_decorators.cpp(189,16): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  io_helpers.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/io_helpers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/io_helpers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\io_helpers.cpp(40,30): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_helpers.cpp(114,26): warning C4244: '=': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_helpers.cpp(120,26): warning C4244: '=': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\io_helpers.cpp(252,30): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  misc_support.cpp
+  mp3_parse.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/mp3_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/mp3_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\mp3_parse.cpp(503,19): warning C4018: '>=': no coinciden signed/unsigned [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  Generando código...
+  Compilando...
+  readers.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/readers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/readers.cpp')
+  
+  spec.cpp
+  tag.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(42,61): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(69,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(92,63): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(119,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag.cpp')
+  
+  tag_file.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(42,61): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(69,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(92,63): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(119,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_file.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_file.cpp(256,21): warning C4244: 'inicializando': conversión de 'std::streamsize' a 'size_t'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\tag_file.cpp(418,25): warning C4244: 'inicializando': conversión de 'std::streamsize' a 'size_t'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_find.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_find.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_find.cpp')
+  
+  tag_impl.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_impl.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_impl.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_impl.cpp(44,14): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'char'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_parse.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse.cpp(97,36): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_parse_lyrics3.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_lyrics3.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_lyrics3.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse_lyrics3.cpp(96,32): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse_lyrics3.cpp(141,34): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_parse_musicmatch.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_musicmatch.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_musicmatch.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse_musicmatch.cpp(50,32): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'ID3_Reader::char_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_parse_v1.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_v1.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_parse_v1.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse_v1.cpp(122,32): warning C4267: 'argumento': conversión de 'size_t' a 'uchar'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\tag_parse_v1.cpp(155,15): warning C4244: 'inicializando': conversión de 'ID3_Reader::int_type' a 'uchar'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  tag_render.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(56,26): warning C4244: 'return': conversión de 'std::streamsize' a 'ID3_Reader::size_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\readers.h(60,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Reader::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(42,61): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(69,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(92,63): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(119,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/tag_render.cpp')
+  
+  utils.cpp
+C:\Fragua\eMule-Aishor\id3lib\src\utils.cpp(263,22): warning C4244: '=': conversión de 'std::streamoff' a 'size_t'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\utils.cpp(276,22): warning C4244: '=': conversión de 'std::streamoff' a 'size_t'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+C:\Fragua\eMule-Aishor\id3lib\src\utils.cpp(289,22): warning C4244: '=': conversión de 'std::streamoff' a 'size_t'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  writers.cpp
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(42,61): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/writers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(69,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/writers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(92,63): warning C4244: 'inicializando': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/writers.cpp')
+  
+C:\Fragua\eMule-Aishor\id3lib\include\id3\writers.h(119,51): warning C4244: 'return': conversión de 'std::streamoff' a 'ID3_Writer::pos_type'; posible pérdida de datos [C:\Fragua\eMule-Aishor\id3lib\libprj\id3lib.vcxproj]
+  (compiling source file '../src/writers.cpp')
+  
+  Generando código...
+  id3lib.vcxproj -> C:\Fragua\eMule-Aishor\id3lib\libprj\Debug\id3lib.lib
+  aes.c
+  aesce.c
+  aesni.c
+  aria.c
+  asn1parse.c
+  asn1write.c
+  base64.c
+  bignum.c
+  bignum_core.c
+  bignum_mod.c
+  bignum_mod_raw.c
+  block_cipher.c
+  camellia.c
+  ccm.c
+  chacha20.c
+  chachapoly.c
+  cipher.c
+  cipher_wrap.c
+  cmac.c
+  constant_time.c
+  Generando código...
+  Compilando...
+  ctr_drbg.c
+  debug.c
+  des.c
+  dhm.c
+  ecdh.c
+  ecdsa.c
+  ecjpake.c
+  ecp.c
+  ecp_curves.c
+  ecp_curves_new.c
+  entropy.c
+  entropy_poll.c
+  error.c
+  gcm.c
+  hkdf.c
+  hmac_drbg.c
+  lmots.c
+  lms.c
+  md.c
+  md5.c
+  Generando código...
+  Compilando...
+  memory_buffer_alloc.c
+  mps_reader.c
+  mps_trace.c
+  net_sockets.c
+  nist_kw.c
+  oid.c
+  padlock.c
+  pem.c
+  pk.c
+  pk_ecc.c
+  pk_wrap.c
+  pkcs12.c
+  pkcs5.c
+  pkcs7.c
+  pkparse.c
+  pkwrite.c
+  platform.c
+  platform_util.c
+  poly1305.c
+  psa_crypto.c
+  Generando código...
+  Compilando...
+  psa_crypto_aead.c
+  psa_crypto_cipher.c
+  psa_crypto_client.c
+  psa_crypto_driver_wrappers_no_static.c
+  psa_crypto_ecp.c
+  psa_crypto_ffdh.c
+  psa_crypto_hash.c
+  psa_crypto_mac.c
+  psa_crypto_pake.c
+  psa_crypto_rsa.c
+  psa_crypto_se.c
+  psa_crypto_slot_management.c
+  psa_crypto_storage.c
+  psa_its_file.c
+  psa_util.c
+  ripemd160.c
+  rsa.c
+  rsa_alt_helpers.c
+  sha1.c
+  sha256.c
+  Generando código...
+  Compilando...
+  sha3.c
+  sha512.c
+  ssl_cache.c
+  ssl_ciphersuites.c
+  ssl_client.c
+  ssl_cookie.c
+  ssl_debug_helpers_generated.c
+  ssl_msg.c
+  ssl_ticket.c
+  ssl_tls.c
+  ssl_tls12_client.c
+  ssl_tls12_server.c
+  ssl_tls13_client.c
+  ssl_tls13_generic.c
+  ssl_tls13_keys.c
+  ssl_tls13_server.c
+  threading.c
+  timing.c
+  version.c
+  version_features.c
+  Generando código...
+  Compilando...
+  x509.c
+  x509_create.c
+  x509_crl.c
+  x509_crt.c
+  x509_csr.c
+  x509write.c
+  x509write_crt.c
+  x509write_csr.c
+  everest.c
+  Hacl_Curve25519_joined.c
+  x25519.c
+  FStar_UInt128_extracted.c
+  FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c
+  Hacl_Curve25519.c
+  Generando código...
+  mbedTLS.vcxproj -> C:\Fragua\eMule-Aishor\srchybrid\Debug\mbedTLS.lib
