@@ -36,7 +36,7 @@
 #define VERSION_UPDATE 1
 #define VERSION_BUILD 26
 #if defined(_M_X64) || defined(_WIN64)
-#define VERSION_X64 _T("-build26-R1.0-X64")
+#define VERSION_X64 _T("-build26-R1.1-X64")
 #else
 #define VERSION_X64 _T("")
 #endif // _M_X64
