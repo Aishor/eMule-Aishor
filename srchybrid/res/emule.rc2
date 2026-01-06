@@ -34,7 +34,7 @@ BEGIN
     BEGIN
         BLOCK "040904B0" // Lang=US English, CharSet=Unicode
         BEGIN
-            VALUE "CompanyName", "https://www.emule-project.net"
+            VALUE "CompanyName", "https://github.com/Aishor/eMule-Aishor"
             VALUE "FileDescription", "eMule"
             VALUE "FileVersion", SZ_VERSION_NAME " Unicode"
             VALUE "InternalName", "emule.exe"

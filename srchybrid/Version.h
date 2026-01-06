@@ -23,7 +23,7 @@
 //	<major>		major number  (e.g. 0)
 //	<minor>		minor number  (e.g. 30)
 //	<update>	update number (e.g. 0='a'  1='b'  2='c'  3='d'  4='e'
-//5='f' ...) 	<build>		build number  (1 or higher)
+// 5='f' ...) 	<build>		build number  (1 or higher)
 //
 // Currently used:
 //  <major>.<minor>.<update> is used for the displayed version (GUI) and the
@@ -35,8 +35,8 @@
 #define VERSION_MIN 70
 #define VERSION_UPDATE 1
 #define VERSION_BUILD 26
-#ifdef _M_X64
-#define VERSION_X64 _T("-build26-R1.1-X64")
+#if defined(_M_X64) || defined(_WIN64)
+#define VERSION_X64 _T("-build26-R1.0-X64")
 #else
 #define VERSION_X64 _T("")
 #endif // _M_X64

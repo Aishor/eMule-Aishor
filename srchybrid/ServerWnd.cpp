@@ -131,6 +131,7 @@ BOOL CServerWnd::OnInitDialog()
 		servermsgbox->AppendText(_T("eMule v"));
 		servermsgbox->AppendText(theApp.m_strCurVersionLong);
 		servermsgbox->AppendText(_T("\n"));
+		servermsgbox->AppendText(_T("Proyecto no oficial de actualización de eMule\n"));
 		// MOD Note: Do not remove this part - Merkur
 		m_strClickNewVersion.Format(_T("%s %s %s"), (LPCTSTR)GetResString(IDS_EMULEW), (LPCTSTR)GetResString(IDS_EMULEW3), (LPCTSTR)GetResString(IDS_EMULEW2));
 		servermsgbox->AppendHyperLink(NULL, NULL, m_strClickNewVersion, NULL);
