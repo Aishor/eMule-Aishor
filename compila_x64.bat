@@ -1,12 +1,12 @@
 @echo off
 REM ========================================
-REM PROYECTO R1.1 TITANIUM FIBER - BUILD x64
+REM PROYECTO R1.2 TITANIUM FIBER - BUILD x64
 REM Compilacion automatizada x64 Release
 REM ========================================
 
 echo.
 echo ========================================
-echo   PROYECTO R1.1 "TITANIUM FIBER"
+echo   PROYECTO R1.2 "TITANIUM FIBER"
 echo   Compilacion x64 Release Optimizada
 echo ========================================
 echo.
@@ -16,13 +16,25 @@ set PLATFORM=x64
 set CONFIGURATION=Release
 set BUILD_LOG=compilation_log_x64.txt
 
-REM Verificar MSBuild
-where msbuild >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] MSBuild no encontrado. Ejecuta desde Developer Command Prompt de VS2022.
-    pause
-    exit /b 1
+REM Verificar MSBuild con vswhere
+if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" (
+    for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe`) do (
+        set "MSBUILD_PATH=%%i"
+    )
 )
+
+if not defined MSBUILD_PATH (
+    where msbuild >nul 2>&1
+    if %ERRORLEVEL% EQU 0 (
+        set "MSBUILD_PATH=msbuild"
+    ) else (
+        echo [ERROR] MSBuild no encontrado. Ejecuta desde Developer Command Prompt de VS2022 o instala Visual Studio.
+        pause
+        exit /b 1
+    )
+)
+
+echo [INFO] MSBuild encontrado en: "%MSBUILD_PATH%"
 
 REM Limpiar log anterior
 if exist "%BUILD_LOG%" del /f /q "%BUILD_LOG%"
@@ -33,37 +45,37 @@ echo [INFO] Log: %BUILD_LOG%
 echo.
 
 REM ========================================
-REM PASO 1: Compilar Dependencias
+REM PASO 1: Compilar Dependencias (SALTADO - Usando Libs Precompiladas)
 REM ========================================
 
 echo ========================================
-echo   PASO 1: Compilando Dependencias x64
+echo   PASO 1: Dependencias x64 (Pre-compiladas)
 echo ========================================
 echo.
 
-call :BUILD_PROJECT "zlib\contrib\vstudio\vc17\zlibvc.sln" "zlibstat" "zlib"
+REM call :BUILD_PROJECT "zlib\contrib\vstudio\vc17\zlibvc.sln" "zlibstat" "zlib"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
+
+REM call :BUILD_PROJECT "mbedtls\visualc\VS2017\mbedTLS.sln" "mbedTLS" "mbedTLS"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
+
+REM call :BUILD_PROJECT "cryptopp\cryptlib.vcxproj" "cryptlib" "CryptoPP"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
+
+call :BUILD_PROJECT "libpng\projects\vstudio\libpng\libpng.vcxproj" "Rebuild" "libpng"
 if %ERRORLEVEL% NEQ 0 goto :ERROR
 
-call :BUILD_PROJECT "mbedtls\visualc\VS2017\mbedTLS.sln" "mbedTLS" "mbedTLS"
+call :BUILD_PROJECT "cximage\cximage.vcxproj" "Rebuild" "CxImage"
 if %ERRORLEVEL% NEQ 0 goto :ERROR
 
-call :BUILD_PROJECT "cryptopp\cryptlib.vcxproj" "cryptlib" "CryptoPP"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
+REM call :BUILD_PROJECT "id3lib\libprj\id3lib.vcxproj" "id3lib" "id3lib"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
 
-call :BUILD_PROJECT "libpng\projects\vstudio\vstudio.sln" "libpng" "libpng"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
+REM call :BUILD_PROJECT "resizablelib\ResizableLib\ResizableLib.vcxproj" "ResizableLib" "ResizableLib"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
 
-call :BUILD_PROJECT "cximage\cximage.vcxproj" "cximage" "CxImage"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
-
-call :BUILD_PROJECT "id3lib\libprj\id3lib.vcxproj" "id3lib" "id3lib"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
-
-call :BUILD_PROJECT "resizablelib\ResizableLib\ResizableLib.vcxproj" "ResizableLib" "ResizableLib"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
-
-call :BUILD_PROJECT "miniupnpc\msvc\miniupnpc.vcxproj" "miniupnpc" "miniupnpc"
-if %ERRORLEVEL% NEQ 0 goto :ERROR
+REM call :BUILD_PROJECT "miniupnpc\msvc\miniupnpc.vcxproj" "miniupnpc" "miniupnpc"
+REM if %ERRORLEVEL% NEQ 0 goto :ERROR
 
 REM ========================================
 REM PASO 2: Compilar Proyecto Principal
@@ -133,7 +145,7 @@ set "DISPLAY_NAME=%~3"
 echo [BUILD] %DISPLAY_NAME%...
 echo ----------------------------------------
 
-msbuild "%PROJECT_PATH%" ^
+"%MSBUILD_PATH%" "%PROJECT_PATH%" ^
     /p:Configuration=%CONFIGURATION% ^
     /p:Platform=%PLATFORM% ^
     /t:%PROJECT_NAME% ^
