@@ -32,5 +32,18 @@ El ejecutable se generará en: `srchybrid\x64\Release\emule.exe`
 *   [RELEASE R1.1 (Consolidación)](docs/RELEASE_v0.70b-Build26-R1.1-X64.md) - 06/01/2026
 *   [RELEASE R1.0 (Legacy)](docs/RELEASE_v0.70b-Build26-R1.0-X64.md) - 05/01/2026
 
-## Changelog Reciente
 *   **07/01/2026**: Versión `R1.2`. Restauración completa de build system (v145), fix de Splash Screen y configuración de puertos Firewall.
+
+## 📜 Licencia y Atribución
+
+Este proyecto es un **fork derivado** de [eMule v0.70b](https://github.com/irwir/eMule), 
+mantenido por la comunidad en el repositorio de [irwir](https://github.com/irwir).
+
+**Licencia**: GNU General Public License v2 (GPL-2.0)  
+**Copyright**: © 2026 Aishor Contributors | Basado en eMule Project
+
+Ver [LICENSE.txt](LICENSE.txt) para más detalles.
+
+---
+**Nota**: Esta es una modernización no oficial de eMule. No está afiliada con el proyecto oficial eMule.
+
