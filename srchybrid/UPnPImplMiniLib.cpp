@@ -16,11 +16,6 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define _WINDOWS
-#include <afxwin.h>
-#include <afxext.h>
-#include <atlstr.h>
-#include "types.h"
-#include "stdafx.h"
 #include "UPnPImplMiniLib.h"
 #include "Log.h"
 #include "Otherfunctions.h"
@@ -28,8 +23,14 @@
 #include "miniupnpc.h"
 #include "opcodes.h"
 #include "preferences.h"
+#include "stdafx.h"
+#include "types.h"
 #include "upnpcommands.h"
 #include "upnperrors.h"
+#include <afxext.h>
+#include <afxwin.h>
+#include <atlstr.h>
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -228,7 +229,7 @@ int CUPnPImplMiniLib::CStartDiscoveryThread::Run() {
     if (!m_pOwner->m_bCheckAndRefresh) {
       int error = 0;
       UPNPDev *structDeviceList =
-          upnpDiscover(2000, thePrefs.GetBindAddrA(), NULL, 0, 0, 2, &error);
+          upnpDiscover(2000, thePrefs.GetBindAddrA(), NULL, 0, 0, &error);
       if (structDeviceList == NULL) {
         DebugLog(_T("UPNP: No Internet Gateway Devices found, aborting: %d"),
                  error);
@@ -253,8 +254,7 @@ int CUPnPImplMiniLib::CStartDiscoveryThread::Run() {
       *m_pOwner->m_achWanIP = 0;
       int iResult = UPNP_GetValidIGD(structDeviceList, m_pOwner->m_pURLs,
                                      m_pOwner->m_pIGDData, m_pOwner->m_achLanIP,
-                                     sizeof m_pOwner->m_achLanIP, m_pOwner->m_achWanIP,
-                                     sizeof m_pOwner->m_achWanIP);
+                                     sizeof m_pOwner->m_achLanIP);
       freeUPNPDevlist(structDeviceList);
       bool bNotFound = false;
       switch (iResult) {
