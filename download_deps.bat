@@ -47,7 +47,7 @@ if not exist "resizablelib\ResizableLib\ResizableDialog.h" (
 
 REM Crypto++
 set /a CURRENT+=1
-if not exist "cryptopp\cryptlib.h" (
+if not exist "cryptopp\cryptlib.cpp" (
     echo [%CURRENT%/%TOTAL%] Descargando Crypto++...
     if exist "cryptopp" rmdir /s /q cryptopp 2>nul
     git clone --depth 1 https://github.com/weidai11/cryptopp.git cryptopp_tmp >nul 2>&1
@@ -65,7 +65,7 @@ if not exist "cryptopp\cryptlib.h" (
 
 REM zlib
 set /a CURRENT+=1
-if not exist "zlib\zlib.h" (
+if not exist "zlib\deflate.c" (
     echo [%CURRENT%/%TOTAL%] Descargando zlib...
     if exist "zlib" rmdir /s /q zlib 2>nul
     git clone --depth 1 https://github.com/madler/zlib.git zlib_tmp >nul 2>&1
@@ -83,7 +83,7 @@ if not exist "zlib\zlib.h" (
 
 REM libpng
 set /a CURRENT+=1
-if not exist "libpng\png.h" (
+if not exist "libpng\png.c" (
     echo [%CURRENT%/%TOTAL%] Descargando libpng...
     if exist "libpng" rmdir /s /q libpng 2>nul
     git clone --depth 1 https://github.com/glennrp/libpng.git libpng_tmp >nul 2>&1
@@ -101,7 +101,7 @@ if not exist "libpng\png.h" (
 
 REM mbedTLS
 set /a CURRENT+=1
-if not exist "mbedtls\include\mbedtls\ssl.h" (
+if not exist "mbedtls\library\ssl_tls.c" (
     echo [%CURRENT%/%TOTAL%] Descargando mbedTLS...
     if exist "mbedtls" rmdir /s /q mbedtls 2>nul
     git clone --depth 1 --branch v2.28.9 https://github.com/Mbed-TLS/mbedtls.git mbedtls_tmp >nul 2>&1
@@ -119,7 +119,7 @@ if not exist "mbedtls\include\mbedtls\ssl.h" (
 
 REM miniupnpc
 set /a CURRENT+=1
-if not exist "miniupnpc\miniupnpc.h" (
+if not exist "miniupnpc\miniupnpc.c" (
     echo [%CURRENT%/%TOTAL%] Descargando miniupnpc...
     if exist "miniupnpc" rmdir /s /q miniupnpc 2>nul
     git clone --depth 1 https://github.com/miniupnp/miniupnp.git miniupnp_tmp >nul 2>&1
