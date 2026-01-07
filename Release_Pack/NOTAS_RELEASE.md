@@ -25,6 +25,21 @@ Esta versión **R1.2** marca la restauración completa de la capacidad de compil
     *   Limpieza de lógica obsoleta (`MaxHalfOpen`).
     *   Auditoría de seguridad en stubs criptográficos (`mbedTLS`, `WebSocket`).
 
+## 🛠️ Compilación desde Código Fuente
+
+Para compilar esta versión desde el código fuente, consulta la [**Guía de Compilación**](GUIA_COMPILACION.md).
+
+**Requisitos mínimos**:
+- Visual Studio 2022 con Toolset v145
+- Windows 10/11 SDK
+- MFC/ATL para C++
+
+**Compilación rápida**:
+```powershell
+git checkout v0.70b-Build26-R1.2-X64
+.\build_x64.ps1
+```
+
 ## 📦 Instalación
 Este release se distribuye como un binario portable.
 1.  Reemplazar el archivo `emule.exe` existente con el suministrado en este paquete.
