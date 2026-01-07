@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#define _WINDOWS
 #include "UPnPImplMiniLib.h"
 #include "Log.h"
 #include "Otherfunctions.h"
@@ -31,6 +30,8 @@
 #include <afxwin.h>
 #include <atlstr.h>
 
+
+#define _WINDOWS
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
