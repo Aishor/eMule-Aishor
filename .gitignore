@@ -22,6 +22,7 @@ Win32/
 *.suo
 
 # Logs
+Logs/
 compilation_log_*.txt
 *.log
 
