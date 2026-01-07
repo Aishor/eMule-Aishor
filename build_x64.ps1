@@ -29,7 +29,7 @@ Write-Host "[2/4] Compilando emule.exe..." -ForegroundColor Cyan
 $logFile = "build_log.txt"
 $errorLog = "build_errors.txt"
 
-& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl /flp:LogFile=$logFile;Verbosity=minimal /flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly
+& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl "/flp:LogFile=$logFile;Verbosity=minimal" "/flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
