@@ -28,3 +28,7 @@ compilation_log_*.txt
 
 # Large/Binary files to ignore if not needed in repo
 *.zip
+
+# Release artifacts
+Release_Pack/
+
