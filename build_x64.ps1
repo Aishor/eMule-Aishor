@@ -25,11 +25,22 @@ cmd /c copy_libs.bat
 # Paso 2: Compilar eMule
 Write-Host ""
 Write-Host "[2/4] Compilando emule.exe..." -ForegroundColor Cyan
-& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal
+
+$logFile = "build_log.txt"
+$errorLog = "build_errors.txt"
+
+& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl /flp:LogFile=$logFile;Verbosity=minimal /flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "[ERROR] Compilación fallida" -ForegroundColor Red
+    if (Test-Path $errorLog) {
+        Write-Host ""
+        Write-Host "Errores encontrados:" -ForegroundColor Yellow
+        Get-Content $errorLog | Select-Object -First 50
+        Write-Host ""
+        Write-Host "Log completo en: $errorLog" -ForegroundColor Gray
+    }
     exit 1
 }
 
