@@ -1,13 +1,14 @@
-# resizablelib - Solo headers y libs compiladas
+# miniupnpc - Solo headers y libs compiladas
 # Guardar headers necesarios para compilar eMule
 !*.h
 
 # Guardar librerías compiladas
-!x64/Release/resizablelib.lib
+!*.lib
+!*.a
 
 # Excluir código fuente (se descarga con download_deps.bat)
-*.cpp
 *.c
+*.cpp
 
 # Excluir build artifacts
 *.obj
@@ -23,7 +24,7 @@
 *.ncb
 *.sdf
 *.opensdf
-x64/Debug/
+x64/
 Debug/
 Release/
 .vs/
