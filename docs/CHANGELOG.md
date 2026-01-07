@@ -28,3 +28,4 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 - **Correcciones**:
   - Eliminado BOM/Espacios en blanco corruptos al inicio de `emule.vcxproj`.
   - Solucionado error de enlazado `png_longjmp` recompilando `CxImage` contra `libpng` actualizado.
+  - **Splash Screen**: Actualizado formato de versión para mostrar Build y Revision (R1.2) en pantalla de carga y About.
