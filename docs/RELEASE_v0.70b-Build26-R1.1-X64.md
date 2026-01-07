@@ -24,5 +24,9 @@ Esta release sentó las bases para la R1.2 final, asegurando que:
 - El ejecutable `emule.exe` pudiera compilarse sin errores de enlazado.
 - Las librerías `.lib` estuvieran sincronizadas con la configuración de compilación del proyecto principal.
 
+## 🛠️ Compilación
+
+Esta versión intermedia ya está integrada en R1.2. Para compilar desde fuentes, consulta la [**Guía de Compilación**](GUIA_COMPILACION.md) (basada en R1.2, compatible con R1.1).
+
 ---
 *Release previa a la versión de producción R1.2.*

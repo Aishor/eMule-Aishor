@@ -126,31 +126,18 @@ Tiempo de compilación: ~3-5 minutos (Release/Win32)
 
 ---
 
-## 🚀 Instrucciones de Compilación
 
-### Requisitos Previos
-- Visual Studio 2022 Community o superior
-- Windows SDK 10.0.26100.0
-- Git (para clonar el repositorio)
+## 🚀 Compilación desde Código Fuente
 
-### Compilar
-```powershell
-# Clonar repositorio
-git clone https://github.com/[usuario]/eMule-Aishor.git
-cd eMule-Aishor
+> **Nota**: Esta versión R1.0 marcó la primera compilación exitosa con VS2022. Para compilar desde fuentes, se recomienda usar la [**Guía de Compilación**](GUIA_COMPILACION.md) actualizada (basada en R1.2, compatible hacia atrás con R1.0).
 
-# Abrir solución
-start srchybrid/emule.sln
-
-# O compilar desde línea de comandos
-& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
-  srchybrid\emule.vcxproj `
-  /p:Configuration=Release `
-  /p:Platform=Win32 `
-  /p:WindowsTargetPlatformVersion=10.0.26100.0
-```
+**Diferencias clave de R1.0**:
+- Plataforma original: **Win32** (x86), migrada a x64 en R1.2
+- Mismo proceso de compilación de dependencias
+- Script automatizado no disponible (manual en esta versión)
 
 ---
+
 
 ## 📌 Próximas Versiones
 
