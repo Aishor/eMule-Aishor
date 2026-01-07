@@ -25,14 +25,27 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 REM ResizableLib
-if not exist "resizablelib\ResizableLib" (
+if not exist "resizablelib\ResizableLib\ResizableDialog.h" (
     echo [1/1] Descargando ResizableLib...
-    git clone --depth 1 --branch master https://github.com/ppescher/resizablelib.git
+    
+    REM Si existe directorio parcial, eliminarlo primero
+    if exist "resizablelib\ResizableLib" (
+        echo   Limpiando estructura parcial...
+        rmdir /s /q resizablelib 2>nul
+    )
+    
+    git clone --depth 1 --branch master https://github.com/ppescher/resizablelib.git resizablelib_tmp
     if %ERRORLEVEL% NEQ 0 (
         echo [ERROR] No se pudo descargar ResizableLib
         pause
         exit /b 1
     )
+    
+    REM Crear estructura y mover solo lo necesario
+    mkdir resizablelib 2>nul
+    xcopy resizablelib_tmp\* resizablelib\ /E /I /Y /Q
+    rmdir /s /q resizablelib_tmp
+    
     echo   + ResizableLib descargada
 ) else (
     echo [1/1] ResizableLib ya existe (omitiendo)
