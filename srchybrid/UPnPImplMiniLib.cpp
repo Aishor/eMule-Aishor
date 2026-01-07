@@ -30,7 +30,6 @@
 #include <afxwin.h>
 #include <atlstr.h>
 
-
 #define _WINDOWS
 
 #ifdef _DEBUG
