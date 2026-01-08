@@ -1,0 +1,30 @@
+# miniupnpc - Solo headers y libs compiladas
+# Guardar headers necesarios para compilar eMule
+!*.h
+
+# Guardar librerías compiladas
+!*.lib
+!*.a
+
+# Excluir código fuente (se descarga con download_deps.bat)
+*.c
+*.cpp
+
+# Excluir build artifacts
+*.obj
+*.o
+*.pdb
+*.exe
+*.dll
+*.exp
+*.ilk
+*.idb
+*.suo
+*.user
+*.ncb
+*.sdf
+*.opensdf
+x64/
+Debug/
+Release/
+.vs/

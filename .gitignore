@@ -25,6 +25,8 @@ Win32/
 Logs/
 compilation_log_*.txt
 *.log
+build_log.txt
+build_errors.txt
 
 # Large/Binary files to ignore if not needed in repo
 *.zip
