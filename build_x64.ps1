@@ -20,7 +20,7 @@ if (-not (Test-Path $msbuild)) {
 
 # Paso 1: Copy Libs (Setup environment)
 Write-Host "[1/4] Preparando dependencias..." -ForegroundColor Cyan
-cmd /c copy_libs.bat
+# cmd /c copy_libs.bat
 
 # Paso 2: Compilar eMule
 Write-Host ""
