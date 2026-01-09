@@ -664,6 +664,7 @@ BEGIN
     CONTROL         "Disable Known Clients list",IDC_DISABLEKNOWNLIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,156,202,10
     CONTROL         "Disable Queue List",IDC_DISABLEQUEUELIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,166,202,10
     PUSHBUTTON      "Select Font...",IDC_SELECT_HYPERTEXT_FONT,12,196,86,14
+    PUSHBUTTON      "Select List Font...",IDC_SELECT_LIST_FONT,105,196,86,14
     CONTROL         "Font for Server-, Message- and IRC-Window",IDC_HYPERTEXT_FONT_HINT,
                     "Static",SS_LEFTNOWORDWRAP | WS_GROUP,4,186,216,8
     CONTROL         "Reset all autocompletion histories (search name, met-URL,...)",IDC_RESETLABEL,

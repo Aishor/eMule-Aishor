@@ -32,6 +32,7 @@ protected:
   afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar);
   afx_msg void OnSettingsChange() { SetModified(); }
   afx_msg void OnBnClickedSelectHypertextFont();
+  afx_msg void OnBnClickedSelectListFont();
   afx_msg void OnBtnClickedResetHist();
   afx_msg void OnHelp();
   afx_msg BOOL OnHelpInfo(HELPINFO *);

@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#include "PPgDisplay.h"
 #include "HTRichEditCtrl.h"
 #include "HelpIDs.h"
 #include "OtherFunctions.h"
+#include "PPgDisplay.h"
 #include "Preferences.h"
 #include "SearchDlg.h"
 #include "ServerWnd.h"
@@ -52,6 +52,7 @@ ON_BN_CLICKED(IDC_DISABLEQUEUELIST, OnSettingsChange)
 ON_BN_CLICKED(IDC_SHOWCATINFO, OnSettingsChange)
 ON_BN_CLICKED(IDC_SHOWDWLPERCENT, OnSettingsChange)
 ON_BN_CLICKED(IDC_SELECT_HYPERTEXT_FONT, OnBnClickedSelectHypertextFont)
+ON_BN_CLICKED(IDC_SELECT_LIST_FONT, OnBnClickedSelectListFont)
 ON_BN_CLICKED(IDC_CLEARCOMPL, OnSettingsChange)
 ON_BN_CLICKED(IDC_SHOWTRANSTOOLBAR, OnSettingsChange)
 ON_BN_CLICKED(IDC_STORESEARCHES, OnSettingsChange)
@@ -232,6 +233,10 @@ void CPPgDisplay::Localize() {
         GetResString(IDS_HYPERTEXT_FONT_HINT) + _T(" (Shift: Listas)");
     SetDlgItemText(IDC_HYPERTEXT_FONT_HINT, strFontHint);
 
+    // Configurar texto para el nuevo botón dedicado
+    SetDlgItemText(IDC_SELECT_LIST_FONT,
+                   GetResString(IDS_SELECT_FONT) + _T(" (List)..."));
+
     SetDlgItemText(IDC_SHOWTRANSTOOLBAR, GetResString(IDS_PW_SHOWTRANSTOOLBAR));
     SetDlgItemText(IDC_WIN7TASKBARGOODIES,
                    GetResString(IDS_SHOWWIN7TASKBARGOODIES));
@@ -325,6 +330,30 @@ void CPPgDisplay::OnBnClickedSelectHypertextFont() {
       theApp.emuledlg->ApplyListFont(&lf);
     else
       theApp.emuledlg->ApplyHyperTextFont(&lf);
+  }
+
+  s_pfnChooseFontHook = NULL;
+  s_pThis = NULL;
+}
+
+void CPPgDisplay::OnBnClickedSelectListFont() {
+  m_eSelectFont = sfList;
+
+  CFont *pFont = &theApp.m_fontList;
+
+  LOGFONT lf;
+  if (!pFont->m_hObject || !pFont->GetObject(sizeof(LOGFONT), &lf))
+    AfxGetMainWnd()->GetFont()->GetLogFont(&lf);
+
+  CFontDialog dlg(&lf, CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT);
+  dlg.m_cf.Flags |= CF_APPLY | CF_ENABLEHOOK;
+
+  s_pfnChooseFontHook = dlg.m_cf.lpfnHook;
+  dlg.m_cf.lpfnHook = ChooseFontHook;
+  s_pThis = this;
+
+  if (dlg.DoModal() == IDOK) {
+    theApp.emuledlg->ApplyListFont(&lf);
   }
 
   s_pfnChooseFontHook = NULL;

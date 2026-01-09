@@ -10,8 +10,9 @@
 - `srchybrid/Emule.cpp` - Inicialización de `m_fontList` en `CreateAllFonts()`
 - `srchybrid/EmuleDlg.h` - Declaración de `ApplyListFont()`
 - `srchybrid/EmuleDlg.cpp` - Implementación de aplicación dinámica de fuente a todas las listas
-- `srchybrid/PPgDisplay.h` - Añadido enum `sfList`
-- `srchybrid/PPgDisplay.cpp` - Selector de fuente con Shift+Click
+- `srchybrid/PPgDisplay.h` - Añadido enum `sfList` y handler `OnBnClickedSelectListFont`
+- `srchybrid/PPgDisplay.cpp` - Implementación botón dedicado y soporte Shift+Click
+- `srchybrid/emule.rc` - Añadido botón `IDC_SELECT_LIST_FONT`
 - `srchybrid/MuleListCtrl.cpp` - Aplicación de fuente en `PreSubclassWindow()`
 
 **Correcciones de Compilación:**

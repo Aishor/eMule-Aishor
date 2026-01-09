@@ -2386,6 +2386,7 @@
 #define IDC_SF_FICON 3037
 #define IDC_SF_FNAME 3038
 #define IDA_ENTER 32771
+#define IDC_SELECT_LIST_FONT 3040
 
 // Next default values for new objects
 //

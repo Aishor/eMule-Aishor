@@ -22,10 +22,13 @@ La fuente personalizada se aplica a:
 ### Paso 2: Ir a Sección Display
 1. En el panel izquierdo, selecciona **Display**
 
-### Paso 3: Seleccionar Fuente
-1. **Mantén presionada la tecla `Shift`** (importante)
-2. Mientras mantienes `Shift`, haz click en el botón **"Select font..."**
-3. Se abrirá el selector de fuentes de Windows
+### Paso 3: Seleccionar Fuente de Lista
+**Método Recomendado (Nuevo):**
+1. Haz click en el botón **"Select List Font..."** (Seleccionar Fuente de Lista)
+
+**Método Alternativo:**
+1. Mantén presionada la tecla `Shift`
+2. Haz click en el botón "Select font..."
 
 ### Paso 4: Elegir tu Fuente Preferida
 Recomendaciones:
