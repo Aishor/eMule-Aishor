@@ -2,7 +2,18 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-## [v0.70b-Build26-R1.2-X64] - 2026-01-06
+## [v0.70b-Build26-R1.2-Patch1] - 2026-01-09
+
+### Añadido
+- **Información del Servidor**: Implementados enlaces de hipertexto dinámicos en la pestaña "Información del Servidor".
+  - Añadido enlace directo al repositorio GitHub del proyecto.
+  - Añadido enlace de donaciones (Ko-fi).
+  - Mejora visual en la descripción del proyecto en el cuadro de mensajes del servidor.
+
+### Corregido
+- **ServerWnd.cpp**: Corregido error crítico de orden de inclusión de `#include "stdafx.h"`. 
+  - Se movió el encabezado precompilado a la primera línea de código ejecutable para evitar que el compilador ignorara las definiciones de clase de MFC y el proyecto, solucionando fallos masivos de compilación en compilaciones x64 Release.
+
 
 ### Añadido
 - **TcpWindowSize**: Nueva opción configurable en `Preferences.ini` (`TcpWindowSize`) para establecer manualmente el tamaño de ventana TCP (SO_RCVBUF, SO_SNDBUF).

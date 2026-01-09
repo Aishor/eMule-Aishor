@@ -3728,6 +3728,19 @@ BEGIN
     IDS_CONTENTDB           "ContentDB (Web)"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_PROJECT_DESC        "Proyecto no oficial de actualización de eMule"
+    IDS_PROJECT_GITHUB_TEXT "Actualizaciones y descargas: "
+    IDS_PROJECT_GITHUB_URL  "https://github.com/Aishor/eMule-Aishor"
+    IDS_DONATE_TEXT_EN      "If you enjoy using this eMule, buy me a coffee"
+    IDS_DONATE_TEXT_ES      "Si este eMule te resulta útil, invítame a un café"
+    IDS_KOFI_TEXT           "Ko‑fi -> "
+    IDS_KOFI_URL            "https://ko-fi.com/aishor"
+    IDS_PAYPAL_TEXT         "PayPal -> "
+    IDS_PAYPAL_URL          "https://www.paypal.com/paypalme/Aishor"
+END
+
 #endif    // English (US) resources
 /////////////////////////////////////////////////////////////////////////////
 

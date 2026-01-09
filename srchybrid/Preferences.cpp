@@ -1,4 +1,5 @@
-﻿// this file is part of eMule
+﻿#include "stdafx.h"
+// this file is part of eMule
 // Copyright (C)2002-2024 Merkur ( devs@emule-project.net /
 // https://www.emule-project.net )
 //
@@ -15,9 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#include "stdafx.h"
-#include "emule.h"
-#include "OtherFunctions.h"
 #include "Preferences.h"
 #include "DownloadQueue.h"
 #include "Ini2.h"
@@ -26,6 +24,7 @@
 #include "MD5Sum.h"
 #include "MuleToolbarCtrl.h"
 #include "Opcodes.h"
+#include "OtherFunctions.h"
 #include "PartFile.h"
 #include "SafeFile.h"
 #include "ServerConnect.h"
@@ -37,11 +36,12 @@
 #include "UploadQueue.h"
 #include "VistaDefines.h"
 #include "cryptopp/osrng.h"
+#include "emule.h"
 #include "emuledlg.h"
+#include "stdafx.h"
 #include <io.h>
 #include <iphlpapi.h>
 #include <share.h>
-
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -368,6 +368,7 @@ CString CPreferences::m_strDateTimeFormat4Log;
 CString CPreferences::m_strDateTimeFormat4Lists;
 LOGFONT CPreferences::m_lfHyperText;
 LOGFONT CPreferences::m_lfLogText;
+LOGFONT CPreferences::m_lfListText;
 COLORREF CPreferences::m_crLogError = RGB(255, 0, 0);
 COLORREF CPreferences::m_crLogWarning = RGB(128, 0, 128);
 COLORREF CPreferences::m_crLogSuccess = RGB(0, 0, 255);
@@ -1836,6 +1837,8 @@ void CPreferences::SavePreferences() {
   ini.WriteBinary(_T("HyperTextFont"), (LPBYTE)&m_lfHyperText,
                   sizeof m_lfHyperText);
   ini.WriteBinary(_T("LogTextFont"), (LPBYTE)&m_lfLogText, sizeof m_lfLogText);
+  ini.WriteBinary(_T("ListTextFont"), (LPBYTE)&m_lfListText,
+                  sizeof m_lfListText);
 
   // ZZ:UploadSpeedSense -->
   ini.WriteBool(_T("USSEnabled"), m_bDynUpEnabled);
@@ -2445,6 +2448,14 @@ void CPreferences::LoadPreferences() {
     memcpy(&m_lfLogText, pData, sizeof m_lfLogText);
   else
     memset(&m_lfLogText, 0, sizeof m_lfLogText);
+  delete[] pData;
+
+  uSize = sizeof m_lfListText;
+  if (ini.GetBinary(_T("ListTextFont"), &pData, &uSize) &&
+      uSize == sizeof m_lfListText)
+    memcpy(&m_lfListText, pData, sizeof m_lfListText);
+  else
+    memset(&m_lfListText, 0, sizeof m_lfListText);
   delete[] pData;
 
   m_crLogError = ini.GetColRef(_T("LogErrorColor"), m_crLogError);

@@ -1,4 +1,4 @@
-//this file is part of eMule
+ï»¿//this file is part of eMule
 //Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
@@ -15,6 +15,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
+#include "Resource.h"
 #include "ResizableLib\ResizableDialog.h"
 #include "StatisticsTree.h"
 #include "SplitterControl.h"
@@ -121,7 +122,7 @@ protected:
 	virtual void OnSize(UINT nType, int cx, int cy);
 	virtual void DoDataExchange(CDataExchange *pDX);    // DDX/DDV support
 
-	//MORPH START - Added by SiRoB, Splitting Bar [O²]
+	//MORPH START - Added by SiRoB, Splitting Bar [Oï¿½]
 	CSplitterControl m_wndSplitterstat; //bzubzusplitstat
 	CSplitterControl m_wndSplitterstat_HL; //bzubzusplitstat
 	CSplitterControl m_wndSplitterstat_HR; //bzubzusplitstat
@@ -130,7 +131,7 @@ protected:
 	void DoResize_HR(int delta);
 	void initCSize();
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
-	//MORPH END   - Added by SiRoB, Splitting Bar [O²]
+	//MORPH END   - Added by SiRoB, Splitting Bar [Oï¿½]
 	virtual BOOL PreTranslateMessage(MSG *pMsg);
 
 	bool	m_bTreepaneHidden;

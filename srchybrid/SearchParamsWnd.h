@@ -1,4 +1,5 @@
-#pragma once
+﻿#pragma once
+#include "Resource.h"
 
 #include "EditX.h"
 #include "ComboBoxEx2.h"
