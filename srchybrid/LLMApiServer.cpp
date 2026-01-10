@@ -19,7 +19,6 @@
 #include "emule.h"
 #include "stdafx.h"
 
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -325,31 +324,75 @@ CString CLLMApiServer::_GetDownloads(const ApiThreadData &Data) {
 }
 
 CString CLLMApiServer::_AddDownload(const ApiThreadData &Data) {
-  // TODO: Parsear JSON body para obtener hash o ed2k link
-  // Por ahora retornamos error de no implementado
+  // Parsear JSON body para obtener ed2k link o hash
+  CString sEd2kLink = _ParseJsonField(Data.sBody, _T("ed2k"));
+  CString sHash = _ParseJsonField(Data.sBody, _T("hash"));
 
-  CJsonResponse json;
-  json.BeginObject();
-  json.AddString(_T("status"), _T("error"));
-  json.AddString(_T("message"),
-                 _T("Not implemented yet - need to parse JSON body"));
-  json.EndObject();
-  return json.GetJson();
+  if (sEd2kLink.IsEmpty() && sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Missing 'ed2k' or 'hash' field"));
+
+  // Si tenemos hash, construir ed2k link básico
+  if (!sHash.IsEmpty() && sEd2kLink.IsEmpty()) {
+    // TODO: Necesitaríamos nombre y tamaño para construir link completo
+    return CJsonResponse::Error(_T("Hash-only downloads not yet supported"));
+  }
+
+  // Añadir descarga desde ed2k link
+  try {
+    theApp.downloadqueue->AddFileLinkToDownload(sEd2kLink, 0);
+
+    CJsonResponse json;
+    json.BeginObject();
+    json.AddString(_T("status"), _T("success"));
+    json.AddString(_T("message"), _T("Download added"));
+    json.AddString(_T("ed2k"), sEd2kLink);
+    json.EndObject();
+    return json.GetJson();
+  } catch (...) {
+    return CJsonResponse::Error(_T("Failed to add download"));
+  }
 }
 
 CString CLLMApiServer::_PauseDownload(const ApiThreadData &Data) {
-  // TODO: Extraer hash de la URL y pausar descarga
-  return CJsonResponse::Error(_T("Not implemented yet"));
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  pFile->PauseFile();
+
+  return CJsonResponse::Success(_T("Download paused"));
 }
 
 CString CLLMApiServer::_ResumeDownload(const ApiThreadData &Data) {
-  // TODO: Extraer hash de la URL y reanudar descarga
-  return CJsonResponse::Error(_T("Not implemented yet"));
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  pFile->ResumeFile();
+
+  return CJsonResponse::Success(_T("Download resumed"));
 }
 
 CString CLLMApiServer::_DeleteDownload(const ApiThreadData &Data) {
-  // TODO: Extraer hash de la URL y eliminar descarga
-  return CJsonResponse::Error(_T("Not implemented yet"));
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  pFile->DeleteFile();
+
+  return CJsonResponse::Success(_T("Download deleted"));
 }
 
 // ============================================================================
@@ -589,13 +632,29 @@ bool CLLMApiServer::_MatchRoute(const CString &sPath, LPCTSTR szPattern,
   // Simple pattern matching: /api/v1/downloads/*/pause
   CString sPattern = szPattern;
 
-  // Reemplazar * con regex
-  sPattern.Replace(_T("*"), _T("[^/]+"));
+  // Dividir pattern y path en segmentos
+  CStringArray patternParts, pathParts;
+  _SplitPath(sPattern, patternParts);
+  _SplitPath(sPath, pathParts);
 
-  // TODO: Implementar regex matching real
-  // Por ahora solo comparación simple
+  // Deben tener el mismo número de segmentos
+  if (patternParts.GetSize() != pathParts.GetSize())
+    return false;
 
-  return false;
+  params.RemoveAll();
+
+  // Comparar segmento por segmento
+  for (int i = 0; i < patternParts.GetSize(); i++) {
+    if (patternParts[i] == _T("*")) {
+      // Wildcard - guardar el valor
+      params.Add(pathParts[i]);
+    } else if (patternParts[i] != pathParts[i]) {
+      // No coincide
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // ============================================================================
@@ -660,4 +719,101 @@ CString CLLMApiServer::_QualityInfoToJson(const QualityInfo &info) {
     json.AddString(_T("audio"), info.sAudioCodec);
   json.EndObject();
   return json.GetJson();
+}
+
+// ============================================================================
+// HELPERS ADICIONALES
+// ============================================================================
+
+CString CLLMApiServer::_ParseJsonField(const CString &sJson, LPCTSTR szField) {
+  // Parser JSON simple para extraer un campo
+  // Buscar "field":"value" o "field":value
+  CString sSearch;
+  sSearch.Format(_T("\"%s\""), szField);
+
+  int nStart = sJson.Find(sSearch);
+  if (nStart == -1)
+    return _T("");
+
+  // Buscar el : después del field
+  nStart = sJson.Find(_T(':'), nStart);
+  if (nStart == -1)
+    return _T("");
+
+  nStart++; // Saltar el :
+
+  // Saltar espacios
+  while (nStart < sJson.GetLength() && sJson[nStart] == _T(' '))
+    nStart++;
+
+  // Verificar si es string (empieza con ")
+  if (nStart < sJson.GetLength() && sJson[nStart] == _T('"')) {
+    nStart++; // Saltar la "
+    int nEnd = sJson.Find(_T('"'), nStart);
+    if (nEnd == -1)
+      return _T("");
+    return sJson.Mid(nStart, nEnd - nStart);
+  } else {
+    // Es un número o booleano, buscar hasta , o }
+    int nEnd = nStart;
+    while (nEnd < sJson.GetLength() && sJson[nEnd] != _T(',') &&
+           sJson[nEnd] != _T('}') && sJson[nEnd] != _T(' '))
+      nEnd++;
+    return sJson.Mid(nStart, nEnd - nStart);
+  }
+}
+
+CString CLLMApiServer::_ExtractHashFromUrl(const CString &sURL) {
+  // Extraer hash de URL como /api/v1/downloads/HASH/action
+  // Buscar el segmento después de /downloads/
+  int nStart = sURL.Find(_T("/downloads/"));
+  if (nStart == -1)
+    return _T("");
+
+  nStart += 11; // Longitud de "/downloads/"
+
+  // Buscar el siguiente /
+  int nEnd = sURL.Find(_T('/'), nStart);
+  if (nEnd == -1)
+    nEnd = sURL.GetLength();
+
+  return sURL.Mid(nStart, nEnd - nStart);
+}
+
+CPartFile *CLLMApiServer::_FindPartFileByHash(const CString &sHash) {
+  if (!theApp.downloadqueue)
+    return NULL;
+
+  // Convertir hash string a MD4
+  uchar hash[MDX_DIGEST_SIZE];
+  if (!strmd4(sHash, hash))
+    return NULL;
+
+  // Buscar en la lista de descargas
+  for (POSITION pos = theApp.downloadqueue->filelist.GetHeadPosition();
+       pos != NULL;) {
+    CPartFile *pFile = theApp.downloadqueue->filelist.GetNext(pos);
+    if (pFile && md4cmp(pFile->GetFileHash(), hash) == 0)
+      return pFile;
+  }
+
+  return NULL;
+}
+
+void CLLMApiServer::_SplitPath(const CString &sPath, CStringArray &parts) {
+  parts.RemoveAll();
+
+  CString sTemp = sPath;
+  int nPos = 0;
+
+  while ((nPos = sTemp.Find(_T('/'))) != -1) {
+    CString sPart = sTemp.Left(nPos);
+    if (!sPart.IsEmpty())
+      parts.Add(sPart);
+    sTemp = sTemp.Mid(nPos + 1);
+  }
+
+  // Añadir el último segmento
+  if (!sTemp.IsEmpty())
+    parts.Add(sTemp);
 }
