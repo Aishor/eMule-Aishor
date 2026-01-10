@@ -1,24 +1,21 @@
 #pragma once
+#include "Resource.h"
 
-class CSplashScreen : public CDialog
-{
-	DECLARE_DYNAMIC(CSplashScreen)
+class CSplashScreen : public CDialog {
+  DECLARE_DYNAMIC(CSplashScreen)
 
-	enum
-	{
-		IDD = IDD_SPLASH
-	};
+  enum { IDD = IDD_SPLASH };
 
 public:
-	explicit CSplashScreen(CWnd *pParent = NULL);   // standard constructor
-	virtual	~CSplashScreen();
+  explicit CSplashScreen(CWnd *pParent = NULL); // standard constructor
+  virtual ~CSplashScreen();
 
 protected:
-	CBitmap m_imgSplash;
+  CBitmap m_imgSplash;
 
-	BOOL OnInitDialog();
-	void OnPaint();
-	BOOL PreTranslateMessage(MSG *pMsg);
+  BOOL OnInitDialog();
+  void OnPaint();
+  BOOL PreTranslateMessage(MSG *pMsg);
 
-	DECLARE_MESSAGE_MAP()
+  DECLARE_MESSAGE_MAP()
 };

@@ -2740,6 +2740,9 @@ void CemuleDlg::ApplyListFont(LPLOGFONT pFont) {
     // Notificar a las listas que actualicen su fuente
     if (serverwnd && serverwnd->serverlistctrl.m_hWnd)
       serverwnd->serverlistctrl.SetFont(&theApp.m_fontList);
+    if (serverwnd && serverwnd->GetDlgItem(IDC_MYINFOLIST))
+      serverwnd->GetDlgItem(IDC_MYINFOLIST)->SetFont(&theApp.m_fontList);
+
     if (transferwnd && transferwnd->GetDownloadList()->m_hWnd)
       transferwnd->GetDownloadList()->SetFont(&theApp.m_fontList);
     if (transferwnd && transferwnd->GetUploadList()->m_hWnd)

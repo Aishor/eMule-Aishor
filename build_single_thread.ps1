@@ -6,7 +6,7 @@ $config = "Release"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Compilación Single-Thread" -ForegroundColor Cyan
+Write-Host "  Compilacion Single-Thread" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -16,21 +16,21 @@ if (-not (Test-Path $msbuild)) {
     exit 1
 }
 
-Write-Host "[INFO] Compilando con 1 hilo (sin paralelización)..." -ForegroundColor Yellow
+Write-Host "[INFO] Compilando con 1 hilo (sin paralelizacion)..." -ForegroundColor Yellow
 Write-Host ""
 
 $logFile = "build_log.txt"
 $errorLog = "build_errors.txt"
 
-# Compilar SIN /m (sin paralelización) para evitar congelamiento
+# Compilar SIN /m (sin paralelizacion) para evitar congelamiento
 & $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m:1 /v:minimal /fl "/flp:LogFile=$logFile;Verbosity=minimal" "/flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "[ERROR] Compilación fallida" -ForegroundColor Red
+    Write-Host "[ERROR] Compilacion fallida" -ForegroundColor Red
     if (Test-Path $errorLog) {
         Write-Host ""
-        Write-Host "Últimos errores:" -ForegroundColor Yellow
+        Write-Host "Ultimos errores:" -ForegroundColor Yellow
         Get-Content $errorLog | Select-Object -Last 50
         Write-Host ""
         Write-Host "Log completo en: $errorLog" -ForegroundColor Gray
@@ -40,7 +40,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "  COMPILACIÓN EXITOSA" -ForegroundColor Green
+Write-Host "  COMPILACION EXITOSA" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 
 # Verificar ejecutable
@@ -49,11 +49,11 @@ if (Test-Path $exePath) {
     $exeFile = Get-Item $exePath
     $sizeM = [math]::Round($exeFile.Length / 1MB, 2)
     Write-Host "  Ejecutable: $exePath" -ForegroundColor White
-    Write-Host "  Tamaño: $sizeM MB" -ForegroundColor White
+    Write-Host "  Tamano: $sizeM MB" -ForegroundColor White
     Write-Host "  Fecha: $($exeFile.LastWriteTime)" -ForegroundColor White
 }
 else {
-    Write-Host "[WARNING] No se encontro el ejecutable en $exePath" -ForegroundColor Yellow
+    Write-Host "WARNING: No se encontro el ejecutable en $exePath" -ForegroundColor Yellow
 }
 
 Write-Host "========================================" -ForegroundColor Green

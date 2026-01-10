@@ -1,4 +1,7 @@
-﻿// this file is part of eMule
+#include "stdafx.h"
+#include "Resource.h"
+
+// this file is part of eMule
 // Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam",
 // "emule-project.net") / https://www.emule-project.net )
 //
@@ -15,8 +18,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#include "stdafx.h"
-#include "ServerWnd.h"
 #include "CustomAutoComplete.h"
 #include "ED2KLink.h"
 #include "HTRichEditCtrl.h"
@@ -28,6 +29,7 @@
 #include "Server.h"
 #include "ServerConnect.h"
 #include "ServerList.h"
+#include "ServerWnd.h"
 #include "UserMsgs.h"
 #include "WebServer.h"
 #include "emule.h"
@@ -35,7 +37,6 @@
 #include "kademlia/kademlia/kademlia.h"
 #include "kademlia/kademlia/prefs.h"
 #include "kademlia/utils/MiscUtils.h"
-
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -103,8 +104,11 @@ BOOL CServerWnd::OnInitDialog() {
     theApp.m_fontLog.CreateFontIndirect(&lf);
   }
 
-  ReplaceRichEditCtrl(GetDlgItem(IDC_MYINFOLIST), this,
-                      GetDlgItem(IDC_SSTATIC)->GetFont());
+  CFont *pFont = GetDlgItem(IDC_SSTATIC)->GetFont();
+  if (theApp.m_fontList.m_hObject)
+    pFont = &theApp.m_fontList;
+
+  ReplaceRichEditCtrl(GetDlgItem(IDC_MYINFOLIST), this, pFont);
   CResizableDialog::OnInitDialog();
 
   // using ES_NOHIDESEL is actually not needed, but it helps to get around a
@@ -132,7 +136,7 @@ BOOL CServerWnd::OnInitDialog() {
     servermsgbox->AppendText(theApp.m_strCurVersionLong);
     servermsgbox->AppendText(_T("\n\n"));
 
-    // DescripciÃ³n del proyecto
+    // Descripción del proyecto
     servermsgbox->AppendText(GetResString(IDS_PROJECT_DESC));
     servermsgbox->AppendText(_T("\n"));
 
@@ -142,7 +146,7 @@ BOOL CServerWnd::OnInitDialog() {
                                   GetResString(IDS_PROJECT_GITHUB_URL), NULL);
     servermsgbox->AppendText(_T("\n\n"));
 
-    // Textos de donaciÃ³n
+    // Textos de donación
     servermsgbox->AppendText(GetResString(IDS_DONATE_TEXT_EN));
     servermsgbox->AppendText(_T("\n"));
     servermsgbox->AppendText(GetResString(IDS_DONATE_TEXT_ES));
@@ -798,153 +802,62 @@ void CServerWnd::DoResize(int delta) {
   CSplitterControl::ChangeHeight(servermsgbox, -delta, CW_BOTTOMALIGN);
   CSplitterControl::ChangeHeight(logbox, -delta, CW_BOTTOMALIGN);
   CSplitterControl::ChangeHeight(debuglog, -delta, CW_BOTTOMALIGN);
-  UpdateSplitterRange();
-}
-
-void CServerWnd::InitSplitter() {
-  CRect rcWnd;
-  GetWindowRect(rcWnd);
-  ScreenToClient(rcWnd);
-
-  m_wndSplitter.SetRange(rcWnd.top + 100, rcWnd.bottom - 50);
-  LONG splitpos =
-      5 + (thePrefs.GetSplitterbarPositionServer() * rcWnd.Height()) / 100;
-
-  RECT rcDlgItem;
-  serverlistctrl.GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.bottom = splitpos - 10;
-  serverlistctrl.MoveWindow(&rcDlgItem);
-
-  GetDlgItem(IDC_LOGRESET)->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 9;
-  rcDlgItem.bottom = splitpos + 30;
-  GetDlgItem(IDC_LOGRESET)->MoveWindow(&rcDlgItem);
-
-  StatusSelector.GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 10;
-  rcDlgItem.bottom = rcWnd.bottom - 5;
-  StatusSelector.MoveWindow(&rcDlgItem);
-
-  servermsgbox->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 35;
-  rcDlgItem.bottom = rcWnd.bottom - 12;
-  servermsgbox->MoveWindow(&rcDlgItem);
-
-  logbox->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 35;
-  rcDlgItem.bottom = rcWnd.bottom - 12;
-  logbox->MoveWindow(&rcDlgItem);
-
-  debuglog->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 35;
-  rcDlgItem.bottom = rcWnd.bottom - 12;
-  debuglog->MoveWindow(&rcDlgItem);
-
-  long right = rcDlgItem.right;
-  GetDlgItem(IDC_SPLITTER_SERVER)->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.right = right;
-  GetDlgItem(IDC_SPLITTER_SERVER)->MoveWindow(&rcDlgItem);
+  CSplitterControl::ChangeHeight(&m_ctrlMyInfoFrm, -delta, CW_BOTTOMALIGN);
+  CSplitterControl::ChangeHeight(&m_MyInfo, -delta, CW_BOTTOMALIGN);
 
   ReattachAnchors();
-}
-
-void CServerWnd::ReattachAnchors() {
-  RemoveAnchor(serverlistctrl);
-  RemoveAnchor(StatusSelector);
-  RemoveAnchor(IDC_LOGRESET);
-  RemoveAnchor(*servermsgbox);
-  RemoveAnchor(*logbox);
-  RemoveAnchor(*debuglog);
-
-  AddAnchor(serverlistctrl, TOP_LEFT,
-            ANCHOR(100, thePrefs.GetSplitterbarPositionServer()));
-  AddAnchor(StatusSelector, ANCHOR(0, thePrefs.GetSplitterbarPositionServer()),
-            BOTTOM_RIGHT);
-  AddAnchor(IDC_LOGRESET, MIDDLE_RIGHT);
-  AddAnchor(*servermsgbox, ANCHOR(0, thePrefs.GetSplitterbarPositionServer()),
-            BOTTOM_RIGHT);
-  AddAnchor(*logbox, ANCHOR(0, thePrefs.GetSplitterbarPositionServer()),
-            BOTTOM_RIGHT);
-  AddAnchor(*debuglog, ANCHOR(0, thePrefs.GetSplitterbarPositionServer()),
-            BOTTOM_RIGHT);
-
-  GetDlgItem(IDC_LOGRESET)->Invalidate();
-
-  if (servermsgbox->IsWindowVisible())
-    servermsgbox->Invalidate();
-  if (logbox->IsWindowVisible())
-    logbox->Invalidate();
-  if (debuglog->IsWindowVisible())
-    debuglog->Invalidate();
+  Invalidate();
 }
 
 void CServerWnd::UpdateSplitterRange() {
-  CRect rcWnd;
-  GetWindowRect(rcWnd);
-  ScreenToClient(rcWnd);
-
-  RECT rcDlgItem;
-  serverlistctrl.GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-
-  m_wndSplitter.SetRange(rcWnd.top + 100, rcWnd.bottom - 50);
-
-  LONG splitpos = rcDlgItem.bottom + SVWND_SPLITTER_YOFF;
-  thePrefs.SetSplitterbarPositionServer((splitpos * 100) / rcWnd.Height());
-
-  GetDlgItem(IDC_LOGRESET)->GetWindowRect(&rcDlgItem);
-  ScreenToClient(&rcDlgItem);
-  rcDlgItem.top = splitpos + 9;
-  rcDlgItem.bottom = splitpos + 30;
-  GetDlgItem(IDC_LOGRESET)->MoveWindow(&rcDlgItem);
-
-  ReattachAnchors();
-}
-
-LRESULT CServerWnd::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
-  // arrange transfer window layout
-  switch (message) {
-  case WM_PAINT:
-    if (m_wndSplitter) {
-      CRect rcWnd;
-      GetWindowRect(rcWnd);
-      if (rcWnd.Height() > 0) {
-        RECT rcDown;
-        serverlistctrl.GetWindowRect(&rcDown);
-        ScreenToClient(&rcDown);
-
-        // splitter paint update
-        RECT rcSpl;
-        rcSpl.left = 10;
-        rcSpl.top = rcDown.bottom + SVWND_SPLITTER_YOFF;
-        rcSpl.right = rcDown.right;
-        rcSpl.bottom = rcSpl.top + SVWND_SPLITTER_HEIGHT;
-        m_wndSplitter.MoveWindow(&rcSpl, TRUE);
-        UpdateSplitterRange();
-      }
-    }
-    break;
-  case WM_WINDOWPOSCHANGED:
-    if (m_wndSplitter)
-      m_wndSplitter.Invalidate();
-  }
-
-  return CResizableDialog::DefWindowProc(message, wParam, lParam);
+  CRect rc;
+  GetClientRect(&rc);
+  m_wndSplitter.SetRange(50, rc.Height() - 100);
 }
 
 void CServerWnd::OnSplitterMoved(LPNMHDR pNMHDR, LRESULT *) {
-  SPC_NMHDR *pHdr = reinterpret_cast<SPC_NMHDR *>(pNMHDR);
+  SPC_NMHDR *pHdr = (SPC_NMHDR *)pNMHDR;
   DoResize(pHdr->delta);
 }
 
+void CServerWnd::InitSplitter() {
+  CRect rc;
+  GetClientRect(&rc);
+  CRect rcList;
+  serverlistctrl.GetWindowRect(&rcList);
+  ScreenToClient(&rcList);
+  // Default pos
+  m_wndSplitter.SetWindowPos(NULL, rcList.left, rcList.bottom, rcList.Width(),
+                             SVWND_SPLITTER_HEIGHT, SWP_NOZORDER);
+  UpdateSplitterRange();
+}
+
+void CServerWnd::ReattachAnchors() {
+  CRect rc;
+  serverlistctrl.GetWindowRect(&rc);
+  ScreenToClient(&rc);
+
+  RemoveAnchor(serverlistctrl);
+  AddAnchor(serverlistctrl, TOP_LEFT, MIDDLE_RIGHT);
+
+  RemoveAnchor(StatusSelector);
+  AddAnchor(StatusSelector, MIDDLE_LEFT, BOTTOM_RIGHT);
+
+  RemoveAnchor(*servermsgbox);
+  AddAnchor(*servermsgbox, MIDDLE_LEFT, BOTTOM_RIGHT);
+
+  RemoveAnchor(*logbox);
+  AddAnchor(*logbox, MIDDLE_LEFT, BOTTOM_RIGHT);
+
+  RemoveAnchor(*debuglog);
+  AddAnchor(*debuglog, MIDDLE_LEFT, BOTTOM_RIGHT);
+
+  RemoveAnchor(m_wndSplitter);
+  AddAnchor(m_wndSplitter, MIDDLE_LEFT, MIDDLE_RIGHT);
+}
+
 HBRUSH CServerWnd::OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor) {
-  HBRUSH hbr = theApp.emuledlg->GetCtlColor(pDC, pWnd, nCtlColor);
-  return hbr ? hbr : __super::OnCtlColor(pDC, pWnd, nCtlColor);
+  if (nCtlColor == CTLCOLOR_STATIC)
+    return (HBRUSH)GetStockObject(NULL_BRUSH);
+  return CResizableDialog::OnCtlColor(pDC, pWnd, nCtlColor);
 }
