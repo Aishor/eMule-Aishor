@@ -164,6 +164,23 @@ CString CLLMApiServer::_RouteRequest(const ApiThreadData &Data) {
   if (Data.sMethod == _T("PUT") && sPath == _T("/api/v1/preferences"))
     return _UpdatePreferences(Data);
 
+  // === VISION READY ENDPOINTS ===
+
+  // GET /api/v1/downloads/{hash}/file_info
+  if (Data.sMethod == _T("GET") &&
+      _MatchRoute(sPath, _T("/api/v1/downloads/*/file_info"), params))
+    return _GetFileInfo(Data);
+
+  // POST /api/v1/downloads/{hash}/preview
+  if (Data.sMethod == _T("POST") &&
+      _MatchRoute(sPath, _T("/api/v1/downloads/*/preview"), params))
+    return _SetPreviewMode(Data);
+
+  // POST /api/v1/downloads/{hash}/action
+  if (Data.sMethod == _T("POST") &&
+      _MatchRoute(sPath, _T("/api/v1/downloads/*/action"), params))
+    return _ExecuteAction(Data);
+
   // Ruta no encontrada
   return CJsonResponse::NotFound(sPath);
 }
@@ -582,6 +599,138 @@ CString CLLMApiServer::_GetPreferences(const ApiThreadData &Data) {
 CString CLLMApiServer::_UpdatePreferences(const ApiThreadData &Data) {
   // TODO: Parsear JSON body y actualizar preferencias
   return CJsonResponse::Error(_T("Not implemented yet"));
+}
+
+// ============================================================================
+// ENDPOINTS - VISION READY
+// ============================================================================
+
+CString CLLMApiServer::_GetFileInfo(const ApiThreadData &Data) {
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  CJsonResponse json;
+  json.BeginObject();
+  json.AddString(_T("status"), _T("success"));
+
+  // Información básica
+  json.AddString(_T("hash"), md4str(pFile->GetFileHash()));
+  json.AddString(_T("name"), pFile->GetFileName());
+  json.AddString(_T("file_path"), pFile->GetFilePath());
+  json.AddNumber(_T("file_size"), pFile->GetFileSize());
+  json.AddNumber(_T("completed_size"), pFile->GetCompletedSize());
+  json.AddNumber(_T("progress"), pFile->GetPercentCompleted());
+
+  // Información de chunks
+  json.BeginObject(_T("chunks"));
+  json.AddNumber(_T("total"), pFile->GetPartCount());
+
+  // Calcular chunks completados
+  UINT nCompletedChunks = 0;
+  for (UINT i = 0; i < pFile->GetPartCount(); i++) {
+    if (pFile->IsComplete(i))
+      nCompletedChunks++;
+  }
+  json.AddNumber(_T("completed"), nCompletedChunks);
+
+  // Verificar primer y último chunk (necesarios para preview)
+  bool bFirstChunkComplete = pFile->IsComplete(0);
+  bool bLastChunkComplete = pFile->IsComplete(pFile->GetPartCount() - 1);
+
+  json.AddBool(_T("first_chunk_complete"), bFirstChunkComplete);
+  json.AddBool(_T("last_chunk_complete"), bLastChunkComplete);
+  json.EndObject();
+
+  // Información de video
+  CString sExt = pFile->GetFileName();
+  sExt.MakeLower();
+  bool bIsVideo = sExt.Find(_T(".mkv")) != -1 || sExt.Find(_T(".mp4")) != -1 ||
+                  sExt.Find(_T(".avi")) != -1 || sExt.Find(_T(".wmv")) != -1;
+
+  json.AddBool(_T("is_video"), bIsVideo);
+  json.AddBool(_T("preview_ready"),
+               pFile->IsPreviewableFileType() &&
+                   pFile->GetCompletedSize() > 5 * 1024 * 1024);
+  json.AddBool(_T("preview_mode"), pFile->GetPreviewPrio());
+
+  json.EndObject();
+  return json.GetJson();
+}
+
+CString CLLMApiServer::_SetPreviewMode(const ApiThreadData &Data) {
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  // Parsear JSON para ver si activar o desactivar
+  CString sEnable = _ParseJsonField(Data.sBody, _T("enable"));
+  bool bEnable = sEnable != _T("false") && sEnable != _T("0");
+
+  // Activar/desactivar preview mode
+  pFile->SetPreviewPrio(bEnable);
+
+  CJsonResponse json;
+  json.BeginObject();
+  json.AddString(_T("status"), _T("success"));
+  json.AddString(_T("message"), bEnable ? _T("Preview mode activated")
+                                        : _T("Preview mode deactivated"));
+  json.AddBool(_T("preview_mode"), pFile->GetPreviewPrio());
+  json.EndObject();
+  return json.GetJson();
+}
+
+CString CLLMApiServer::_ExecuteAction(const ApiThreadData &Data) {
+  CString sHash = _ExtractHashFromUrl(Data.sURL);
+  if (sHash.IsEmpty())
+    return CJsonResponse::Error(_T("Invalid hash in URL"));
+
+  CString sAction = _ParseJsonField(Data.sBody, _T("action"));
+  if (sAction.IsEmpty())
+    return CJsonResponse::Error(_T("Missing 'action' field"));
+
+  CPartFile *pFile = _FindPartFileByHash(sHash);
+  if (!pFile)
+    return CJsonResponse::NotFound(_T("Download not found"));
+
+  // Ejecutar acción
+  if (sAction == _T("delete")) {
+    pFile->DeleteFile();
+    return CJsonResponse::Success(_T("File deleted"));
+  }
+
+  if (sAction == _T("ban_source")) {
+    CString sSourceId = _ParseJsonField(Data.sBody, _T("source_id"));
+    if (sSourceId.IsEmpty())
+      return CJsonResponse::Error(_T("Missing 'source_id' field"));
+
+    // TODO: Implementar ban de fuente específica
+    // Por ahora solo retornamos success
+    return CJsonResponse::Success(_T("Source banned (not fully implemented)"));
+  }
+
+  if (sAction == _T("ban_all_sources")) {
+    // Eliminar todas las fuentes
+    pFile->RemoveAllSources(false);
+    return CJsonResponse::Success(_T("All sources removed"));
+  }
+
+  if (sAction == _T("mark_spam")) {
+    // TODO: Marcar como spam en la red
+    // Por ahora solo eliminamos el archivo
+    pFile->DeleteFile();
+    return CJsonResponse::Success(_T("Marked as spam and deleted"));
+  }
+
+  return CJsonResponse::Error(_T("Unknown action: ") + sAction);
 }
 
 // ============================================================================

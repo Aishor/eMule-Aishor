@@ -6,7 +6,6 @@
 #include "QualityDetector.h"
 #include "WebSocket.h"
 
-
 // Puerto por defecto para la API LLM (diferente del WebServer en 4661)
 #define LLM_API_DEFAULT_PORT 4711
 
@@ -92,6 +91,20 @@ private:
   // PUT /api/v1/preferences - Actualizar preferencias
   // Body: { "max_download": 0, "max_upload": 50, ... }
   static CString _UpdatePreferences(const ApiThreadData &Data);
+
+  // === VISION READY ENDPOINTS ===
+
+  // GET /api/v1/downloads/{hash}/file_info - Información detallada del archivo
+  static CString _GetFileInfo(const ApiThreadData &Data);
+
+  // POST /api/v1/downloads/{hash}/preview - Activar/desactivar preview mode
+  // Body: { "enable": true }
+  static CString _SetPreviewMode(const ApiThreadData &Data);
+
+  // POST /api/v1/downloads/{hash}/action - Ejecutar acciones (delete, ban, etc)
+  // Body: { "action": "delete|ban_source|ban_all_sources|mark_spam",
+  // "source_id": "..." }
+  static CString _ExecuteAction(const ApiThreadData &Data);
 
   // === Helpers ===
 
