@@ -1,0 +1,11 @@
+# Vision Auditor - Dependencias Python
+# eMule-Aishor R1.3 - Vision Verification
+
+# HTTP requests
+requests>=2.31.0
+
+# Anthropic Claude API
+anthropic>=0.18.0
+
+# Opcional: para análisis de imágenes local
+# pillow>=10.0.0
