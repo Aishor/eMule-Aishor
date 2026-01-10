@@ -73,7 +73,6 @@
 #include <mbedtls/ssl.h> //for *m_pfnSockTerm()
 #include <share.h>
 
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -231,9 +230,9 @@ void InitDEP() {
         // VS2005:	Enable DEP (without ATL-thunk emulation) if not already
         // set by system policy
         //			or linker "/NXCOMPAT" option or if the policy is
-        //not yet permanent. We should 			not reach this code path at all because
-        //the "/NXCOMPAT" option is specified. 			However, the code path is here
-        //for safety reasons.
+        // not yet permanent. We should 			not reach this
+        // code path at all because the "/NXCOMPAT" option is specified.
+        // However, the code path is here for safety reasons.
         dwFlags = PROCESS_DEP_ENABLE;
         // VS2005: Disable ATL thunks.
         dwFlags |= PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION;
@@ -469,7 +468,7 @@ BOOL CemuleApp::InitInstance() {
                                // ANSI code page obtained from the OS.
   _tsetlocale(LC_NUMERIC, _T("C")); // set numeric category to 'C'
   //_tsetlocale(LC_CTYPE, _T("C"));		// set character types category
-  //to 'C' (VERY IMPORTANT, we need binary string compares!)
+  // to 'C' (VERY IMPORTANT, we need binary string compares!)
 
   AfxOleInit();
 
@@ -661,7 +660,8 @@ BOOL CemuleApp::InitInstance() {
       new CDownloadQueue(); // bugfix - do this before creating the upload queue
   uploadqueue = new CUploadQueue();
   ipfilter = new CIPFilter();
-  webserver = new CWebServer(); // Web Server [kuchin]
+  webserver = new CWebServer();       // Web Server [kuchin]
+  llmapiserver = new CLLMApiServer(); // LLM API Server [R1.3]
   scheduler = new CScheduler();
 
   // ZZ:UploadSpeedSense -->
@@ -1001,12 +1001,13 @@ void CemuleApp::OnlineSig() // Added By Bouc7
   // The 'onlinesig.dat' is potentially read by other applications at more or
   // less frequent intervals.
   //	 -	Set the file sharing mode to allow other processes to read the
-  //file while we are writing 		it (see also next point). 	 -	Try to write the
-  //hole file data at once, so other applications are always reading 		a
-  //consistent amount of file data. C-RTL uses a 4 KB buffer, this is large
-  //enough to write 		those 2 lines into the onlinesig.dat file with one IO
-  //operation. 	 -	Although this file is a text file, we set the file mode
-  //to 'binary' because of backward 		compatibility with older eMule versions.
+  // file while we are writing 		it (see also next point). 	 -
+  // Try to write the hole file data at once, so other applications are always
+  // reading 		a consistent amount of file data. C-RTL uses a 4 KB
+  // buffer, this is large enough to write 		those 2 lines into the
+  // onlinesig.dat file with one IO operation. 	 -	Although this file is a
+  // text file, we set the file mode to 'binary' because of backward
+  // compatibility with older eMule versions.
   CSafeBufferedFile file;
   CFileException fex;
   if (!file.Open(strSigPath,
@@ -1846,8 +1847,8 @@ void CemuleApp::CreateAllFonts() {
   //
   // Why can't this font set via the font dialog??
   //	HFONT hFontMono = CreateFont(10, 0, 0, 0, FW_DONTCARE, FALSE, FALSE,
-  //FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-  //DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T("Lucida Console"));
+  // FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+  // DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T("Lucida Console"));
   //	m_fontLog.Attach(hFontMono);
   LPLOGFONT plfLog = thePrefs.GetLogFont();
   if (plfLog->lfFaceName[0] != _T('\0'))
@@ -1949,9 +1950,9 @@ BOOL WINAPI ConsoleCtrlHandler(DWORD dwCtrlType) noexcept {
   //		- when user explicitly/manually logs off from the system
   //(CTRL_LOGOFF_EVENT).
   //		- when user explicitly/manually does a reboot or shutdown (also:
-  //CTRL_LOGOFF_EVENT).
+  // CTRL_LOGOFF_EVENT).
   //		- when eMule issues an
-  //ExitWindowsEx(EWX_LOGOFF/EWX_REBOOT/EWX_SHUTDOWN)
+  // ExitWindowsEx(EWX_LOGOFF/EWX_REBOOT/EWX_SHUTDOWN)
   //
   // NOTE: Windows will in each case forcefully terminate the process after 20
   // seconds! Every action which is started after receiving this notification

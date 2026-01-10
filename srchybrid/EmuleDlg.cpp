@@ -1777,6 +1777,8 @@ void CemuleDlg::OnClose() {
   theApp.ipfilter = NULL; // CIPFilter::SaveToDefaultFile
   delete theApp.webserver;
   theApp.webserver = NULL;
+  delete theApp.llmapiserver;
+  theApp.llmapiserver = NULL;
   delete theApp.m_pFirewallOpener;
   theApp.m_pFirewallOpener = NULL;
   delete theApp.uploadBandwidthThrottler;

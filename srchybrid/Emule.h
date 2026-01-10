@@ -47,6 +47,7 @@ class CFriendList;
 class CClientUDPSocket;
 class CIPFilter;
 class CWebServer;
+class CLLMApiServer;
 class CAbstractFile;
 class CUpDownClient;
 class CFirewallOpener;
@@ -89,6 +90,7 @@ public:
   CClientUDPSocket *clientudp;
   CIPFilter *ipfilter;
   CWebServer *webserver;
+  CLLMApiServer *llmapiserver;
   CScheduler *scheduler;
   CFirewallOpener *m_pFirewallOpener;
   CUPnPImplWrapper *m_pUPnPFinder;
@@ -176,7 +178,7 @@ public:
   HICON LoadIcon(UINT nIDResource) const;
   HBITMAP LoadImage(LPCTSTR lpszResourceName, LPCTSTR pszResourceType) const;
   //	HBITMAP		LoadImage(UINT nIDResource, LPCTSTR pszResourceType)
-  //const;
+  // const;
   bool LoadSkinColor(LPCTSTR pszKey, COLORREF &crColor) const;
   bool LoadSkinColorAlt(LPCTSTR pszKey, LPCTSTR pszAlternateKey,
                         COLORREF &crColor) const;
