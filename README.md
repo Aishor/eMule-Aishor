@@ -1,4 +1,4 @@
-# eMule-Aishor (Titanium Fiber R1.3)
+# eMule-Aishor (Titanium Fiber R1.3 "FiberSight")
 
 **Versión:** `0.70.3-Build26-R1.3-X64`
 **Estado:** En Desarrollo / Experimental
@@ -13,7 +13,12 @@ Este proyecto integra todas las dependencias necesarias en forma de librerías e
 *   **Seguridad:** SSL/TLS habilitado (mbedTLS 3.6.2).
 *   **Dependencias:** Pre-integradas (zlib, libpng, cryptopp, etc.).
 *   **Red**: Ajustes de ventana TCP (`TcpWindowSize`) configurables.
-*   **🤖 LLM Integration:** API REST/JSON para control por IA (Claude, GPT-4, etc.).
+*   **🤖 LLM Integration (FiberSight):** API REST/JSON para control por IA (Claude, GPT-4, etc.).
+    - **FiberSight**: Sistema de visión a través de descargas P2P mediante análisis visual con IA
+    - Detección automática de archivos fake antes de completar la descarga
+    - Máquina de estados con 13 estados del ciclo de vida
+    - Filtro pre-LLM heurístico (ahorro 30-40% costos)
+    - Multi-frame analysis para detección de loops
 *   **📊 Quality Detection:** Detector inteligente de calidad de video.
 
 ## Estructura del Repositorio
