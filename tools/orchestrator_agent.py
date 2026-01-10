@@ -622,15 +622,47 @@ class TaskQueueManager:
                 await asyncio.sleep(5)
     
     async def execute_task(self, task: Task):
-        """Ejecutar una tarea (placeholder)"""
+        """Ejecutar una tarea con handlers específicos"""
         self.db.update_task_status(task.id, TaskStatus.RUNNING.value, "Iniciando...", 0.0)
         
         try:
-            # TODO: Implementar handlers específicos por tipo
-            await asyncio.sleep(5)  # Simular trabajo
+            # Importar handlers
+            from orchestrator_handlers import TaskHandlers, LLMClient, EMuleAPIClient
             
-            result = {"status": "completed", "message": "Task executed successfully"}
+            # Inicializar clientes
+            llm_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+            emule_api_url = os.getenv("EMULE_API_URL", "http://localhost:4711/api/v1")
+            emule_api_key = os.getenv("EMULE_API_KEY", "")
+            
+            llm_client = LLMClient(llm_api_key)
+            emule_client = EMuleAPIClient(emule_api_url, emule_api_key)
+            
+            # Crear handlers
+            handlers = TaskHandlers(self.db, llm_client, emule_client)
+            
+            # Ejecutar según tipo
+            if task.task_type == TaskType.SEARCH.value:
+                result = await handlers.handle_search(task)
+            
+            elif task.task_type == TaskType.VERIFY.value:
+                result = await handlers.handle_verify(task)
+            
+            elif task.task_type == TaskType.OPTIMIZE.value:
+                result = await handlers.handle_optimize(task)
+            
+            elif task.task_type == TaskType.ANALYZE.value:
+                result = await handlers.handle_analyze(task)
+            
+            else:
+                raise ValueError(f"Tipo de tarea desconocido: {task.task_type}")
+            
+            # Guardar resultado
             self.db.update_task_result(task.id, result)
+            logger.info(f"Tarea {task.id} completada exitosamente")
+            
+            # Cerrar clientes
+            await llm_client.close()
+            await emule_client.close()
             
         except Exception as e:
             logger.error(f"Error ejecutando tarea {task.id}: {e}")
