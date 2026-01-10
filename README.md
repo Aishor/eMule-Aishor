@@ -1,7 +1,7 @@
-# eMule-Aishor (Titanium Fiber R1.2)
+# eMule-Aishor (Titanium Fiber R1.3)
 
-**Versión:** `0.70b-Build26-R1.2-X64`
-**Estado:** Estable / Producción
+**Versión:** `0.70.3-Build26-R1.3-X64`
+**Estado:** En Desarrollo / Experimental
 
 ## Descripción
 Repositorio consolidado de eMule-Aishor optimizado para arquitectura **x64**. 
@@ -13,6 +13,8 @@ Este proyecto integra todas las dependencias necesarias en forma de librerías e
 *   **Seguridad:** SSL/TLS habilitado (mbedTLS 3.6.2).
 *   **Dependencias:** Pre-integradas (zlib, libpng, cryptopp, etc.).
 *   **Red**: Ajustes de ventana TCP (`TcpWindowSize`) configurables.
+*   **🤖 LLM Integration:** API REST/JSON para control por IA (Claude, GPT-4, etc.).
+*   **📊 Quality Detection:** Detector inteligente de calidad de video.
 
 ## Estructura del Repositorio
 *   `srchybrid/`: Código fuente principal de eMule.
@@ -28,10 +30,12 @@ Ejecutar en PowerShell (Admin recomendado para dependencias):
 El ejecutable se generará en: `srchybrid\x64\Release\emule.exe`
 
 ## 📄 Releases
-*   [**RELEASE R1.2 (Titanium Fiber)**](docs/RELEASE_v0.70b-Build26-R1.2-X64.md) - 07/01/2026
+*   [**RELEASE R1.3 (LLM Integration)**](docs/LLM_API.md) - 10/01/2026 🆕
+*   [RELEASE R1.2 (Titanium Fiber)](docs/RELEASE_v0.70b-Build26-R1.2-X64.md) - 07/01/2026
 *   [RELEASE R1.1 (Consolidación)](docs/RELEASE_v0.70b-Build26-R1.1-X64.md) - 06/01/2026
 *   [RELEASE R1.0 (Legacy)](docs/RELEASE_v0.70b-Build26-R1.0-X64.md) - 05/01/2026
 
+*   **10/01/2026**: Versión `R1.3`. Integración con LLM mediante API REST/JSON. Detector inteligente de calidad de video.
 *   **07/01/2026**: Versión `R1.2`. Restauración completa de build system (v145), fix de Splash Screen y configuración de puertos Firewall.
 
 ## 📜 Licencia y Atribución
