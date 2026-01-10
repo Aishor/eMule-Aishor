@@ -1,0 +1,10 @@
+# eMule MCP Server - Dependencias
+
+# MCP SDK
+mcp>=0.9.0
+
+# HTTP client async
+httpx>=0.27.0
+
+# Opcional: para desarrollo
+mcp-cli>=0.1.0
