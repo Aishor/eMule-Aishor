@@ -1,0 +1,41 @@
+# FiberSight R1.3 - Requirements Consolidado
+# Todas las dependencias Python necesarias para el sistema completo
+
+# ============================================================================
+# VISION AUDITOR V2
+# ============================================================================
+
+# HTTP client
+requests>=2.31.0
+
+# Anthropic Claude API
+anthropic>=0.18.0
+
+# ============================================================================
+# MCP SERVER
+# ============================================================================
+
+# MCP SDK
+mcp>=0.9.0
+
+# HTTP client async
+httpx>=0.27.0
+
+# Opcional: CLI para desarrollo
+mcp-cli>=0.1.0
+
+# ============================================================================
+# ORCHESTRATOR AGENT
+# ============================================================================
+
+# Ya incluido: httpx, anthropic
+
+# ============================================================================
+# UTILIDADES COMUNES
+# ============================================================================
+
+# Logging mejorado (opcional)
+colorlog>=6.7.0
+
+# Progress bars (opcional)
+tqdm>=4.66.0

@@ -1,4 +1,4 @@
-// this file is part of eMule
+﻿// this file is part of eMule
 // Copyright (C)2002-2024 Merkur ( strEmail.Format("%s@%s", "devteam",
 // "emule-project.net") / https://www.emule-project.net )
 //
@@ -15,13 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#include "stdafx.h"
 #define _WINDOWS
+#include <afxwin.h>
+#include <afxext.h>
+#include <atlstr.h>
+#include "types.h"
+#include "Resource.h"
+#include "stdafx.h"
+#include "PPgWebServer.h"
 #include "HelpIDs.h"
 #include "Log.h"
-#include "PPgWebServer.h"
 #include "Preferences.h"
-#include "Resource.h"
 #include "ServerWnd.h"
 #include "TLSthreading.h"
 #include "UPnPImpl.h"
@@ -31,12 +35,8 @@
 #include "emuledlg.h"
 #include "otherfunctions.h"
 #include "ppgwebserver.h"
-#include "types.h"
-#include <afxext.h>
-#include <afxwin.h>
-#include <atlstr.h>
 
-extern "C" {
+
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/error.h"
@@ -45,7 +45,6 @@ extern "C" {
 #include "mbedtls/rsa.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
-}
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
