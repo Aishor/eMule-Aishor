@@ -123,14 +123,24 @@ BOOL CServerWnd::OnInitDialog()
 		servermsgbox->ApplySkin();
 		servermsgbox->SetTitle(GetResString(IDS_SV_SERVERINFO));
 
-		servermsgbox->AppendText(_T("eMule v"));
-		servermsgbox->AppendText(theApp.m_strCurVersionLong);
+		// Custom Aishor Info
+		servermsgbox->AppendText(_T("eMule v0.72b-Build26-R0.1.1-x64\n"));
 		servermsgbox->AppendText(_T("\n"));
-		// MOD Note: Do not remove this part - Merkur
-		m_strClickNewVersion.Format(_T("%s %s %s"), (LPCTSTR)GetResString(IDS_EMULEW), (LPCTSTR)GetResString(IDS_EMULEW3), (LPCTSTR)GetResString(IDS_EMULEW2));
-		servermsgbox->SetAutoURLDetect(TRUE);
-		servermsgbox->AppendHyperLink(m_strClickNewVersion, NULL, thePrefs.GetVersionCheckURL(), NULL);
-		// MOD Note: end
+		servermsgbox->AppendText(_T("Proyecto no oficial de actualizacion de eMule\n"));
+		
+		servermsgbox->AppendText(_T("Actualizaciones y descargas: "));
+		servermsgbox->AppendHyperLink(_T("https://github.com/Aishor/eMule-Aishor"), _T("https://github.com/Aishor/eMule-Aishor"), _T("https://github.com/Aishor/eMule-Aishor"), NULL);
+		servermsgbox->AppendText(_T("\n\n"));
+
+		servermsgbox->AppendText(_T("If you enjoy using this eMule, buy me a coffee\n"));
+		servermsgbox->AppendText(_T("Si este eMule te resulta útil, invítame a un café\n"));
+		
+		servermsgbox->AppendText(_T("Ko-fi -> "));
+		servermsgbox->AppendHyperLink(_T("https://ko-fi.com/aishor"), _T("https://ko-fi.com/aishor"), _T("https://ko-fi.com/aishor"), NULL);
+		servermsgbox->AppendText(_T("\n"));
+
+		servermsgbox->AppendText(_T("PayPal -> "));
+		servermsgbox->AppendHyperLink(_T("https://www.paypal.com/paypalme/Aishor"), _T("https://www.paypal.com/paypalme/Aishor"), _T("https://www.paypal.com/paypalme/Aishor"), NULL);
 		servermsgbox->AppendText(_T("\n\n"));
 	}
 
