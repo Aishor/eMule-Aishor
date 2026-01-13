@@ -31,19 +31,20 @@
 //  <build>                  not used for any checks in the program
 #define VERSION_MJR	0
 #define VERSION_MIN	72
-#define VERSION_UPDATE	0
-#define VERSION_BUILD	2
+#define VERSION_UPDATE	1
+#define VERSION_BUILD	26
 // NOTE: Do not forget to update manifests in "res\eMule*.manifest"
 
 #if defined _M_X64
-#define VERSION_PLATFORM _T(" x64")
+#define VERSION_PLATFORM _T("-x64")
 #elif defined _M_ARM64
-#define VERSION_PLATFORM _T(" arm64")
+#define VERSION_PLATFORM _T("-arm64")
 #else //x86
 #define VERSION_PLATFORM _T("")
 #endif
 
 // NOTE: This version string is also used by the language DLLs!
-#define	SZ_VERSION_NAME		chSTR(VERSION_MJR) _T(".") chSTR(VERSION_MIN) _T(".") chSTR(VERSION_UPDATE)
+#define	SZ_VERSION_NAME		chSTR(VERSION_MJR) _T(".") chSTR(VERSION_MIN) _T(".") chSTR(VERSION_UPDATE) \
+                            _T("-Build") chSTR(VERSION_BUILD) _T("-R0.1.1") VERSION_PLATFORM
 
 #endif /* !__VERSION_H__ */
