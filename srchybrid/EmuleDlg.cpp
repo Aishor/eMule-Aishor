@@ -59,6 +59,20 @@
 #include "FrameGrabThread.h"
 #include "kademlia/kademlia/kademlia.h"
 #include "PerfLog.h"
+
+void dprintf(const char* fmt, ...)
+{
+    FILE* f = fopen("c:\\Fragua\\debug_startup.log", "a");
+    if (f) {
+        va_list args;
+        va_start(args, fmt);
+        vfprintf(f, fmt, args);
+        fprintf(f, "\n");
+        va_end(args);
+        fclose(f);
+    }
+}
+
 #include "DropTarget.h"
 #include "LastCommonRouteFinder.h"
 #include "WebServer.h"
@@ -338,7 +352,7 @@ LRESULT CemuleDlg::OnAreYouEmule(WPARAM, LPARAM)
 	return UWM_ARE_YOU_EMULE;
 }
 
-static void DialogCreateIndirect(CDialog *pWnd, UINT uID)
+static void DialogCreateIndirect(CDialog *pWnd, UINT uID, CWnd* pParent = NULL)
 {
 #if 0
 	// This could be a nice way to change the font size of the main windows without needing
@@ -348,16 +362,17 @@ static void DialogCreateIndirect(CDialog *pWnd, UINT uID)
 	CDialogTemplate dlgTempl;
 	dlgTempl.Load(MAKEINTRESOURCE(uID));
 	dlgTempl.SetFont(_T("MS Shell Dlg"), 8);
-	pWnd->CreateIndirect(dlgTempl.m_hTemplate);
+	pWnd->CreateIndirect(dlgTempl.m_hTemplate, pParent);
 	FreeResource(dlgTempl.Detach());
 #else
-	pWnd->Create(uID);
+	pWnd->Create(uID, pParent);
 #endif
 }
 
 BOOL CemuleDlg::OnInitDialog()
 {
 	theStats.starttime = ::GetTickCount();
+	dprintf("OnInitDialog Start");
 #ifdef HAVE_WIN7_SDK_H
 	// allow the TaskbarButtonCreated- & (tbb-)WM_COMMAND message to be sent to our window if our app is running elevated
 	if (thePrefs.GetWindowsVersion() >= _WINVER_7_) {
@@ -380,18 +395,28 @@ BOOL CemuleDlg::OnInitDialog()
 		m_bStartMinimized = thePrefs.GetStartMinimized() || theApp.DidWeAutoStart();
 
 	// show splash screen as early as possible to "entertain" user while starting emule up
-	if (thePrefs.UseSplashScreen() && !m_bStartMinimized)
+	if (thePrefs.UseSplashScreen() && !m_bStartMinimized) {
+		dprintf("Showing Splash");
 		ShowSplash();
+		dprintf("Splash Shown (Return)");
+	}
 
 	// Create global GUI objects
+	dprintf("Creating Global Fonts");
 	theApp.CreateAllFonts();
+	dprintf("Fonts Created");
 	theApp.CreateBackwardDiagonalBrush();
 	m_wndTaskbarNotifier.SetTextDefaultFont();
+	dprintf("TrayDialog Init");
 	CTrayDialog::OnInitDialog();
+	dprintf("TrayDialog Init Done");
 	InitWindowStyles(this);
+	dprintf("InitWindowStyles Done");
 	CreateToolbarCmdIconMap();
+	dprintf("CmdIconMap Created");
 
 	CMenu *pSysMenu = GetSystemMenu(FALSE);
+	dprintf("GetSystemMenu Called");
 	if (pSysMenu != NULL) {
 		pSysMenu->AppendMenu(MF_SEPARATOR);
 
@@ -405,9 +430,13 @@ BOOL CemuleDlg::OnInitDialog()
 	}
 
 	CWnd *pwndToolbarX = toolbar;
+	dprintf("Creating Toolbar");
 	if (toolbar->Create(WS_CHILD | WS_VISIBLE, RECT(), this, IDC_TOOLBAR)) {
+		dprintf("Toolbar Create Success");
 		toolbar->Init();
+		dprintf("Toolbar Init Done");
 		if (thePrefs.GetUseReBarToolbar()) {
+			dprintf("Creating ReBar");
 			if (m_ctlMainTopReBar.Create(WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 				RBS_BANDBORDERS | RBS_AUTOSIZE | CCS_NODIVIDER,
 				RECT(), this, AFX_IDW_REBAR))
@@ -435,27 +464,41 @@ BOOL CemuleDlg::OnInitDialog()
 
 	// set title
 	SetWindowText(_T("eMule v") + theApp.m_strCurVersionLong);
+	dprintf("Title Set");
 
 	// Init taskbar notifier
 	m_wndTaskbarNotifier.CreateWnd(this);
+	dprintf("TaskbarNotifier Created");
 	LoadNotifier(thePrefs.GetNotifierConfiguration());
+	dprintf("Notifier Loaded");
 
 	// set statusbar
 	// the statusbar control is created as a custom control in the dialog resource,
 	// this solves font and sizing problems when using large system fonts
 	statusbar->SubclassWindow(GetDlgItem(IDC_STATUSBAR)->m_hWnd);
+	dprintf("Statusbar Subclassed");
 	statusbar->EnableToolTips(true);
 	SetStatusBarPartsSize();
+	dprintf("Statusbar Parts Set");
 
 	// create main window dialog pages
-	DialogCreateIndirect(serverwnd, IDD_SERVER);
-	DialogCreateIndirect(sharedfileswnd, IDD_FILES);
+	dprintf("Creating ServerWnd");
+	DialogCreateIndirect(serverwnd, IDD_SERVER, this);
+	dprintf("Creating SharedFilesWnd");
+	DialogCreateIndirect(sharedfileswnd, IDD_FILES, this);
+	dprintf("Creating SearchWnd");
 	searchwnd->CreateWnd(this); // can not use 'DialogCreateIndirect' for the SearchWnd, grrr...
-	DialogCreateIndirect(chatwnd, IDD_CHAT);
+	dprintf("Creating ChatWnd");
+	DialogCreateIndirect(chatwnd, IDD_CHAT, this);
+	dprintf("Creating TransferWnd");
 	transferwnd->CreateWnd(this);
-	DialogCreateIndirect(statisticswnd, IDD_STATISTICS);
-	DialogCreateIndirect(kademliawnd, IDD_KADEMLIAWND);
-	DialogCreateIndirect(ircwnd, IDD_IRC);
+	dprintf("Creating StatisticsWnd");
+	DialogCreateIndirect(statisticswnd, IDD_STATISTICS, this);
+	dprintf("Creating KademliaWnd");
+	DialogCreateIndirect(kademliawnd, IDD_KADEMLIAWND, this);
+	dprintf("Creating IRCWnd");
+	DialogCreateIndirect(ircwnd, IDD_IRC, this);
+	dprintf("All Child Dialogs Created");
 
 	// with the top rebar control, some XP themes look better with additional lite borders, some not.
 	//serverwnd->ModifyStyleEx(0, WS_EX_STATICEDGE);
@@ -501,9 +544,12 @@ BOOL CemuleDlg::OnInitDialog()
 	// if still no active window, activate server window
 	if (activewnd == NULL)
 		SetActiveDialog(serverwnd);
+	dprintf("Active Dialog Set");
 
 	SetAllIcons();
+	dprintf("Icons Set");
 	Localize();
+	dprintf("Localized");
 
 	// set update interval of graphic rate display (in seconds)
 	//ShowConnectionState(false);
@@ -601,17 +647,25 @@ BOOL CemuleDlg::OnInitDialog()
 		m_bStartMinimizedChecked = true;
 	}
 	SetWindowPlacement(&wp);
+	dprintf("Window Placement Set");
 
-	if (thePrefs.GetWSIsEnabled())
+	if (thePrefs.GetWSIsEnabled()) {
+		dprintf("Starting WebServer");
 		theApp.webserver->StartServer();
+		dprintf("WebServer Started");
+	}
 
 	VERIFY((m_hTimer = ::SetTimer(NULL, 0, SEC2MS(3)/10, StartupTimer)) != 0);
+	dprintf("Startup Timer Set");
 	if (thePrefs.GetVerbose() && !m_hTimer)
 		AddDebugLogLine(true, _T("Failed to create 'startup' timer - %s"), (LPCTSTR)GetErrorMessage(::GetLastError()));
 
 	// Start UPnP port forwarding
-	if (thePrefs.IsUPnPEnabled())
+	if (thePrefs.IsUPnPEnabled()) {
+		dprintf("Starting UPnP");
 		StartUPnP();
+		dprintf("UPnP Started");
+	}
 
 	if (thePrefs.IsFirstStart()) {
 		// temporary disable the 'startup minimized' option, otherwise no window will be shown at all
@@ -621,15 +675,19 @@ BOOL CemuleDlg::OnInitDialog()
 	}
 
 	VERIFY(m_pDropTarget->Register(this));
+	dprintf("DropTarget Registered");
 
 	// start aichsyncthread
+	dprintf("Starting AICH Thread");
 	AfxBeginThread(RUNTIME_CLASS(CAICHSyncThread), THREAD_PRIORITY_IDLE, 0);
+	dprintf("AICH Thread Started");
 
 	// debug info
 	DebugLog(_T("Using '%s' as config directory"), (LPCTSTR)thePrefs.GetMuleDirectory(EMULE_CONFIGDIR));
 
 	if (!thePrefs.HasCustomTaskIconColor())
 		SetTaskbarIconColor();
+	dprintf("OnInitDialog DONE - Returning TRUE");
 
 	return TRUE;
 }
@@ -669,16 +727,19 @@ void CALLBACK CemuleDlg::StartupTimer(HWND /*hwnd*/, UINT /*uiMsg*/, UINT_PTR /*
 	try {
 		switch (theApp.emuledlg->status) {
 		case 0:
+			dprintf("StartupTimer Case 0");
 			++theApp.emuledlg->status;
 			theApp.sharedfiles->SetOutputCtrl(&theApp.emuledlg->sharedfileswnd->sharedfilesctrl);
 			++theApp.emuledlg->status;
 		case 1:
 			break;
 		case 2:
+			dprintf("StartupTimer Case 2: ServerList Init");
 			++theApp.emuledlg->status;
 			try {
 				theApp.serverlist->Init();
 			} catch (...) {
+				dprintf("Exception in ServerList Init");
 				ASSERT(0);
 				LogError(LOG_STATUSBAR, _T("Failed to initialize server list - Unknown exception"));
 			}
@@ -687,6 +748,7 @@ void CALLBACK CemuleDlg::StartupTimer(HWND /*hwnd*/, UINT /*uiMsg*/, UINT_PTR /*
 			break;
 		case 4:
 			{
+				dprintf("StartupTimer Case 4: DownloadQueue Init");
 				++theApp.emuledlg->status;
 				bool bError = false;
 
@@ -733,6 +795,7 @@ void CALLBACK CemuleDlg::StartupTimer(HWND /*hwnd*/, UINT /*uiMsg*/, UINT_PTR /*
 			}
 			break;
 		case 5:
+			dprintf("StartupTimer Case 5: LoadSearches");
 			++theApp.emuledlg->status;
 			if (thePrefs.IsStoringSearchesEnabled())
 				theApp.searchlist->LoadSearches();
@@ -995,17 +1058,33 @@ CString CemuleDlg::GetConnectionStateString()
 
 void CemuleDlg::ShowConnectionState()
 {
+	dprintf("ShowConnectionState Enter");
 	if (theApp.IsClosing())
 		return;
+	
+	dprintf("ShowConnectionState calling DownloadQueue::OnConnectionState");
 	theApp.downloadqueue->OnConnectionState(theApp.IsConnected());
-	serverwnd->UpdateMyInfo();
-	serverwnd->UpdateControlsState();
-	kademliawnd->UpdateControlsState();
+	dprintf("ShowConnectionState DownloadQueue Done");
+
+	if (serverwnd) {
+		dprintf("ShowConnectionState updating ServerWnd Info");
+		serverwnd->UpdateMyInfo();
+		dprintf("ShowConnectionState updating ServerWnd Controls");
+		serverwnd->UpdateControlsState();
+	}
+	
+	if (kademliawnd) {
+		dprintf("ShowConnectionState updating KademliaWnd");
+		kademliawnd->UpdateControlsState();
+	}
+	dprintf("ShowConnectionState Wnd Updates Done");
 
 	ShowConnectionStateIcon();
-	statusbar->SetText(GetConnectionStateString(), SBarConnected, 0);
+	dprintf("ShowConnectionState Icon Done");
+	if (statusbar) statusbar->SetText(GetConnectionStateString(), SBarConnected, 0);
+	dprintf("ShowConnectionState StatusBar Done");
 
-	TBBUTTONINFO tbbi;
+	TBBUTTONINFO tbbi = {0};
 	tbbi.cbSize = (UINT)sizeof(TBBUTTONINFO);
 	tbbi.dwMask = TBIF_IMAGE | TBIF_TEXT;
 
@@ -1013,31 +1092,37 @@ void CemuleDlg::ShowConnectionState()
 		CString strPane(GetResString(IDS_MAIN_BTN_DISCONNECT));
 		tbbi.iImage = 1;
 		tbbi.pszText = const_cast<LPTSTR>((LPCTSTR)strPane);
-		toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+		if (toolbar) toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+		dprintf("ShowConnectionState Toolbar Connected Set");
 		strPane.Remove(_T('&'));
 		if (!theApp.emuledlg->m_SysMenuOptions.ModifyMenuW(MP_CONNECT, MF_STRING, MP_DISCONNECT, strPane))
-			theApp.emuledlg->m_SysMenuOptions.ModifyMenuW(MP_DISCONNECT, MF_STRING, MP_DISCONNECT, strPane); //replace "Cancel" with "Disconnect"
+			theApp.emuledlg->m_SysMenuOptions.ModifyMenuW(MP_DISCONNECT, MF_STRING, MP_DISCONNECT, strPane); 
 	} else {
 		if (theApp.serverconnect->IsConnecting() || Kademlia::CKademlia::IsRunning()) {
 			CString strPane(GetResString(IDS_MAIN_BTN_CANCEL));
 			tbbi.iImage = 2;
 			tbbi.pszText = const_cast<LPTSTR>((LPCTSTR)strPane);
-			toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+			if (toolbar) toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+			dprintf("ShowConnectionState Toolbar Cancel Set");
 			strPane.Remove(_T('&'));
 			theApp.emuledlg->m_SysMenuOptions.ModifyMenuW(MP_CONNECT, MF_STRING, MP_DISCONNECT, strPane);
 		} else {
 			CString strPane(GetResString(IDS_MAIN_BTN_CONNECT));
 			tbbi.iImage = 0;
 			tbbi.pszText = const_cast<LPTSTR>((LPCTSTR)strPane);
-			toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+			if (toolbar) toolbar->SetButtonInfo(TBBTN_CONNECT, &tbbi);
+			dprintf("ShowConnectionState Toolbar Connect Set");
 			strPane.Remove(_T('&'));
 			theApp.emuledlg->m_SysMenuOptions.ModifyMenuW(MP_DISCONNECT, MF_STRING, MP_CONNECT, strPane);
 		}
 	}
+	dprintf("ShowConnectionState Menus Done");
 	ShowUserCount();
 #ifdef HAVE_WIN7_SDK_H
+	dprintf("ShowConnectionState UpdateThumbBarButtons");
 	UpdateThumbBarButtons();
 #endif
+	dprintf("ShowConnectionState Done");
 }
 
 void CemuleDlg::ShowUserCount()
@@ -1221,6 +1306,51 @@ void CemuleDlg::OnSize(UINT nType, int cx, int cy)
 {
 	CTrayDialog::OnSize(nType, cx, cy);
 	SetStatusBarPartsSize();
+	
+	SetStatusBarPartsSize();
+	
+	// Resize active child window to fit client area
+	if (activewnd && activewnd->GetSafeHwnd()) {
+		CRect rcClient;
+		GetClientRect(&rcClient);
+		if (f) fprintf(f, "  Client: L=%d T=%d R=%d B=%d\n", rcClient.left, rcClient.top, rcClient.right, rcClient.bottom);
+
+		// Adjust for ReBar/Toolbar
+		if (m_ctlMainTopReBar.GetSafeHwnd() && m_ctlMainTopReBar.IsWindowVisible()) {
+			CRect rcReBar;
+			m_ctlMainTopReBar.GetWindowRect(&rcReBar);
+			ScreenToClient(&rcReBar);
+			if (f) fprintf(f, "  ReBar: L=%d T=%d R=%d B=%d\n", rcReBar.left, rcReBar.top, rcReBar.right, rcReBar.bottom);
+			rcClient.top = rcReBar.bottom;
+		} else if (toolbar && toolbar->GetSafeHwnd() && toolbar->IsWindowVisible()) {
+            // Fallback for toolbar if rebar not used
+             CRect rcToolbar;
+             toolbar->GetWindowRect(&rcToolbar);
+             ScreenToClient(&rcToolbar);
+             if (f) fprintf(f, "  Toolbar: L=%d T=%d R=%d B=%d\n", rcToolbar.left, rcToolbar.top, rcToolbar.right, rcToolbar.bottom);
+             rcClient.top = rcToolbar.bottom;
+        }
+
+
+		// Adjust for StatusBar
+		if (statusbar && statusbar->GetSafeHwnd() && statusbar->IsWindowVisible()) {
+			CRect rcStatus;
+			statusbar->GetWindowRect(&rcStatus); // Screen coords
+            // statusbar is safely checked so valid.
+            // Trick: statusbar usually is at bottom. Just verify height.
+            if (f) fprintf(f, "  StatusBar H=%d\n", rcStatus.Height());
+			rcClient.bottom -= rcStatus.Height();
+		}
+		
+        if (f) fprintf(f, "  MoveWindow to: L=%d T=%d R=%d B=%d\n", rcClient.left, rcClient.top, rcClient.right, rcClient.bottom);
+		activewnd->MoveWindow(rcClient);
+	} else {
+        if (f) fprintf(f, "  activewnd invalid or null\n");
+    }
+
+    if (f) fclose(f);
+	// END DEBUG LAYOUT
+
 	// we might receive this message during shutdown -> bad
 	if (transferwnd != NULL && !theApp.IsClosing())
 		transferwnd->VerifyCatTabSize();
@@ -2286,7 +2416,9 @@ void CemuleDlg::SetAllIcons()
 
 void CemuleDlg::Localize()
 {
+	dprintf("Localize Start");
 	CMenu *pSysMenu = GetSystemMenu(FALSE);
+	dprintf("Localize GetSystemMenu");
 	if (pSysMenu) {
 		VERIFY(pSysMenu->ModifyMenu(MP_ABOUTBOX, MF_BYCOMMAND | MF_STRING, MP_ABOUTBOX, GetResString(IDS_ABOUTBOX)));
 		VERIFY(pSysMenu->ModifyMenu(MP_VERSIONCHECK, MF_BYCOMMAND | MF_STRING, MP_VERSIONCHECK, GetResString(IDS_VERSIONCHECK)));
@@ -2308,22 +2440,29 @@ void CemuleDlg::Localize()
 			VERIFY(m_menuDownloadCtrl.DestroyMenu());
 		if (m_SysMenuOptions)
 			VERIFY(m_SysMenuOptions.DestroyMenu());
+		dprintf("Localize Menus Destroyed");
 
 		// create new 'speed control' menus
 		if (m_SysMenuOptions.CreateMenu()) {
 			AddSpeedSelectorMenus(&m_SysMenuOptions);
 			pSysMenu->AppendMenu(MF_STRING | MF_POPUP, (UINT_PTR)m_SysMenuOptions.m_hMenu, GetResString(IDS_EM_PREFS));
 		}
+		dprintf("Localize Menus Created");
 	}
 
 	ShowUserStateIcon();
+	dprintf("Localize ShowUserStateIcon");
 	toolbar->Localize();
+	dprintf("Localize Toolbar Localized");
 	ShowConnectionState();
+	dprintf("Localize ShowConnectionState");
 	ShowTransferRate(true);
 	ShowUserCount();
 	CPartFileConvert::Localize();
+	dprintf("Localize PartFileConvert");
 	if (m_pMiniMule && !m_pMiniMule->IsInInitDialog())
 		m_pMiniMule->Localize();
+	dprintf("Localize Done");
 }
 
 void CemuleDlg::ShowUserStateIcon()

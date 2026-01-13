@@ -1,4 +1,4 @@
-//this file is part of eMule
+ï»¿//this file is part of eMule
 //Copyright (C)2002-2026 Merkur ( strEmail.Format("%s@%s", "devteam", "emule-project.net") / https://www.emule-project.net )
 //
 //This program is free software; you can redistribute it and/or
@@ -245,7 +245,7 @@ struct SLogItem
 static void CALLBACK myErrHandler(const Kademlia::CKademliaError *error)
 {
 	CString msg;
-	msg.Format(_T("\r\nError 0x%08X : %hs\r\n"), error->m_iErrorCode, error->m_szErrorDescription);
+	msg.Format(_T("\nError 0x%08X : %hs\n"), error->m_iErrorCode, error->m_szErrorDescription);
 	if (!theApp.IsClosing())
 		theApp.QueueDebugLogLine(false, _T("%s"), (LPCTSTR)msg);
 }
@@ -352,16 +352,19 @@ CemuleApp theApp(_T("eMule"));
 // Workaround for bugged 'AfxSocketTerm' (needed at least for MFC 7.0 - 14.14)
 static void __cdecl __AfxSocketTerm() noexcept
 {
-	_AFX_SOCK_STATE *pState = _afxSockState.GetData();
+#ifndef _AFXDLL
+    _AFX_SOCK_STATE *pState = _afxSockState.GetData();
 	if (pState->m_pfnSockTerm != NULL) {
 		VERIFY(WSACleanup() == 0);
 		pState->m_pfnSockTerm = NULL;
 	}
+#endif
 }
 
 static BOOL InitWinsock2(WSADATA *lpwsaData)
 {
-	_AFX_SOCK_STATE *pState = _afxSockState.GetData();
+#ifndef _AFXDLL
+    _AFX_SOCK_STATE *pState = _afxSockState.GetData();
 	if (pState->m_pfnSockTerm == NULL) {
 		// initialize Winsock library
 		WSADATA wsaData;
@@ -378,7 +381,7 @@ static BOOL InitWinsock2(WSADATA *lpwsaData)
 		// setup for termination of sockets
 		pState->m_pfnSockTerm = &AfxSocketTerm;
 	}
-#ifndef _AFXDLL
+
 	//BLOCK: setup maps and lists specific to socket state
 	{
 		_AFX_SOCK_THREAD_STATE *pThreadState = _afxSockThreadState;
@@ -389,8 +392,11 @@ static BOOL InitWinsock2(WSADATA *lpwsaData)
 		if (pThreadState->m_plistSocketNotifications == NULL)
 			pThreadState->m_plistSocketNotifications = new CPtrList;
 	}
-#endif
 	return TRUE;
+#else
+	// In AFXDLL mode, we rely on AfxSocketInit (called by caller if we return FALSE)
+	return FALSE;
+#endif
 }
 
 // CemuleApp Initialisierung
@@ -477,6 +483,10 @@ BOOL CemuleApp::InitInstance()
 	atexit(__AfxSocketTerm);
 
 	AfxEnableControlContainer();
+    if (!AfxInitRichEdit2()) {
+        // Fallback or just ensure it's loaded for RichEdit20W controls
+        // Some systems might need this explicitly.
+    }
 	if (!AfxInitRichEdit5())
 		AfxMessageBox(_T("Fatal Error: No Rich Edit control library found!")); // should never happen.
 
@@ -518,11 +528,11 @@ BOOL CemuleApp::InitInstance()
 	theVerboseLog.SetFileFormat(thePrefs.GetLogFileFormat());
 	if (thePrefs.GetLog2Disk()) {
 		theLog.Open();
-		theLog.Log(_T("\r\n"));
+		theLog.Log(_T("\n"));
 	}
 	if (thePrefs.GetDebug2Disk()) {
 		theVerboseLog.Open();
-		theVerboseLog.Log(_T("\r\n"));
+		theVerboseLog.Log(_T("\n"));
 	}
 	Log(_T("Starting eMule v%s"), (LPCTSTR)m_strCurVersionLong);
 
@@ -1268,7 +1278,7 @@ HICON CemuleApp::LoadIcon(LPCTSTR lpszResourceName, int cx, int cy, UINT uFlags)
 				}
 			} else {
 				// WINBUG???: 'ExtractIcon' does not work well on ICO-files when using the color
-				// scheme 'Windows-Standard (extragroß)' -> always try to use 'LoadImage'!
+				// scheme 'Windows-Standard (extragroï¿½)' -> always try to use 'LoadImage'!
 				//
 				// If the ICO file contains a 16x16 icon, 'LoadImage' will though return a 32x32 icon,
 				// if LR_DEFAULTSIZE is specified! -> always specify the requested size!
@@ -1468,9 +1478,9 @@ void CemuleApp::SearchClipboard()
 		// Don't feed too long strings into the MessageBox function, it may freak out.
 		CString strLinksDisplay(GetResString(IDS_ADDDOWNLOADSFROMCB));
 		if (strLinks.GetLength() > 512)
-			strLinksDisplay.AppendFormat(_T("\r\n%s..."), (LPCTSTR)strLinks.Left(509));
+			strLinksDisplay.AppendFormat(_T("\n%s..."), (LPCTSTR)strLinks.Left(509));
 		else
-			strLinksDisplay.AppendFormat(_T("\r\n%s"), (LPCTSTR)strLinks);
+			strLinksDisplay.AppendFormat(_T("\n%s"), (LPCTSTR)strLinks);
 		if (AfxMessageBox(strLinksDisplay, MB_YESNO | MB_TOPMOST) == IDYES)
 			AddEd2kLinksToDownload(pszTrimmedLinks, 0);
 	}
@@ -1943,3 +1953,6 @@ bool CemuleApp::IsVistaThemeActive() const
 	// Return true if Vista (or better) style is active
 	return theApp.m_ullComCtrlVer >= MAKEDLLVERULL(6, 16, 0, 0) && ::IsThemeActive() && ::IsAppThemed();
 }
+
+
+
