@@ -32,7 +32,7 @@
 #define VERSION_MJR	0
 #define VERSION_MIN	72
 #define VERSION_UPDATE	0
-#define VERSION_BUILD	1
+#define VERSION_BUILD	2
 // NOTE: Do not forget to update manifests in "res\eMule*.manifest"
 
 #if defined _M_X64
