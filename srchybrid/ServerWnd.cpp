@@ -273,6 +273,7 @@ BOOL CServerWnd::OnInitDialog()
 	InitSplitter();
 	GetDlgItem(IDC_ED2KCONNECT)->EnableWindow(false);
 
+	UpdateMyInfo();
 	return TRUE;
 }
 
@@ -603,6 +604,9 @@ void CServerWnd::ToggleDebugWindow()
 
 void CServerWnd::UpdateMyInfo()
 {
+	if (!m_MyInfo.m_hWnd)
+		return;
+
 	m_MyInfo.SetRedraw(FALSE);
 	m_MyInfo.SetWindowText(_T(""));
 	CreateNetworkInfo(m_MyInfo, m_cfDef, m_cfBold);
