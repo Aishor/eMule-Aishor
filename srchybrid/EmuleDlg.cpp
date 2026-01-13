@@ -1313,21 +1313,18 @@ void CemuleDlg::OnSize(UINT nType, int cx, int cy)
 	if (activewnd && activewnd->GetSafeHwnd()) {
 		CRect rcClient;
 		GetClientRect(&rcClient);
-		if (f) fprintf(f, "  Client: L=%d T=%d R=%d B=%d\n", rcClient.left, rcClient.top, rcClient.right, rcClient.bottom);
 
 		// Adjust for ReBar/Toolbar
 		if (m_ctlMainTopReBar.GetSafeHwnd() && m_ctlMainTopReBar.IsWindowVisible()) {
 			CRect rcReBar;
 			m_ctlMainTopReBar.GetWindowRect(&rcReBar);
 			ScreenToClient(&rcReBar);
-			if (f) fprintf(f, "  ReBar: L=%d T=%d R=%d B=%d\n", rcReBar.left, rcReBar.top, rcReBar.right, rcReBar.bottom);
 			rcClient.top = rcReBar.bottom;
 		} else if (toolbar && toolbar->GetSafeHwnd() && toolbar->IsWindowVisible()) {
             // Fallback for toolbar if rebar not used
              CRect rcToolbar;
              toolbar->GetWindowRect(&rcToolbar);
              ScreenToClient(&rcToolbar);
-             if (f) fprintf(f, "  Toolbar: L=%d T=%d R=%d B=%d\n", rcToolbar.left, rcToolbar.top, rcToolbar.right, rcToolbar.bottom);
              rcClient.top = rcToolbar.bottom;
         }
 
@@ -1338,18 +1335,11 @@ void CemuleDlg::OnSize(UINT nType, int cx, int cy)
 			statusbar->GetWindowRect(&rcStatus); // Screen coords
             // statusbar is safely checked so valid.
             // Trick: statusbar usually is at bottom. Just verify height.
-            if (f) fprintf(f, "  StatusBar H=%d\n", rcStatus.Height());
 			rcClient.bottom -= rcStatus.Height();
 		}
 		
-        if (f) fprintf(f, "  MoveWindow to: L=%d T=%d R=%d B=%d\n", rcClient.left, rcClient.top, rcClient.right, rcClient.bottom);
 		activewnd->MoveWindow(rcClient);
-	} else {
-        if (f) fprintf(f, "  activewnd invalid or null\n");
-    }
-
-    if (f) fclose(f);
-	// END DEBUG LAYOUT
+	}
 
 	// we might receive this message during shutdown -> bad
 	if (transferwnd != NULL && !theApp.IsClosing())
