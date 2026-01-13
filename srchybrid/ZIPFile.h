@@ -21,8 +21,9 @@
 
 #pragma once
 
-class CBuffer;
+#include "unzip.h"
 
+class CBuffer;
 
 class CZIPFile
 {
@@ -45,18 +46,23 @@ public:
 		CString	m_sName;
 		uint64	m_nSize;
 	protected:
-		bool	PrepareToDecompress(LPVOID pStream);
-		uint64	m_nLocalOffset;
+		//bool	PrepareToDecompress(LPVOID pStream); // No needed for minizip
+		uint64	m_nLocalOffset; // Used as index/pos in minizip maybe? Or just keep for compat if needed, but minizip uses internal state.
+		// Actually minizip iterates by current file. To jump to a file we need its name or index.
+		// We can store the index here.
+		uLong   m_nIndex; 
 		uint64	m_nCompressedSize;
 		int		m_nCompression;
+		unz64_file_pos m_ZipPos;
 	};
 
 // Attributes
 protected:
-	HANDLE	m_hFile;
-	File	*m_pFile;
-	int		m_nFile;
-	bool	m_bAttach;
+	unzFile		m_hZip;
+	File		*m_pFiles;
+	int			m_nCount;
+	bool		m_bAttach;
+	HANDLE      m_hAttachedFile; // Keep track if we need to close it manually or if it was attached.
 
 // Operations
 public:
@@ -65,11 +71,10 @@ public:
 	bool	IsOpen() const;
 	void	Close();
 public:
-	int		GetCount() const						{ return m_nFile; } //get the file count
+	int		GetCount() const						{ return m_nCount; } //get the file count
 	File*	GetFile(int nFile) const;
 	File*	GetFile(LPCTSTR pszFile, BOOL bPartial = FALSE) const;
 protected:
-	bool	LocateCentralDirectory();
-	bool	ParseCentralDirectory(BYTE *pDirectory, DWORD nDirectory);
-	bool	SeekToFile(const File *pFile);
+	// Helpers
+	void    BuildDirectory();
 };

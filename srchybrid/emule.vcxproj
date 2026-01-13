@@ -71,7 +71,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;..\zlib;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;..\zlib\contrib\minizip;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
       <AdditionalOptions Condition="'$(Platform)'!='ARM64'">/Zc:throwingNew</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='ARM64'">/Zc:enumTypes /Zc:throwingNew</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -101,7 +101,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;..\zlib;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;..\zlib\contrib\minizip;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
       <AdditionalOptions Condition="'$(Platform)'!='ARM64'">/Zc:throwingNew</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='ARM64'">/Zc:enumTypes /Zc:throwingNew</AdditionalOptions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -129,7 +129,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='_SpecialBootstrapNodes'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;..\zlib;..\id3lib\include;..\mbedtls\include;..\mbedtls\tf-psa-crypto\include;..\mbedtls\tf-psa-crypto\drivers\builtin\include;..\miniupnpc\include;..\resizablelib;..\zlib\contrib\minizip;$(VC_ATLMFC_SourcePath);$(UniversalCRTSdkDir)Include\10.0.26100.0\um\;$(UniversalCRTSdkDir)Include\10.0.26100.0\shared;</AdditionalIncludeDirectories>
       <AdditionalOptions Condition="'$(Platform)'!='ARM64'">/Zc:throwingNew</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='ARM64'">/Zc:enumTypes /Zc:throwingNew</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -410,6 +410,20 @@
     <ClCompile Include="WebSocket.cpp" />
     <ClCompile Include="Wizard.cpp" />
     <ClCompile Include="ZIPFile.cpp" />
+    <ClCompile Include="..\zlib\contrib\minizip\ioapi.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\zlib\contrib\minizip\iowin32.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\zlib\contrib\minizip\unzip.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\zlib\contrib\minizip\zip.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Parser.y">

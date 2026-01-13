@@ -1,27 +1,18 @@
 //
 // ZIPFile.cpp
 //
-// Copyright (c) Shareaza Development Team, 2002-2004.
-// This file is part of SHAREAZA (www.shareaza.com)
-//
-// Shareaza is free software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Shareaza is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Shareaza; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// Refactored to use zlib/minizip for 64-bit support.
 //
 
 #include "StdAfx.h"
 #include "ZIPFile.h"
 #include "zlib/zlib.h"
+// Define _CRT_SECURE_NO_WARNINGS to avoid errors in minizip headers if any
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include "zlib/contrib/minizip/iowin32.h"
+#include "zlib/contrib/minizip/unzip.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -29,15 +20,56 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+// External definitions from iowin32.c (not in header)
+extern "C" {
+    // Structure used by iowin32.c - MUST MATCH!
+    typedef struct
+    {
+        HANDLE hf;
+        int error;
+    } WIN32FILE_IOWIN;
+
+    uLong ZCALLBACK win32_read_file_func(voidpf opaque, voidpf stream, void* buf, uLong size);
+    uLong ZCALLBACK win32_write_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size);
+    ZPOS64_T ZCALLBACK win32_tell64_file_func(voidpf opaque, voidpf stream);
+    long ZCALLBACK win32_seek64_file_func(voidpf opaque, voidpf stream, ZPOS64_T offset, int origin);
+    int ZCALLBACK win32_close_file_func(voidpf opaque, voidpf stream);
+    int ZCALLBACK win32_error_file_func(voidpf opaque, voidpf stream);
+}
+
+// Custom Open/Close for Attached handles
+static voidpf ZCALLBACK win32_open64_file_func_attached(voidpf opaque, const void* filename, int mode)
+{
+    // Opaque holds the handle
+    HANDLE hFile = (HANDLE)opaque;
+    if (hFile == INVALID_HANDLE_VALUE) return NULL;
+
+    WIN32FILE_IOWIN* ret = (WIN32FILE_IOWIN*)malloc(sizeof(WIN32FILE_IOWIN));
+    if (ret) {
+        ret->hf = hFile;
+        ret->error = 0;
+    }
+    return ret;
+}
+
+static int ZCALLBACK win32_close_file_func_attached(voidpf opaque, voidpf stream)
+{
+    // Only free the structure, DO NOT close the handle
+    if (stream) {
+        free(stream);
+    }
+    return 0;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CZIPFile construction
 
 CZIPFile::CZIPFile(HANDLE hAttach)
-	: m_hFile(INVALID_HANDLE_VALUE)
-	, m_pFile()
-	, m_nFile()
-	, m_bAttach()
+	: m_hZip(NULL)
+	, m_pFiles(NULL)
+	, m_nCount(0)
+	, m_bAttach(false)
+    , m_hAttachedFile(INVALID_HANDLE_VALUE)
 {
 	if (hAttach != INVALID_HANDLE_VALUE)
 		Attach(hAttach);
@@ -54,19 +86,20 @@ CZIPFile::~CZIPFile()
 bool CZIPFile::Open(LPCTSTR pszFile)
 {
 	ASSERT(pszFile != NULL);
-
 	Close();
 
-	m_bAttach = false;
-	m_hFile = ::CreateFile(pszFile, GENERIC_READ, FILE_SHARE_READ, NULL
-						, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (m_hFile == INVALID_HANDLE_VALUE)
-		return false;
+#ifdef _UNICODE
+    zlib_filefunc64_def ffunc;
+    fill_win32_filefunc64W(&ffunc);
+    m_hZip = unzOpen2_64(pszFile, &ffunc);
+#else
+    m_hZip = unzOpen64(pszFile);
+#endif
 
-	if (LocateCentralDirectory())
-		return true;
-
-	Close();
+    if (m_hZip) {
+        BuildDirectory();
+        return true;
+    }
 	return false;
 }
 
@@ -76,41 +109,109 @@ bool CZIPFile::Open(LPCTSTR pszFile)
 bool CZIPFile::Attach(HANDLE hFile)
 {
 	ASSERT(hFile != INVALID_HANDLE_VALUE);
-
 	Close();
 
 	m_bAttach = true;
-	m_hFile = hFile;
+    m_hAttachedFile = hFile;
 
-	if (LocateCentralDirectory())
+    zlib_filefunc64_def ffunc;
+    // Fill basic functions first (read, write, seek, tell, error) from iowin32
+    ffunc.zread_file = win32_read_file_func;
+    ffunc.zwrite_file = win32_write_file_func; // Not used for unzip but good practice
+    ffunc.ztell64_file = win32_tell64_file_func;
+    ffunc.zseek64_file = win32_seek64_file_func;
+    ffunc.zerror_file = win32_error_file_func;
+    
+    // Override Open/Close for attachment logic
+    ffunc.zopen64_file = win32_open64_file_func_attached;
+    ffunc.zclose_file = win32_close_file_func_attached;
+    
+    // Pass handle as opaque
+    ffunc.opaque = hFile;
+
+    m_hZip = unzOpen2_64(NULL, &ffunc);
+
+	if (m_hZip) {
+        BuildDirectory();
 		return true;
+    }
 
-	Close();
+    // If failed, we don't close hFile (caller responsibility if attach failed?)
+    // But we set m_bAttach=true, so Close() won't close it either.
+    // Ideally if Attach fails, we should revert state.
+    m_bAttach = false;
+    m_hAttachedFile = INVALID_HANDLE_VALUE;
 	return false;
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile open test
-
 bool CZIPFile::IsOpen() const
 {
-	return m_hFile != INVALID_HANDLE_VALUE;
+	return m_hZip != NULL;
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile close
 
 void CZIPFile::Close()
 {
-	if (IsOpen()) {
-		if (!m_bAttach)
-			::CloseHandle(m_hFile);
-		m_hFile = INVALID_HANDLE_VALUE;
+	if (m_hZip) {
+        unzClose(m_hZip);
+        m_hZip = NULL;
 	}
 
-	delete[] m_pFile;
-	m_pFile = NULL;
-	m_nFile = 0;
+    if (m_pFiles) {
+	    delete[] m_pFiles;
+	    m_pFiles = NULL;
+    }
+	m_nCount = 0;
+
+    m_bAttach = false;
+    m_hAttachedFile = INVALID_HANDLE_VALUE;
+}
+
+void CZIPFile::BuildDirectory()
+{
+    if (!m_hZip) return;
+
+    unz_global_info64 gi;
+    if (unzGetGlobalInfo64(m_hZip, &gi) != UNZ_OK) return;
+
+    m_nCount = (int)gi.number_entry;
+    if (m_nCount <= 0) return;
+
+    m_pFiles = new File[m_nCount];
+
+    if (unzGoToFirstFile(m_hZip) != UNZ_OK) {
+        m_nCount = 0;
+        delete[] m_pFiles;
+        m_pFiles = NULL;
+        return;
+    }
+
+    for (int i = 0; i < m_nCount; i++) {
+        char filename[1024];
+        unz_file_info64 file_info;
+        
+        if (unzGetCurrentFileInfo64(m_hZip, &file_info, filename, sizeof(filename), NULL, 0, NULL, 0) != UNZ_OK)
+            break;
+
+        File* pFile = &m_pFiles[i];
+        pFile->m_pZIP = this;
+        
+        // Convert to CString (handles MultiByte/Unicode conversion)
+        pFile->m_sName = filename;
+        pFile->m_sName.Replace('\\', '/');
+
+        pFile->m_nSize = file_info.uncompressed_size;
+        pFile->m_nCompressedSize = file_info.compressed_size;
+        pFile->m_nCompression = file_info.compression_method;
+        pFile->m_nIndex = i;
+        
+        // Cache position
+        if (unzGetFilePos64(m_hZip, &pFile->m_ZipPos) != UNZ_OK) {
+            // Should not happen
+        }
+
+        if (unzGoToNextFile(m_hZip) != UNZ_OK)
+            break;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -118,7 +219,7 @@ void CZIPFile::Close()
 
 CZIPFile::File* CZIPFile::GetFile(int nFile) const
 {
-	return (nFile < 0 || nFile >= m_nFile) ? NULL : m_pFile + nFile;
+	return (nFile < 0 || nFile >= m_nCount) ? NULL : m_pFiles + nFile;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -126,8 +227,8 @@ CZIPFile::File* CZIPFile::GetFile(int nFile) const
 
 CZIPFile::File* CZIPFile::GetFile(LPCTSTR pszFile, BOOL bPartial) const
 {
-	File *pFile = m_pFile;
-	for (int nFile = m_nFile; --nFile >= 0;) {
+	File *pFile = m_pFiles;
+	for (int nFile = m_nCount; --nFile >= 0;) {
 		LPCTSTR pszName = bPartial ? _tcsrchr(pFile->m_sName, '/') : NULL;
 		pszName = pszName ? pszName + 1 : (LPCTSTR)pFile->m_sName;
 		if (_tcsicoll(pszName, pszFile) == 0)
@@ -138,328 +239,52 @@ CZIPFile::File* CZIPFile::GetFile(LPCTSTR pszFile, BOOL bPartial) const
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// CZIPFile locate the central directory
-
-#pragma pack(push, 1)
-typedef struct
-{
-	DWORD	nSignature;			// 0x06054b50
-	WORD	nThisDisk;
-	WORD	nDirectoryDisk;
-	WORD	nFilesThisDisk;
-	WORD	nTotalFiles;
-	DWORD	nDirectorySize;
-	DWORD	nDirectoryOffset;
-	WORD	nCommentLen;
-} ZIP_DIRECTORY_LOC;
-#pragma pack(pop)
-
-bool CZIPFile::LocateCentralDirectory()
-{
-	BYTE pBuffer[4096];
-	DWORD nBuffer;
-
-	SetFilePointer(m_hFile, -(LONG)sizeof pBuffer, NULL, FILE_END);
-	if (!::ReadFile(m_hFile, pBuffer, sizeof pBuffer, &nBuffer, NULL))
-		return false;
-
-	ZIP_DIRECTORY_LOC *pLoc = NULL;
-	for (INT_PTR nScan = nBuffer - sizeof(ZIP_DIRECTORY_LOC) + 1; --nScan >= 0;) {
-		DWORD *pnSignature = (DWORD*)&pBuffer[nScan];
-		if (*pnSignature == 0x06054b50) {
-			pLoc = (ZIP_DIRECTORY_LOC*)pnSignature;
-			break;
-		}
-	}
-	if (pLoc == NULL)
-		return false;
-	ASSERT(pLoc->nSignature == 0x06054b50);
-
-	if (GetFileSize(m_hFile, NULL) < pLoc->nDirectorySize)
-		return false;
-
-	if (SetFilePointer(m_hFile, pLoc->nDirectoryOffset, NULL, FILE_BEGIN) != pLoc->nDirectoryOffset)
-		return false;
-
-	BYTE *pDirectory = new BYTE[pLoc->nDirectorySize];
-	VERIFY(::ReadFile(m_hFile, pDirectory, pLoc->nDirectorySize, &nBuffer, NULL));
-
-	if (nBuffer == pLoc->nDirectorySize) {
-		m_nFile = (int)pLoc->nTotalFiles;
-		m_pFile = new File[m_nFile];
-		if (!ParseCentralDirectory(pDirectory, nBuffer)) {
-			m_nFile = 0;
-			delete[] m_pFile;
-			m_pFile = NULL;
-		}
-	}
-	delete[] pDirectory;
-
-	return m_nFile > 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile parse the central directory
-
-#pragma pack(push, 1)
-typedef struct
-{
-	DWORD	nSignature;		// 0x02014b50
-	WORD	nWriteVersion;
-	WORD	nReadVersion;
-	WORD	nFlags;
-	WORD	nCompression;
-	WORD	nFileTime;
-	WORD	nFileDate;
-	DWORD	nCRC;
-	DWORD	nCompressedSize;
-	DWORD	nActualSize;
-	WORD	nNameLen;
-	WORD	nExtraLen;
-	WORD	nCommentLen;
-	WORD	nStartDisk;
-	WORD	nInternalAttr;
-	DWORD	nExternalAttr;
-	DWORD	nLocalOffset;
-} ZIP_CENTRAL_FILE;
-#pragma pack(pop)
-
-bool CZIPFile::ParseCentralDirectory(BYTE *pDirectory, DWORD nDirectory)
-{
-	for (int nFile = 0; nFile < m_nFile; ++nFile) {
-		ZIP_CENTRAL_FILE *pRecord = (ZIP_CENTRAL_FILE*)pDirectory;
-
-		if (nDirectory < sizeof *pRecord)
-			return false;
-		if (pRecord->nSignature != 0x02014b50)
-			return false;
-
-		pDirectory += sizeof *pRecord;
-		nDirectory -= sizeof *pRecord;
-
-		int nTailLen = (int)pRecord->nNameLen + (int)pRecord->nExtraLen + (int)pRecord->nCommentLen;
-		if (nDirectory < (DWORD)nTailLen)
-			return false;
-
-		m_pFile[nFile].m_pZIP = this;
-		m_pFile[nFile].m_nSize = pRecord->nActualSize;
-		m_pFile[nFile].m_nLocalOffset = pRecord->nLocalOffset;
-		m_pFile[nFile].m_nCompressedSize = pRecord->nCompressedSize;
-		m_pFile[nFile].m_nCompression = pRecord->nCompression;
-
-		LPTSTR pszName = m_pFile[nFile].m_sName.GetBuffer(pRecord->nNameLen);
-
-		for (WORD nChar = 0; nChar < pRecord->nNameLen; ++nChar) {
-			pszName[nChar] = (TCHAR)pDirectory[nChar];
-			if (pszName[nChar] == '\\')
-				pszName[nChar] = '/';
-		}
-
-		m_pFile[nFile].m_sName.ReleaseBuffer(pRecord->nNameLen);
-
-		pDirectory += (DWORD)nTailLen;
-		nDirectory -= (DWORD)nTailLen;
-	}
-
-	return true;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile::File seek to a file
-
-#pragma pack(push, 1)
-typedef struct
-{
-	DWORD	nSignature;		// 0x04034b50
-	WORD	nVersion;
-	WORD	nFlags;
-	WORD	nCompression;
-	WORD	nFileTime;
-	WORD	nFileDate;
-	DWORD	nCRC;
-	DWORD	nCompressedSize;
-	DWORD	nActualSize;
-	WORD	nNameLen;
-	WORD	nExtraLen;
-} ZIP_LOCAL_FILE;
-#pragma pack(pop)
-
-bool CZIPFile::SeekToFile(const File *pFile)
-{
-	ASSERT(pFile != NULL && pFile->m_pZIP == this);
-	if (m_hFile == INVALID_HANDLE_VALUE)
-		return false;
-
-	if (SetFilePointer(m_hFile, (DWORD)pFile->m_nLocalOffset, NULL, FILE_BEGIN) != pFile->m_nLocalOffset)
-		return false;
-
-	ZIP_LOCAL_FILE pLocal;
-	DWORD nRead;
-	VERIFY(::ReadFile(m_hFile, &pLocal, sizeof pLocal, &nRead, NULL));
-	if (nRead != sizeof pLocal)
-		return false;
-
-	if (pLocal.nSignature != 0x04034b50)
-		return false;
-	if (pLocal.nCompression != Z_DEFLATED && pLocal.nCompression != 0)
-		return false;
-
-	SetFilePointer(m_hFile, pLocal.nNameLen + pLocal.nExtraLen, NULL, FILE_CURRENT);
-
-	return true;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile::File prepare to decompress
-
-bool CZIPFile::File::PrepareToDecompress(LPVOID pStream)
-{
-	memset(pStream, 0, sizeof z_stream);
-
-	if (m_pZIP->SeekToFile(this)) {
-		if (m_nCompression == 0)
-			return m_nSize == m_nCompressedSize;
-
-		if (m_nCompression == Z_DEFLATED)
-			return Z_OK == inflateInit2((z_stream*)pStream, -MAX_WBITS);
-	}
-	return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile::File decompress to memory
-
-/*CBuffer* CZIPFile::File::Decompress()
-{
-	z_stream pStream;
-
-	if (m_nSize > 32 * 1024 * 1024)
-		return NULL;
-	if (!PrepareToDecompress(&pStream))
-		return NULL;
-
-	if (m_nCompression == 0) {
-		CBuffer *pTarget = new CBuffer();
-		pTarget->EnsureBuffer((DWORD)m_nSize);
-		::ReadFile(m_pZIP->m_hFile, pTarget->m_pBuffer, (DWORD)m_nSize, &pTarget->m_nLength, NULL);
-		if (pTarget->m_nLength == (DWORD)m_nSize)
-			return pTarget;
-		delete pTarget;
-		return NULL;
-	}
-
-	DWORD nSource = (DWORD)m_nCompressedSize;
-	DWORD rSource;
-	BYTE *pSource = new BYTE[nSource];
-	::ReadFile(m_pZIP->m_hFile, pSource, nSource, &rSource, NULL);
-
-	if (nSource != rSource) {
-		inflateEnd(&pStream);
-		delete[] pSource;
-		return NULL;
-	}
-
-	CBuffer *pTarget = new CBuffer();
-	pTarget->EnsureBuffer((DWORD)m_nSize);
-	pTarget->m_nLength = (DWORD)m_nSize;
-
-	pStream.next_in = pSource;
-	pStream.avail_in = (DWORD)m_nCompressedSize;
-	pStream.next_out = pTarget->m_pBuffer;
-	pStream.avail_out = pTarget->m_nLength;
-
-	inflate(&pStream, Z_FINISH);
-
-	delete[] pSource;
-
-	if (pStream.avail_out != 0) {
-		delete pTarget;
-		pTarget = NULL;
-	}
-
-	inflateEnd(&pStream);
-
-	return pTarget;
-}*/
-
-/////////////////////////////////////////////////////////////////////////////
-// CZIPFile::File decompress to disk
-
-#define BUFFER_IN_SIZE		(64*1024)
-#define BUFFER_OUT_SIZE		(128*1024)
+// CZIPFile::File extract
 
 bool CZIPFile::File::Extract(LPCTSTR pszFile)
 {
-	z_stream pStream;
-	HANDLE hFile;
+    if (!m_pZIP || !m_pZIP->m_hZip) return false;
 
-	hFile = ::CreateFile(pszFile, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-		return false;
+    // Restore position
+    if (unzGoToFilePos64(m_pZIP->m_hZip, &m_ZipPos) != UNZ_OK) return false;
 
-	if (!PrepareToDecompress(&pStream)) {
-		::CloseHandle(hFile);
-		::DeleteFile(pszFile);
-		return false;
-	}
+    if (unzOpenCurrentFile(m_pZIP->m_hZip) != UNZ_OK) return false;
 
-	uint64 nUncompressed = 0;
-	BYTE *pBufferOut = new BYTE[BUFFER_OUT_SIZE];
+    // Create output file
+    HANDLE hOut = ::CreateFile(pszFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hOut == INVALID_HANDLE_VALUE) {
+        unzCloseCurrentFile(m_pZIP->m_hZip);
+        return false;
+    }
 
-	if (m_nCompression == Z_DEFLATED) {
-		BYTE *pBufferIn = new BYTE[BUFFER_IN_SIZE];
+    const DWORD BUFFER_SIZE = 65536; // 64K buffer
+    BYTE* pBuffer = new BYTE[BUFFER_SIZE];
+    int nRead = 0;
+    bool bOk = true;
 
-		for (uint64 nCompressed = 0; nCompressed < m_nCompressedSize || nUncompressed < m_nSize;) {
-			if (pStream.avail_in == 0) {
-				pStream.avail_in = (DWORD)min(m_nCompressedSize - nCompressed, BUFFER_IN_SIZE);
-				pStream.next_in = pBufferIn;
+    do {
+        nRead = unzReadCurrentFile(m_pZIP->m_hZip, pBuffer, BUFFER_SIZE);
+        if (nRead < 0) {
+            bOk = false;
+            break;
+        }
+        if (nRead > 0) {
+            DWORD nWritten;
+            if (!::WriteFile(hOut, pBuffer, (DWORD)nRead, &nWritten, NULL) || nWritten != (DWORD)nRead) {
+                bOk = false;
+                break;
+            }
+        }
+    } while (nRead > 0);
 
-				DWORD nRead;
-				VERIFY(::ReadFile(m_pZIP->m_hFile, pBufferIn, pStream.avail_in, &nRead, NULL));
-				if (nRead != pStream.avail_in)
-					break;
-				nCompressed += nRead;
-			}
+    delete[] pBuffer;
+    ::CloseHandle(hOut);
+    unzCloseCurrentFile(m_pZIP->m_hZip);
 
-			pStream.avail_out = BUFFER_OUT_SIZE;
-			pStream.next_out = pBufferOut;
+    if (!bOk) {
+        ::DeleteFile(pszFile);
+        return false;
+    }
 
-			if (inflate(&pStream, Z_SYNC_FLUSH) == Z_MEM_ERROR)
-				break;
-
-			if (pStream.avail_out < BUFFER_OUT_SIZE) {
-				DWORD nWrite = BUFFER_OUT_SIZE - pStream.avail_out;
-				DWORD nWritten;
-				::WriteFile(hFile, pBufferOut, nWrite, &nWritten, NULL);
-				if (nWritten != nWrite)
-					break;
-				nUncompressed += nWrite;
-			}
-		}
-
-		delete[] pBufferIn;
-
-		inflateEnd(&pStream);
-	} else
-		while (nUncompressed < m_nSize) {
-			DWORD nChunk = (DWORD)min(m_nSize - nUncompressed, BUFFER_OUT_SIZE);
-			DWORD nProcess;
-
-			VERIFY(::ReadFile(m_pZIP->m_hFile, pBufferOut, nChunk, &nProcess, NULL));
-			if (nChunk != nProcess)
-				break;
-			::WriteFile(hFile, pBufferOut, nChunk, &nProcess, NULL);
-			if (nChunk != nProcess)
-				break;
-			nUncompressed += nChunk;
-		}
-
-	delete[] pBufferOut;
-	::CloseHandle(hFile);
-
-	if (nUncompressed >= m_nSize)
-		return true;
-
-	::DeleteFile(pszFile);
-	return false;
+    return true;
 }
