@@ -19,6 +19,8 @@
 #include "SplashScreen.h"
 #include "OtherFunctions.h"
 
+void dprintf(const char* fmt, ...); // Executable-wide debug helper
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -44,11 +46,13 @@ CSplashScreen::~CSplashScreen()
 
 BOOL CSplashScreen::OnInitDialog()
 {
+	dprintf("Splash::OnInitDialog Enter");
 	CDialog::OnInitDialog();
 	InitWindowStyles(this);
 
 	VERIFY(m_imgSplash.Attach(theApp.LoadImage(_T("ABOUT"), _T("JPG"))));
 	if (m_imgSplash.GetSafeHandle()) {
+		dprintf("Splash::OnInitDialog Image Loaded");
 		BITMAP bmp;
 		if (m_imgSplash.GetBitmap(&bmp)) {
 			WINDOWPLACEMENT wp;
@@ -57,8 +61,11 @@ BOOL CSplashScreen::OnInitDialog()
 			wp.rcNormalPosition.bottom = wp.rcNormalPosition.top + bmp.bmHeight;
 			SetWindowPlacement(&wp);
 		}
+	} else {
+		dprintf("Splash::OnInitDialog Image Load FAILED");
 	}
 
+	dprintf("Splash::OnInitDialog Return");
 	return TRUE;
 }
 
