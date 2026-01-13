@@ -573,12 +573,12 @@ static bool ParseStreamHeader(int hAviFile, DWORD dwLengthLeft, STREAMHEADER *pS
 				memset(&pStrmHdr->hdr, 0x00, sizeof pStrmHdr->hdr);
 				if (_read(hAviFile, &pStrmHdr->hdr, dwLength) != (int)dwLength)
 					return false;
-				if (dwLength & 1 && _lseek(hAviFile, 1, SEEK_CUR) < 0)
+				if (dwLength & 1 && _lseeki64(hAviFile, 1, SEEK_CUR) < 0)
 					return false;
 			} else {
 				if (_read(hAviFile, &pStrmHdr->hdr, sizeof pStrmHdr->hdr) != sizeof pStrmHdr->hdr)
 					return false;
-				if (_lseek(hAviFile, (long)(dwLength + (dwLength & 1) - sizeof pStrmHdr->hdr), SEEK_CUR) < 0)
+				if (_lseeki64(hAviFile, (__int64)(dwLength + (dwLength & 1) - sizeof pStrmHdr->hdr), SEEK_CUR) < 0)
 					return false;
 			}
 			dwLength = 0;
@@ -597,7 +597,7 @@ static bool ParseStreamHeader(int hAviFile, DWORD dwLengthLeft, STREAMHEADER *pS
 			if (_read(hAviFile, pStrmHdr->fmt.dat, dwLength) != (int)dwLength)
 				return false;
 			if (dwLength & 1) {
-				if (_lseek(hAviFile, 1, SEEK_CUR) < 0)
+				if (_lseeki64(hAviFile, 1, SEEK_CUR) < 0)
 					return false;
 			}
 			dwLength = 0;
@@ -614,17 +614,17 @@ static bool ParseStreamHeader(int hAviFile, DWORD dwLengthLeft, STREAMHEADER *pS
 			if (_read(hAviFile, pStrmHdr->nam, dwLength) != (int)dwLength)
 				return false;
 			pStrmHdr->nam[dwLength] = '\0';
-			if (dwLength & 1 && _lseek(hAviFile, 1, SEEK_CUR) < 0)
+			if (dwLength & 1 && _lseeki64(hAviFile, 1, SEEK_CUR) < 0)
 				return false;
 
 			dwLength = 0;
 		}
 
-		if (dwLength && _lseek(hAviFile, dwLength + (dwLength & 1), SEEK_CUR) < 0)
+		if (dwLength && _lseeki64(hAviFile, (__int64)(dwLength + (dwLength & 1)), SEEK_CUR) < 0)
 			return false;
 	}
 
-	return !(dwLengthLeft && _lseek(hAviFile, dwLengthLeft, SEEK_CUR) < 0);
+	return !(dwLengthLeft && _lseeki64(hAviFile, (__int64)dwLengthLeft, SEEK_CUR) < 0);
 }
 
 bool GetRIFFHeaders(LPCTSTR pszFileName, SMediaInfo *mi, bool &rbIsAVI, bool bFullInfo)
@@ -926,7 +926,7 @@ bool GetRIFFHeaders(LPCTSTR pszFileName, SMediaInfo *mi, bool &rbIsAVI, bool bFu
 							bHaveReadAllStreams = true;
 						else {
 							if (dwLength & 1) {
-								if (_lseek(hAviFile, 1, SEEK_CUR) < 0)
+								if (_lseeki64(hAviFile, 1, SEEK_CUR) < 0)
 									bHaveReadAllStreams = true;
 							}
 							dwLength = 0;
@@ -964,7 +964,7 @@ bool GetRIFFHeaders(LPCTSTR pszFileName, SMediaInfo *mi, bool &rbIsAVI, bool bFu
 				if (_read(hAviFile, strmhdr.fmt.dat, dwLength) != (int)dwLength)
 					goto inv_format_errno;
 				if (dwLength & 1) {
-					if (_lseek(hAviFile, 1, SEEK_CUR) < 0)
+					if (_lseeki64(hAviFile, 1, SEEK_CUR) < 0)
 						goto inv_format_errno;
 				}
 				dwLength = 0;
@@ -997,7 +997,7 @@ bool GetRIFFHeaders(LPCTSTR pszFileName, SMediaInfo *mi, bool &rbIsAVI, bool bFu
 		if (bHaveReadAllStreams)
 			break;
 		if (dwLength) {
-			if (_lseek(hAviFile, dwLength + (dwLength & 1), SEEK_CUR) < 0)
+			if (_lseeki64(hAviFile, (__int64)(dwLength + (dwLength & 1)), SEEK_CUR) < 0)
 				goto inv_format_errno;
 		}
 	}
