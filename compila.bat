@@ -7,7 +7,7 @@ REM ============================================================
 cls
 echo.
 echo ========================================
-echo   eMule-Aishor R1.2 - Menu Principal
+echo   eMule-Aishor R0.1.2 - Menu Principal
 echo ========================================
 echo.
 echo   1. Descargar dependencias
