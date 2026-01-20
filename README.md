@@ -1,11 +1,11 @@
 # eMule-Aishor (Titanium Fiber R0.1.1 "Broadband")
 
-**Versión:** `0.72b-Build26-R0.1.3-x64`
+**Versión:** `0.72b-Build26-R0.1.2-x64`
 **Estado:** Estable / Producción x64
 
 ## Descripción
 Repositorio consolidado de eMule-Aishor optimizado para arquitectura **x64**. 
-Esta versión (R0.1.3) integra completamente el control por IA (MCP) y búsquedas Kad avanzadas.
+Esta versión (R0.1.2) integra completamente el control por IA (MCP) y búsquedas Kad avanzadas.
 
 ## Características Nuevas
 *   **Kad Search Custom**: Búsqueda Kademlia con parámetros de tiempo y resultados personalizables.
@@ -42,7 +42,7 @@ El ejecutable se generará en: `srchybrid\x64\Release\emule.exe`
 *   **[Historial de Cambios](docs/CHANGELOG.md)**: Registro completo de actualizaciones.
 
 ## 📄 Releases
-*   **[RELEASE R0.1.3 (FiberSight Pro)](docs/CHANGELOG.md)** - 20/01/2026 🆕
+*   **[RELEASE R0.1.2 (FiberSight Pro)](docs/CHANGELOG.md)** - 20/01/2026 🆕
     - **Kad Search**: Búsqueda personalizada (Tiempo/Límite).
     - **MCP**: Integración completa con Claude.
     - **Docs**: Nueva documentación API y MCP.

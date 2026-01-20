@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.72b-Build26-R0.1.3-x64] - 2026-01-20 - FiberSight Pro
+## [v0.72b-Build26-R0.1.2-x64] - 2026-01-20 - FiberSight Pro
 
 ### ⭐ New Features
 - **Kad Search Customization:**

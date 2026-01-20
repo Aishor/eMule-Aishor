@@ -45,6 +45,6 @@
 
 // NOTE: This version string is also used by the language DLLs!
 #define	SZ_VERSION_NAME		chSTR(VERSION_MJR) _T(".") chSTR(VERSION_MIN) _T(".") chSTR(VERSION_UPDATE) \
-                            _T("-Build") chSTR(VERSION_BUILD) _T("-R0.1.3") VERSION_PLATFORM
+                            _T("-Build") chSTR(VERSION_BUILD) _T("-R0.1.2") VERSION_PLATFORM
 
 #endif /* !__VERSION_H__ */
