@@ -21,6 +21,7 @@
 #include "kademlia/kademlia/Kademlia.h"
 #include "kademlia/kademlia/SearchManager.h"
 #include "kademlia/kademlia/Search.h"
+#include "kademlia/kademlia/Defines.h"
 #include "emule.h"
 
 #ifdef _DEBUG
@@ -511,8 +512,8 @@ CString CLLMApiServer::_Search(const ApiThreadData &Data) {
                       // Apply custom limits if specified
                       if (pParams->uKadCustomTime > 0 || pParams->uKadCustomLimit > 0) {
                           pKadSearch->SetCustomLimits(
-                              pParams->uKadCustomTime > 0 ? pParams->uKadCustomTime : Kademlia::SEARCHKEYWORD_LIFETIME,
-                              pParams->uKadCustomLimit > 0 ? pParams->uKadCustomLimit : Kademlia::SEARCHKEYWORD_TOTAL
+                              pParams->uKadCustomTime > 0 ? pParams->uKadCustomTime : SEARCHKEYWORD_LIFETIME,
+                              pParams->uKadCustomLimit > 0 ? pParams->uKadCustomLimit : SEARCHKEYWORD_TOTAL
                           );
                       }
                       
