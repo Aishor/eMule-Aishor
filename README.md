@@ -32,8 +32,14 @@ Ejecutar en PowerShell:
 ```
 El ejecutable se generará en: `srchybrid\x64\Release\emule.exe`
 
+## 📄 Documentación
+*   **[Manual de Búsqueda Kad](docs/KadSearch.md)**: Guía para búsquedas personalizadas (Tiempo/Límite).
+*   **[Integración MCP (Claude)](docs/mcp.md)**: Guía de instalación y uso de Model Context Protocol.
+*   **[Referencia API MCP](docs/api.mcp.md)**: Lista completa de herramientas disponibles para LLMs.
+*   **[Historial de Cambios](docs/CHANGELOG.md)**: Registro completo de actualizaciones.
+
 ## 📄 Releases
-*   **[RELEASE R0.1.1 (Broadband)](CHANGELOG.md)** - 13/01/2026 🆕
+*   **RELEASE R0.1.1 (Broadband)** - 13/01/2026
     - **ZIP64**: Soporte archivos >4GB.
     - **MediaInfo**: Fix I/O 64-bit.
 *   [RELEASE R1.3 (FiberSight)](docs/LLM_API.md) - 10/01/2026
