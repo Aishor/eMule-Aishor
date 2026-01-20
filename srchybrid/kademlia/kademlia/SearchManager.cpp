@@ -276,12 +276,13 @@ void CSearchManager::JumpStart()
 				bStop = true;
 			break;
 		case CSearch::KEYWORD:
-			if (tNow >= pSearch->m_tCreated + SEARCHKEYWORD_LIFETIME) {
+			if (tNow >= pSearch->m_tCreated + (pSearch->m_uMaxLifetime > 0 ? pSearch->m_uMaxLifetime : SEARCHKEYWORD_LIFETIME)) {
 				bDel = true;
 				// Tell GUI that search ended
 				if (theApp.emuledlg->searchwnd)
 					theApp.emuledlg->searchwnd->CancelKadSearch(pSearch->GetSearchID());
-			} else if (pSearch->GetAnswers() >= SEARCHKEYWORD_TOTAL || tNow >= pSearch->m_tCreated + SEARCHKEYWORD_LIFETIME - SEC(20))
+			} else if (pSearch->GetAnswers() >= (pSearch->m_uMaxResults > 0 ? pSearch->m_uMaxResults : SEARCHKEYWORD_TOTAL) 
+				|| tNow >= pSearch->m_tCreated + (pSearch->m_uMaxLifetime > 0 ? pSearch->m_uMaxLifetime : SEARCHKEYWORD_LIFETIME) - SEC(20))
 				bStop = true;
 			break;
 		case CSearch::NOTES:

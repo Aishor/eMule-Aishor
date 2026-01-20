@@ -22,14 +22,15 @@ if (-not (Test-Path $msbuild)) {
 Write-Host "[1/4] Preparando dependencias..." -ForegroundColor Cyan
 # cmd /c copy_libs.bat
 
-# Paso 2: Compilar eMule
+# Paso 2: Compilar eMule (Rebuild explícito)
 Write-Host ""
-Write-Host "[2/4] Compilando emule.exe..." -ForegroundColor Cyan
+Write-Host "[2/4] Compilando emule.exe (Clean + Build)..." -ForegroundColor Cyan
 
 $logFile = "build_log.txt"
 $errorLog = "build_errors.txt"
 
-& $msbuild "srchybrid\emule.vcxproj" /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl "/flp:LogFile=$logFile;Verbosity=minimal" "/flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly"
+# Usamos /t:Rebuild para asegurar limpieza total a nivel de compilador
+& $msbuild "srchybrid\emule.vcxproj" /t:Rebuild /p:Configuration=$config /p:Platform=$platform /m /v:minimal /fl "/flp:LogFile=$logFile;Verbosity=minimal" "/flp1:LogFile=$errorLog;Verbosity=minimal;errorsonly"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""

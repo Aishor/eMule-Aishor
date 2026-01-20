@@ -44,6 +44,7 @@ BEGIN_MESSAGE_MAP(CSearchParamsWnd, CDialogBar)
 	ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(WM_INITDIALOG, OnInitDialog)
 	ON_BN_CLICKED(IDC_STARTS, OnBnClickedStart)
+	ON_BN_CLICKED(IDC_START_KAD_CUSTOM, OnBnClickedStartKadCustom)
 	ON_BN_CLICKED(IDC_CANCELS, OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_MORE, OnBnClickedMore)
 	ON_EN_CHANGE(IDC_SEARCHNAME, OnEnChangeName)
@@ -81,8 +82,11 @@ void CSearchParamsWnd::DoDataExchange(CDataExchange *pDX)
 	DDX_Control(pDX, IDC_SEARCHNAME, m_ctlName);
 	DDX_Control(pDX, IDC_SEARCH_OPTS, m_ctlOpts);
 	DDX_Control(pDX, IDC_STARTS, m_ctlStart);
+	DDX_Control(pDX, IDC_START_KAD_CUSTOM, m_ctlStartKadCustom);
 	DDX_Control(pDX, IDC_CANCELS, m_ctlCancel);
 	DDX_Control(pDX, IDC_MORE, m_ctlMore);
+	DDX_Control(pDX, IDC_KAD_TIME, m_ctlKadTime);
+	DDX_Control(pDX, IDC_KAD_LIMIT, m_ctlKadLimit);
 }
 
 LRESULT CSearchParamsWnd::OnInitDialog(WPARAM, LPARAM)
@@ -451,6 +455,14 @@ void CSearchParamsWnd::UpdateControls()
 	m_ctlOpts.SetItemData(orTitle, dwData); //KAD only
 	m_ctlOpts.SetItemData(orAlbum, dwData);	//
 	m_ctlOpts.SetItemData(orArtist, dwData);//
+
+	// Habilitar/deshabilitar controles Kad Custom según método
+	BOOL bIsKad = (iMethod == SearchTypeKademlia);
+	m_ctlStartKadCustom.EnableWindow(bIsKad);
+	m_ctlKadTime.EnableWindow(bIsKad);
+	m_ctlKadLimit.EnableWindow(bIsKad);
+	GetDlgItem(IDC_KAD_TIME_LBL)->EnableWindow(bIsKad);
+	GetDlgItem(IDC_KAD_LIMIT_LBL)->EnableWindow(bIsKad);
 }
 
 void CSearchParamsWnd::SetAllIcons()
@@ -664,6 +676,67 @@ void CSearchParamsWnd::OnBnClickedStart()
 				m_pacSearchString->AddItem(pParams->strExpression, 0);
 			m_searchdlg->StartSearch(pParams);
 		}
+}
+
+void CSearchParamsWnd::OnBnClickedStartKadCustom()
+{
+	// Validar que el método sea Kademlia
+	int iMethod = m_ctlMethod.GetCurSel();
+	if (iMethod != SearchTypeKademlia) {
+		AfxMessageBox(_T("Este botón solo funciona para búsquedas Kademlia"), MB_ICONINFORMATION);
+		return;
+	}
+
+	// Leer valores de UI
+	CString strTime, strLimit;
+	m_ctlKadTime.GetWindowText(strTime);
+	m_ctlKadLimit.GetWindowText(strLimit);
+
+	uint32 uTime = 0;   // 0 = usar por defecto
+	uint32 uLimit = 0;  // 0 = usar por defecto
+
+	// Validar y convertir tiempo (máx 600s = 10 minutos)
+	if (!strTime.IsEmpty()) {
+		int iTime = _tstoi(strTime);
+		if (iTime > 0 && iTime <= 600)
+			uTime = (uint32)iTime;
+		else {
+			AfxMessageBox(_T("El tiempo debe estar entre 1 y 600 segundos"), MB_ICONWARNING);
+			return;
+		}
+	}
+
+	// Validar y convertir límite de resultados (máx 3000)
+	if (!strLimit.IsEmpty()) {
+		int iLimit = _tstoi(strLimit);
+		if (iLimit > 0 && iLimit <= 3000)
+			uLimit = (uint32)iLimit;
+		else {
+			AfxMessageBox(_T("El límite debe estar entre 1 y 3000 resultados"), MB_ICONWARNING);
+			return;
+		}
+	}
+
+	// Obtener parámetros de búsqueda normales
+	m_ctlMore.EnableWindow(FALSE);
+	if (m_ctlOpts.GetEditCtrl()->GetSafeHwnd())
+		m_ctlOpts.CommitEdit();
+
+	SSearchParams *pParams = GetParameters();
+	if (pParams) {
+		if (pParams->strExpression.IsEmpty()) {
+			delete pParams;
+		} else {
+			// Guardar límites custom
+			pParams->uKadCustomTime = uTime;
+			pParams->uKadCustomLimit = uLimit;
+
+			// Iniciar búsqueda
+			if (m_pacSearchString && m_pacSearchString->IsBound())
+				m_pacSearchString->AddItem(pParams->strExpression, 0);
+			m_searchdlg->StartSearch(pParams);
+		}
+	}
 }
 
 void CSearchParamsWnd::OnBnClickedMore()
