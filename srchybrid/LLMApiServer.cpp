@@ -20,6 +20,7 @@
 #include "UploadQueue.h"
 #include "kademlia/kademlia/Kademlia.h"
 #include "kademlia/kademlia/SearchManager.h"
+#include "kademlia/kademlia/Search.h"
 #include "emule.h"
 
 #ifdef _DEBUG
@@ -495,12 +496,40 @@ CString CLLMApiServer::_Search(const ApiThreadData &Data) {
   bool bStarted = false;
   if (pParams->eType == SearchTypeKademlia) {
       if (Kademlia::CKademlia::IsRunning()) {
-          // Kademlia search logic needs SearchManager access which might be protected
-          // Using ::StartSearch provided by Kademlia exports/interface
-          // If GetSearchManager is missing, check Kademlia.h
-          // For now, commenting out direct access if invalid
-          // Kademlia::CKademlia::GetSearchManager()->StartSearch(pParams);
-          bStarted = false; // TODO: Implement Kademlia search trigger correctly
+          // Tokenize input to get main keyword
+          CString strKeyword = pParams->strExpression;
+          int iPos = 0;
+          strKeyword = strKeyword.Tokenize(_T(" "), iPos);
+          strKeyword.Trim();
+          
+          if (!strKeyword.IsEmpty()) {
+              // Prepare simple keyword search (no binary filters for now)
+              // TODO: Implement binary filter packet for size/type constraints
+              try {
+                  Kademlia::CSearch* pKadSearch = Kademlia::CSearchManager::PrepareFindKeywords(strKeyword, 0, NULL);
+                  if (pKadSearch) {
+                      // Apply custom limits if specified
+                      if (pParams->uKadCustomTime > 0 || pParams->uKadCustomLimit > 0) {
+                          pKadSearch->SetCustomLimits(
+                              pParams->uKadCustomTime > 0 ? pParams->uKadCustomTime : SEARCHKEYWORD_LIFETIME,
+                              pParams->uKadCustomLimit > 0 ? pParams->uKadCustomLimit : SEARCHKEYWORD_TOTAL
+                          );
+                      }
+                      
+                      // Update ID map
+                      pParams->dwSearchID = pKadSearch->GetSearchID();
+                      
+                      // Start search
+                      if (Kademlia::CSearchManager::StartSearch(pKadSearch)) {
+                          bStarted = true;
+                          theApp.searchlist->NewSearch(NULL, pParams->strFileType, pParams);
+                      }
+                  }
+              } catch(...) {
+                  // Catch exceptions from search preparation
+                  bStarted = false;
+              }
+          }
       }
   } else {
       // Ed2k (Server o Global)
