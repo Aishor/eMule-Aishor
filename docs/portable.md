@@ -28,9 +28,19 @@ eMule-Aishor incorpora un "interruptor físico" basado en la presencia de un arc
     *   **Importante**: Asegúrate de borrar la extensión `.txt`. El archivo debe llamarse exactamente `portable.dat`. (Puede ser un archivo vacío, su contenido es irrelevante).
 3.  **Ejecuta eMule**: Inicia `emule.exe`. El programa detectará el archivo y creará automáticamente las carpetas `config`, `Incoming` y `Temp` a su lado.
 
-## Migración a Portable
-Si quieres convertir tu instalación actual a portable y conservar tus datos:
-1.  Cierra eMule.
-2.  Crea el archivo `portable.dat` junto a `emule.exe`.
-3.  Copia el contenido de tu carpeta `config` original (normalmente en `%LocalAppData%\eMule\config`) a la carpeta `config` que está junto a `emule.exe` (créala si no existe).
-4.  Mueve tus archivos `Temp` e `Incoming` si lo deseas, o reconfigura las rutas en *Preferencias -> Directorios* una vez iniciado.
+## Auto-Migración (Legacy a Portable)
+Para los usuarios que vienen de una instalación antigua y quieren usar la versión portable sin perder su identidad (créditos, amigos, ID):
+
+**¡Es automático!**
+Al arrancar eMule en modo portable por primera vez:
+1.  eMule detecta que estás activo (`portable.dat` existe).
+2.  Comprueba si tu carpeta `config` portable está vacía.
+3.  Si está vacía, busca tu instalación antigua en `%AppData%`.
+4.  Si la encuentra, **copia automáticamente** tus archivos vitales:
+    -   `cryptkey.dat` (Tu identidad/créditos)
+    -   `preferences.ini` (Tu configuración)
+    -   `clients.met` (Lo que otros te deben)
+    -   `server.met` (Tus servidores)
+
+**Nota**: Esto **SOLO** ocurre si la carpeta `config` junto al ejecutable no existe o está vacía (no contiene `preferences.ini`). Si ya has configurado el eMule portable, no se sobrescribirá nada.
+
