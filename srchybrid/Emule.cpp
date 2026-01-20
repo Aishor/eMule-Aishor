@@ -401,6 +401,55 @@ static BOOL InitWinsock2(WSADATA *lpwsaData)
 
 // CemuleApp Initialisierung
 
+#include <shlobj.h>
+
+// [TITANIUM FIBERSIGHT] Helper para Migración Automática
+void AttemptLegacyMigration(const CString& strDestConfigDir)
+{
+    // 1. Seguridad: Si ya existe configuración portable, NO hacemos nada.
+    if (PathFileExists(strDestConfigDir + _T("preferences.ini"))) {
+        return;
+    }
+
+    // 2. Obtener la ruta antigua (%AppData%\eMule\config)
+    TCHAR szAppData[MAX_PATH];
+    if (SHGetSpecialFolderPath(NULL, szAppData, CSIDL_APPDATA, FALSE))
+    {
+        CString strLegacyConfig;
+        strLegacyConfig.Format(_T("%s\\eMule\\config\\"), szAppData);
+
+        // Si la instalación antigua no existe, abortamos
+        if (!PathFileExists(strLegacyConfig + _T("preferences.ini"))) return;
+
+        // 3. Lista de "Órganos Vitales" a trasplantar
+        // cryptkey.dat = La identidad (CRÍTICO para no perder créditos)
+        // clients.met  = Créditos que otros nos deben
+        const TCHAR* arrFiles[] = { 
+            _T("preferences.ini"), 
+            _T("cryptkey.dat"), 
+            _T("clients.met"), 
+            _T("server.met"), 
+            _T("known.met"),      // Opcional: Historial de descargas (puede ser grande)
+            _T("ipfilter.dat") 
+        };
+
+        // 4. Ejecutar el robo (Copia silenciosa)
+        int nCopied = 0;
+        for (int i = 0; i < _countof(arrFiles); i++) {
+            CString src = strLegacyConfig + arrFiles[i];
+            CString dst = strDestConfigDir + arrFiles[i];
+            
+            if (CopyFile(src, dst, TRUE)) { // TRUE = No sobrescribir si existe (doble seguridad)
+                nCopied++;
+            }
+        }
+
+        if (nCopied > 0) {
+            LogWarning(_T("[Portable] Auto-Migration: %d files imported from Legacy AppData."), nCopied);
+        }
+    }
+}
+
 BOOL CemuleApp::InitInstance()
 {
 #ifdef _DEBUG
@@ -498,6 +547,12 @@ BOOL CemuleApp::InitInstance()
 	extern bool SelfTest();
 	if (!SelfTest())
 		return FALSE; // DO *NOT* START !!!
+
+	// --- TITANIUM FIBERSIGHT: AUTO-MIGRATION ---
+	// Si estamos en modo portable y la carpeta está vacía,
+	// intentamos rescatar la configuración del usuario de AppData.
+	AttemptLegacyMigration(sConfDir);
+	// -------------------------------------------
 
 	// create & initialize all the important stuff
 	thePrefs.Init();
