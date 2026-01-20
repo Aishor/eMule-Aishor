@@ -1,16 +1,17 @@
 # eMule-Aishor (Titanium Fiber R0.1.1 "Broadband")
 
-**Versión:** `0.72b-Build26-R0.1.1-x64`
+**Versión:** `0.72b-Build26-R0.1.3-x64`
 **Estado:** Estable / Producción x64
 
 ## Descripción
 Repositorio consolidado de eMule-Aishor optimizado para arquitectura **x64**. 
-Esta versión (R0.1.1) marca un hito en la estabilidad y capacidad de manejo de archivos grandes, con una auditoría completa de 64-bit y nuevo motor de compresión.
+Esta versión (R0.1.3) integra completamente el control por IA (MCP) y búsquedas Kad avanzadas.
 
-## Características Nuevas (v0.72b)
-*   **🚀 ZIP64 Nativo:** Implementación completa de `minizip` reemplazando el código legacy. Soporte real para comprimir/descomprimir archivos >4GB.
-*   **🏗️ Full 64-bit I/O:** Auditoría y corrección total de punteros de archivo. Repara lectura de metadatos en archivos multimedia gigantes (>2GB) en `MediaInfo.cpp`.
-*   **🛡️ Auditoría de Tipos:** Verificación exhaustiva de compatibilidad x64 en todos los módulos críticos.
+## Características Nuevas
+*   **Kad Search Custom**: Búsqueda Kademlia con parámetros de tiempo y resultados personalizables.
+*   **Model Context Protocol (MCP)**: Servidor integrado para control total mediante IA (Claude).
+*   **🚀 ZIP64 Nativo:** Soporte real para archivos >4GB.
+*   **🏗️ Full 64-bit I/O:** Auditoría total de punteros de archivo y MediaInfo.
 
 ## Características Base
 *   **Arquitectura:** x64 Nativo (AVX2 Enabled).
@@ -24,6 +25,8 @@ Esta versión (R0.1.1) marca un hito en la estabilidad y capacidad de manejo de 
 *   `srchybrid/`: Código fuente principal de eMule.
 *   `[libs]/`: Carpetas de dependencias (headers + .lib).
 *   `build_x64.ps1`: Script automatizado de compilación.
+*   `tools/`: Scripts de soporte MCP/Python.
+*   `docs/`: Documentación del proyecto.
 
 ## Compilación Rápida
 Ejecutar en PowerShell:
@@ -39,7 +42,11 @@ El ejecutable se generará en: `srchybrid\x64\Release\emule.exe`
 *   **[Historial de Cambios](docs/CHANGELOG.md)**: Registro completo de actualizaciones.
 
 ## 📄 Releases
-*   **RELEASE R0.1.1 (Broadband)** - 13/01/2026
+*   **[RELEASE R0.1.3 (FiberSight Pro)](docs/CHANGELOG.md)** - 20/01/2026 🆕
+    - **Kad Search**: Búsqueda personalizada (Tiempo/Límite).
+    - **MCP**: Integración completa con Claude.
+    - **Docs**: Nueva documentación API y MCP.
+*   [RELEASE R0.1.1 (Broadband)](docs/CHANGELOG.md) - 13/01/2026
     - **ZIP64**: Soporte archivos >4GB.
     - **MediaInfo**: Fix I/O 64-bit.
 *   [RELEASE R1.3 (FiberSight)](docs/LLM_API.md) - 10/01/2026
