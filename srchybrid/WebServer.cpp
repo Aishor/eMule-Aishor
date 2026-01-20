@@ -4,6 +4,7 @@
 #include "emule.h"
 #include "StringConversion.h"
 #include "WebServer.h"
+#include "LLMApiServer.h"  // [LLM-API] Integración
 #include "ClientCredits.h"
 #include "ClientList.h"
 #include "DownloadQueue.h"
@@ -356,6 +357,14 @@ void CWebServer::_ProcessURL(const ThreadData &Data)
 		return;
 
 	InitThreadLocale();
+
+	// [LLM-API] Intercept API requests early
+	// Si la URL es para la API, la procesamos y retornamos inmediatamente
+	// antes de cualquier chequeo de sesión web normal.
+	if (CLLMApiServer::ProcessRequest(*reinterpret_cast<const ThreadData*>(&Data))) {
+		// La API se encarga de enviar la respuesta y cerrar
+		return;
+	}
 
 	//(0.29b)//////////////////////////////////////////////////////////////////
 	// Here we are in real trouble! We are accessing the entire emule main thread

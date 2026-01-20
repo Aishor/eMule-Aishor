@@ -124,24 +124,32 @@ BOOL CServerWnd::OnInitDialog()
 		servermsgbox->SetTitle(GetResString(IDS_SV_SERVERINFO));
 
 		// Custom Aishor Info
-		servermsgbox->AppendText(_T("eMule v0.72b-Build26-R0.1.1-x64\n"));
-		servermsgbox->AppendText(_T("\n"));
-		servermsgbox->AppendText(_T("Proyecto no oficial de actualizacion de eMule\n"));
+		servermsgbox->AppendText(_T("eMule v"));
+		servermsgbox->AppendText(theApp.m_strCurVersionLong);
+		servermsgbox->AppendText(_T("\n\n"));
 		
+		servermsgbox->AppendText(_T("Proyecto no oficial de actualizacion de eMule\n"));
 		servermsgbox->AppendText(_T("Actualizaciones y descargas: "));
-		servermsgbox->AppendHyperLink(_T("https://github.com/Aishor/eMule-Aishor"), _T("https://github.com/Aishor/eMule-Aishor"), _T("https://github.com/Aishor/eMule-Aishor"), NULL);
+		servermsgbox->AppendHyperLink(_T("https://github.com/Aishor/eMule-Aishor"), NULL, _T("https://github.com/Aishor/eMule-Aishor"), NULL);
 		servermsgbox->AppendText(_T("\n\n"));
 
 		servermsgbox->AppendText(_T("If you enjoy using this eMule, buy me a coffee\n"));
-		servermsgbox->AppendText(_T("Si este eMule te resulta útil, invítame a un café\n"));
+		servermsgbox->AppendText(_T("Si este eMule te resulta \u00FAtil, inv\u00EDtame a un caf\u00E9\n"));
 		
 		servermsgbox->AppendText(_T("Ko-fi -> "));
-		servermsgbox->AppendHyperLink(_T("https://ko-fi.com/aishor"), _T("https://ko-fi.com/aishor"), _T("https://ko-fi.com/aishor"), NULL);
+		servermsgbox->AppendHyperLink(_T("https://ko-fi.com/aishor"), NULL, _T("https://ko-fi.com/aishor"), NULL);
 		servermsgbox->AppendText(_T("\n"));
-
+		
 		servermsgbox->AppendText(_T("PayPal -> "));
-		servermsgbox->AppendHyperLink(_T("https://www.paypal.com/paypalme/Aishor"), _T("https://www.paypal.com/paypalme/Aishor"), _T("https://www.paypal.com/paypalme/Aishor"), NULL);
+		servermsgbox->AppendHyperLink(_T("https://www.paypal.com/paypalme/Aishor"), NULL, _T("https://www.paypal.com/paypalme/Aishor"), NULL);
 		servermsgbox->AppendText(_T("\n\n"));
+		
+		// Legacy link support (kept but hidden/moved if needed, or just removed if replacements are sufficient)
+		/*
+		m_strClickNewVersion.Format(_T("%s %s %s"), (LPCTSTR)GetResString(IDS_EMULEW), (LPCTSTR)GetResString(IDS_EMULEW3), (LPCTSTR)GetResString(IDS_EMULEW2));
+		servermsgbox->SetAutoURLDetect(TRUE);
+		servermsgbox->AppendHyperLink(m_strClickNewVersion, NULL, thePrefs.GetVersionCheckURL(), NULL);
+		*/
 	}
 
 	GetDlgItem(IDC_LOGBOX)->GetWindowRect(&rect);

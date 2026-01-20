@@ -40,8 +40,11 @@ public:
 
 	CEditX m_ctlName;
 	CButton m_ctlStart;
+	CButton m_ctlStartKadCustom;
 	CButton m_ctlCancel;
 	CButton m_ctlMore;
+	CEdit m_ctlKadTime;
+	CEdit m_ctlKadLimit;
 	CSearchResultsWnd *m_searchdlg;
 
 	void Localize();
@@ -94,6 +97,7 @@ protected:
 	afx_msg LRESULT OnInitDialog(WPARAM, LPARAM);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnBnClickedStart();
+	afx_msg void OnBnClickedStartKadCustom();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedMore();
 	afx_msg void OnCbnSelChangeMethod();

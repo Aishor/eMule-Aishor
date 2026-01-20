@@ -5,7 +5,7 @@ Model Context Protocol server para control conversacional de eMule mediante Clau
 Expone la API REST de eMule como tools y resources MCP para que Claude
 pueda controlar eMule mediante lenguaje natural.
 
-Versión: R1.3 "FiberSight"
+Versi├│n: R1.3 "FiberSight"
 """
 
 import asyncio
@@ -18,15 +18,15 @@ import httpx
 from mcp.server import Server
 from mcp.types import Tool, TextContent, Resource
 
-# Configuración de logging
+# Configuraci├│n de logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("emule-mcp")
 
 # ============================================================================
-# CONFIGURACIÓN
+# CONFIGURACI├ôN
 # ============================================================================
 
 EMULE_API_URL = os.getenv("EMULE_API_URL", "http://localhost:4711/api/v1")
@@ -40,13 +40,19 @@ class EMuleAPIClient:
     """Cliente para interactuar con la API REST de eMule"""
     
     def __init__(self, base_url: str, api_key: str):
+        if not base_url.endswith("/"):
+            base_url += "/"
         self.base_url = base_url
         self.headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self.client = httpx.AsyncClient(timeout=30.0)
     
     async def get(self, endpoint: str) -> dict:
         """GET request a la API"""
-        url = urljoin(self.base_url, endpoint)
+        # Concatenación manual para evitar problemas con urljoin y endpoints con / inicial
+        base = self.base_url.rstrip("/")
+        path = endpoint.lstrip("/")
+        url = f"{base}/{path}"
+        
         logger.debug(f"GET {url}")
         
         try:
@@ -59,7 +65,11 @@ class EMuleAPIClient:
     
     async def post(self, endpoint: str, json_data: dict = None) -> dict:
         """POST request a la API"""
-        url = urljoin(self.base_url, endpoint)
+        # Concatenación manual
+        base = self.base_url.rstrip("/")
+        path = endpoint.lstrip("/")
+        url = f"{base}/{path}"
+        
         logger.debug(f"POST {url}")
         
         try:
@@ -122,16 +132,16 @@ async def resolve_download(api: EMuleAPIClient, hash_or_name: str) -> tuple[str,
     # Si parece un hash MD4 completo (32 chars hex)
     if len(hash_or_name) == 32:
         try:
-            int(hash_or_name, 16)  # Verificar que es hex válido
+            int(hash_or_name, 16)  # Verificar que es hex v├ílido
             # Buscar para obtener el nombre
             downloads = await api.get("/downloads")
             for dl in downloads.get("downloads", []):
                 if dl["hash"].upper() == hash_or_name.upper():
                     return dl["hash"], dl["name"]
-            # Si no se encuentra, asumir que el hash es válido
+            # Si no se encuentra, asumir que el hash es v├ílido
             return hash_or_name.upper(), hash_or_name
         except ValueError:
-            pass  # No es hex válido, buscar por nombre
+            pass  # No es hex v├ílido, buscar por nombre
     
     # Buscar por nombre o hash parcial
     downloads = await api.get("/downloads")
@@ -151,11 +161,11 @@ async def resolve_download(api: EMuleAPIClient, hash_or_name: str) -> tuple[str,
         if dl["hash"].upper().startswith(hash_or_name.upper()):
             return dl["hash"], dl["name"]
     
-    raise ValueError(f"No se encontró descarga: {hash_or_name}")
+    raise ValueError(f"No se encontr├│ descarga: {hash_or_name}")
 
 
 def format_size(bytes_size: int) -> str:
-    """Formatear tamaño en bytes a formato legible"""
+    """Formatear tama├▒o en bytes a formato legible"""
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if bytes_size < 1024.0:
             return f"{bytes_size:.1f} {unit}"
@@ -166,6 +176,31 @@ def format_size(bytes_size: int) -> str:
 def format_speed(bytes_per_sec: int) -> str:
     """Formatear velocidad en bytes/s a formato legible"""
     return f"{format_size(bytes_per_sec)}/s"
+
+
+def parse_size(size_str: str) -> int:
+    """Parsea string de tamaño (ej: '1.5GB', '100MB') a bytes"""
+    if not size_str:
+        return 0
+    
+    s = size_str.strip().upper()
+    units = {"KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4, "B": 1}
+    
+    # Intentar encontrar sufijo
+    for unit, multiplier in units.items():
+        if s.endswith(unit):
+            try:
+                num = float(s[:-len(unit)].strip())
+                return int(num * multiplier)
+            except ValueError:
+                pass
+                
+    # Si no tiene unidad, asumir bytes si es numérico
+    try:
+        return int(s)
+    except ValueError:
+        return 0
+
 
 
 # ============================================================================
@@ -200,7 +235,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_download_info",
-            description="Obtener información detallada de una descarga específica. Acepta hash MD4, hash parcial o nombre del archivo.",
+            description="Obtener informaci├│n detallada de una descarga espec├¡fica. Acepta hash MD4, hash parcial o nombre del archivo.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -242,7 +277,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="delete_download",
-            description="Eliminar una descarga de eMule (DESTRUCTIVO). Requiere confirmación explícita.",
+            description="Eliminar una descarga de eMule (DESTRUCTIVO). Requiere confirmaci├│n expl├¡cita.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -252,7 +287,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "confirm": {
                         "type": "boolean",
-                        "description": "Debe ser true para confirmar la eliminación",
+                        "description": "Debe ser true para confirmar la eliminaci├│n",
                         "default": False
                     }
                 },
@@ -261,7 +296,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_status",
-            description="Obtener estado general de eMule (conexión, velocidades, estadísticas).",
+            description="Obtener estado general de eMule (conexi├│n, velocidades, estad├¡sticas).",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -269,7 +304,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="add_download",
-            description="Añadir una nueva descarga a eMule mediante enlace ed2k.",
+            description="A├▒adir una nueva descarga a eMule mediante enlace ed2k.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -289,18 +324,18 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "category": {
                         "type": "string",
-                        "description": "Filtrar por categoría (opcional)"
+                        "description": "Filtrar por categor├¡a (opcional)"
                     },
                     "min_quality": {
                         "type": "string",
-                        "description": "Calidad mínima de video (720p, 1080p, 2160p)"
+                        "description": "Calidad m├¡nima de video (720p, 1080p, 2160p)"
                     }
                 }
             }
         ),
         Tool(
             name="get_stats",
-            description="Obtener estadísticas detalladas de eMule (descargado, subido, sesión, totales).",
+            description="Obtener estad├¡sticas detalladas de eMule (descargado, subido, sesi├│n, totales).",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -318,6 +353,67 @@ async def list_tools() -> list[Tool]:
                     }
                 },
                 "required": ["hash_or_name"]
+            }
+        ),
+        Tool(
+            name="search_files",
+            description="Buscar archivos en la red eD2k/Kad. Retorna una lista de resultados.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Términos de búsqueda"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["any", "video", "audio", "archive", "document", "image", "program"],
+                        "description": "Tipo de archivo (opcional)",
+                        "default": "any"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": ["global", "kad", "server"],
+                        "description": "Método de búsqueda (Global, Kad, o Servidor Local). Default: global",
+                        "default": "global"
+                    },
+                    "min_size": {
+                        "type": "string",
+                        "description": "Tamaño mínimo (ej: '100MB', '1GB')"
+                    },
+                    "max_size": {
+                        "type": "string",
+                        "description": "Tamaño máximo (ej: '5GB')"
+                    },
+                    "extension": {
+                        "type": "string",
+                        "description": "Extensión específica (ej: 'mkv', 'iso')"
+                    },
+                     "availability": {
+                        "type": "integer",
+                        "description": "Mínimo de fuentes disponibles"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "description": "Número de página (1-based, 50 resultados por página)",
+                        "default": 1
+                    }
+                },
+                "required": ["query"]
+            }
+        ),
+        Tool(
+            name="download_search_result",
+            description="Descargar un archivo desde los resultados de búsqueda usando su Hash.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "hash": {
+                        "type": "string",
+                        "description": "Hash MD4 completo del archivo"
+                    }
+                },
+                "required": ["hash"]
             }
         )
     ]
@@ -361,6 +457,12 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
         
         elif name == "enable_preview":
             return await tool_enable_preview(arguments)
+
+        elif name == "search_files":
+            return await tool_search_files(arguments)
+
+        elif name == "download_search_result":
+            return await tool_download_search_result(arguments)
         
         else:
             return [TextContent(type="text", text=f"Herramienta desconocida: {name}")]
@@ -371,7 +473,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
 
 # ============================================================================
-# IMPLEMENTACIÓN DE TOOLS
+# IMPLEMENTACI├ôN DE TOOLS
 # ============================================================================
 
 async def tool_get_downloads(args: dict) -> list[TextContent]:
@@ -395,7 +497,7 @@ async def tool_get_downloads(args: dict) -> list[TextContent]:
         lines.append(f"## {dl['name']}")
         lines.append(f"- **Hash:** `{dl['hash'][:8]}...`")
         lines.append(f"- **Progreso:** {dl.get('progress', 0):.1f}%")
-        lines.append(f"- **Tamaño:** {format_size(dl.get('size', 0))}")
+        lines.append(f"- **Tama├▒o:** {format_size(dl.get('size', 0))}")
         
         if 'speed' in dl:
             lines.append(f"- **Velocidad:** {format_speed(dl['speed'])}")
@@ -421,9 +523,9 @@ async def tool_get_download_info(args: dict) -> list[TextContent]:
         # Obtener info detallada
         data = await api_client.get(f"/downloads/{file_hash}/file_info")
         
-        lines = [f"# Información de: {file_name}\n"]
+        lines = [f"# Informaci├│n de: {file_name}\n"]
         lines.append(f"**Hash:** `{file_hash}`")
-        lines.append(f"**Tamaño:** {format_size(data.get('file_size', 0))}")
+        lines.append(f"**Tama├▒o:** {format_size(data.get('file_size', 0))}")
         lines.append(f"**Descargado:** {format_size(data.get('completed_size', 0))}")
         lines.append(f"**Progreso:** {data.get('progress', 0):.1f}%")
         
@@ -432,13 +534,13 @@ async def tool_get_download_info(args: dict) -> list[TextContent]:
             lines.append(f"\n**Chunks:**")
             lines.append(f"- Total: {chunks.get('total', 0)}")
             lines.append(f"- Completados: {chunks.get('completed', 0)}")
-            lines.append(f"- Primer chunk: {'✅' if chunks.get('first_chunk_complete') else '❌'}")
-            lines.append(f"- Último chunk: {'✅' if chunks.get('last_chunk_complete') else '❌'}")
+            lines.append(f"- Primer chunk: {'Ô£à' if chunks.get('first_chunk_complete') else 'ÔØî'}")
+            lines.append(f"- ├Ültimo chunk: {'Ô£à' if chunks.get('last_chunk_complete') else 'ÔØî'}")
         
         if data.get('is_video'):
             lines.append(f"\n**Video:**")
-            lines.append(f"- Preview ready: {'✅' if data.get('preview_ready') else '❌'}")
-            lines.append(f"- Preview mode: {'✅' if data.get('preview_mode') else '❌'}")
+            lines.append(f"- Preview ready: {'Ô£à' if data.get('preview_ready') else 'ÔØî'}")
+            lines.append(f"- Preview mode: {'Ô£à' if data.get('preview_mode') else 'ÔØî'}")
         
         return [TextContent(type="text", text="\n".join(lines))]
     
@@ -455,7 +557,7 @@ async def tool_pause_download(args: dict) -> list[TextContent]:
         
         await api_client.put(f"/downloads/{file_hash}/pause")
         
-        return [TextContent(type="text", text=f"✅ Descarga pausada: **{file_name}**")]
+        return [TextContent(type="text", text=f"Ô£à Descarga pausada: **{file_name}**")]
     
     except ValueError as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -470,7 +572,7 @@ async def tool_resume_download(args: dict) -> list[TextContent]:
         
         await api_client.put(f"/downloads/{file_hash}/resume")
         
-        return [TextContent(type="text", text=f"✅ Descarga reanudada: **{file_name}**")]
+        return [TextContent(type="text", text=f"Ô£à Descarga reanudada: **{file_name}**")]
     
     except ValueError as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -482,14 +584,14 @@ async def tool_delete_download(args: dict) -> list[TextContent]:
     confirm = args.get("confirm", False)
     
     if not confirm:
-        return [TextContent(type="text", text="⚠️ **Operación destructiva:** Debes confirmar con `confirm=true`")]
+        return [TextContent(type="text", text="ÔÜá´©Å **Operaci├│n destructiva:** Debes confirmar con `confirm=true`")]
     
     try:
         file_hash, file_name = await resolve_download(api_client, hash_or_name)
         
         await api_client.delete(f"/downloads/{file_hash}")
         
-        return [TextContent(type="text", text=f"🗑️ Descarga eliminada: **{file_name}**")]
+        return [TextContent(type="text", text=f"­ƒùæ´©Å Descarga eliminada: **{file_name}**")]
     
     except ValueError as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -500,8 +602,8 @@ async def tool_get_status(args: dict) -> list[TextContent]:
     data = await api_client.get("/status")
     
     lines = ["# Estado de eMule\n"]
-    lines.append(f"**Versión:** {data.get('version', 'N/A')}")
-    lines.append(f"**Conectado:** {'✅' if data.get('connected') else '❌'}")
+    lines.append(f"**Versi├│n:** {data.get('version', 'N/A')}")
+    lines.append(f"**Conectado:** {'Ô£à' if data.get('connected') else 'ÔØî'}")
     
     if 'server' in data:
         lines.append(f"**Servidor:** {data['server'].get('name', 'N/A')}")
@@ -518,19 +620,19 @@ async def tool_get_status(args: dict) -> list[TextContent]:
 
 
 async def tool_add_download(args: dict) -> list[TextContent]:
-    """Añadir descarga"""
+    """A├▒adir descarga"""
     ed2k_link = args["ed2k_link"]
     
     if not ed2k_link.startswith("ed2k://"):
-        return [TextContent(type="text", text="❌ Error: El enlace debe empezar con 'ed2k://'")]
+        return [TextContent(type="text", text="ÔØî Error: El enlace debe empezar con 'ed2k://'")]
     
     try:
         data = await api_client.post("/downloads", {"ed2k": ed2k_link})
         
-        return [TextContent(type="text", text=f"✅ Descarga añadida correctamente")]
+        return [TextContent(type="text", text=f"Ô£à Descarga a├▒adida correctamente")]
     
     except Exception as e:
-        return [TextContent(type="text", text=f"❌ Error añadiendo descarga: {str(e)}")]
+        return [TextContent(type="text", text=f"ÔØî Error a├▒adiendo descarga: {str(e)}")]
 
 
 async def tool_get_library(args: dict) -> list[TextContent]:
@@ -551,13 +653,13 @@ async def tool_get_library(args: dict) -> list[TextContent]:
     files = data.get("files", [])
     
     if not files:
-        return [TextContent(type="text", text="La biblioteca está vacía")]
+        return [TextContent(type="text", text="La biblioteca est├í vac├¡a")]
     
     lines = [f"# Biblioteca de eMule ({len(files)} archivos)\n"]
     
     for file in files[:20]:  # Limitar a 20 archivos
         lines.append(f"## {file['name']}")
-        lines.append(f"- **Tamaño:** {format_size(file.get('size', 0))}")
+        lines.append(f"- **Tama├▒o:** {format_size(file.get('size', 0))}")
         
         if 'quality' in file:
             lines.append(f"- **Calidad:** {file['quality']}")
@@ -565,21 +667,21 @@ async def tool_get_library(args: dict) -> list[TextContent]:
         lines.append("")
     
     if len(files) > 20:
-        lines.append(f"\n_... y {len(files) - 20} archivos más_")
+        lines.append(f"\n_... y {len(files) - 20} archivos m├ís_")
     
     return [TextContent(type="text", text="\n".join(lines))]
 
 
 async def tool_get_stats(args: dict) -> list[TextContent]:
-    """Obtener estadísticas"""
+    """Obtener estad├¡sticas"""
     data = await api_client.get("/stats")
     
-    lines = ["# Estadísticas de eMule\n"]
+    lines = ["# Estad├¡sticas de eMule\n"]
     
-    lines.append("## Sesión Actual")
+    lines.append("## Sesi├│n Actual")
     lines.append(f"- Descargado: {format_size(data.get('session_downloaded', 0))}")
     lines.append(f"- Subido: {format_size(data.get('session_uploaded', 0))}")
-    lines.append(f"- Duración: {data.get('session_duration', 0) // 3600}h")
+    lines.append(f"- Duraci├│n: {data.get('session_duration', 0) // 3600}h")
     
     lines.append("\n## Totales")
     lines.append(f"- Descargado: {format_size(data.get('total_downloaded', 0))}")
@@ -602,13 +704,106 @@ async def tool_enable_preview(args: dict) -> list[TextContent]:
         
         return [TextContent(
             type="text",
-            text=f"✅ Preview mode activado para: **{file_name}**\n\n"
-                 f"Los chunks iniciales y finales serán priorizados para permitir "
-                 f"análisis visual del archivo."
+            text=f"Ô£à Preview mode activado para: **{file_name}**\n\n"
+                 f"Los chunks iniciales y finales ser├ín priorizados para permitir "
+                 f"an├ílisis visual del archivo."
         )]
     
     except ValueError as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
+
+
+async def tool_search_files(args: dict) -> list[TextContent]:
+    """Buscar archivos"""
+    query = args["query"]
+    file_type = args.get("type", "any")
+    method = args.get("method", "global")
+    page = args.get("page", 1)
+    
+    try:
+        # 1. Iniciar búsqueda
+        # Construir params
+        params_list = [f"q={query}"]
+        if file_type != "any": params_list.append(f"type={file_type}")
+        if method != "global": params_list.append(f"method={method}")
+        
+        if args.get("min_size"):
+             params_list.append(f"min_size={parse_size(args['min_size'])}")
+        if args.get("max_size"):
+             params_list.append(f"max_size={parse_size(args['max_size'])}")
+        if args.get("extension"):
+             params_list.append(f"ext={args['extension']}")
+        if args.get("availability"):
+             params_list.append(f"availability={args['availability']}")
+             
+        endpoint = "/search?" + "&".join(params_list)
+            
+        start_response = await api_client.get(endpoint)
+        if start_response.get("status") != "success":
+             return [TextContent(type="text", text=f"Error iniciando búsqueda: {start_response.get('message')}")]
+             
+        search_id = start_response.get("search_id")
+        
+        # 2. Esperar resultados (polling breve)
+        # Esperamos 2 segundos iniciales para permitir que lleguen resultados
+        await asyncio.sleep(2.0)
+        
+        # 3. Obtener resultados paginados
+        limit = 50
+        offset = (page - 1) * limit
+        
+        results_endpoint = f"/search/results?id={search_id}&offset={offset}&limit={limit}"
+        results_response = await api_client.get(results_endpoint)
+        
+        results = results_response.get("results", [])
+        total_found = results_response.get("total_found", 0)
+        server_offset = results_response.get("offset", 0)
+        
+        if not results:
+             if page > 1:
+                 return [TextContent(type="text", text=f"No hay más resultados en la página {page}. Total encontrados: {total_found}")]
+             return [TextContent(type="text", text=f"Búsqueda iniciada (ID: {search_id}), pero aún no hay resultados. Intenta buscar de nuevo en unos segundos.")]
+             
+        lines = [f"# Resultados para '{query}' (Página {page})\n"]
+        lines.append(f"**Método:** {method.upper()} | **Total encontrados:** {total_found}\n")
+        
+        for i, res in enumerate(results):
+            idx = server_offset + i + 1
+            lines.append(f"## {idx}. {res['name']}")
+            lines.append(f"- **Hash:** `{res['hash']}`")
+            lines.append(f"- **Tamaño:** {format_size(res.get('size', 0))}")
+            lines.append(f"- **Fuentes:** {res.get('sources', 0)} ({res.get('complete_sources', 0)} completas)")
+            lines.append(f"- **Tipo:** {res.get('type', 'N/A')}")
+            lines.append("")
+        
+        # Footer con info de paginación
+        total_pages = (total_found + limit - 1) // limit
+        if total_pages > 1:
+            lines.append(f"---\n**Página {page} de {total_pages}**")
+            if page < total_pages:
+                 lines.append(f"Para ver más, usa: `page={page+1}`")
+            
+        return [TextContent(type="text", text="\n".join(lines))]
+
+    except Exception as e:
+        return [TextContent(type="text", text=f"Error en búsqueda: {str(e)}")]
+
+
+async def tool_download_search_result(args: dict) -> list[TextContent]:
+    """Descargar resultado de búsqueda"""
+    file_hash = args["hash"]
+    
+    try:
+        # Enviar hash. El endpoint _AddDownload ahora soporta hash para buscar en resultados.
+        response = await api_client.post("/downloads", {"hash": file_hash})
+        
+        if response.get("status") == "success":
+            return [TextContent(type="text", text=f"✅ Descarga añadida: `{file_hash}`")]
+        else:
+            return [TextContent(type="text", text=f"❌ Error: {response.get('message', 'Unknown error')}")]
+            
+    except Exception as e:
+        return [TextContent(type="text", text=f"Error añadiendo descarga: {str(e)}")]
 
 
 # ============================================================================
@@ -623,7 +818,7 @@ async def list_resources() -> list[Resource]:
             uri="emule://status",
             name="Estado de eMule",
             mimeType="text/plain",
-            description="Estado actual de eMule (conexión, velocidades, descargas)"
+            description="Estado actual de eMule (conexi├│n, velocidades, descargas)"
         ),
         Resource(
             uri="emule://downloads/active",
@@ -633,9 +828,9 @@ async def list_resources() -> list[Resource]:
         ),
         Resource(
             uri="emule://stats",
-            name="Estadísticas",
+            name="Estad├¡sticas",
             mimeType="text/markdown",
-            description="Estadísticas de sesión y totales"
+            description="Estad├¡sticas de sesi├│n y totales"
         )
     ]
 
@@ -668,20 +863,61 @@ async def read_resource(uri: str) -> str:
 # MAIN
 # ============================================================================
 
-async def main():
-    """Punto de entrada principal"""
-    from mcp.server.stdio import stdio_server
-    
-    logger.info("Iniciando eMule MCP Server...")
-    logger.info(f"API URL: {EMULE_API_URL}")
-    
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options()
-        )
 
+# ============================================================================
+# MAIN (SSE SERVER)
+# ============================================================================
+
+async def main():
+    """Punto de entrada principal - Servidor SSE con ASGI puro"""
+    import uvicorn
+    from mcp.server.sse import SseServerTransport
+    
+    logger.info("Iniciando eMule MCP Server (SSE Mode)...")
+    logger.info(f"API URL: {EMULE_API_URL}")
+
+    # Transport SSE - el path /messages es donde el cliente envía sus comandos
+    sse = SseServerTransport("/messages")
+
+    async def app(scope, receive, send):
+        """Aplicación ASGI pura - enrutamiento manual sin wrappers"""
+        if scope["type"] != "http":
+            return
+        
+        path = scope.get("path", "")
+        method = scope.get("method", "GET")
+        
+        if path == "/sse" and method == "GET":
+            # Endpoint SSE: conexión persistente del cliente
+            async with sse.connect_sse(scope, receive, send) as streams:
+                await server.run(
+                    streams[0], 
+                    streams[1], 
+                    server.create_initialization_options()
+                )
+        elif path.startswith("/messages") and method == "POST":
+            # Endpoint de mensajes: el cliente envía comandos aquí
+            await sse.handle_post_message(scope, receive, send)
+        else:
+            # 404 para cualquier otra ruta
+            await send({
+                "type": "http.response.start",
+                "status": 404,
+                "headers": [[b"content-type", b"text/plain"]],
+            })
+            await send({
+                "type": "http.response.body",
+                "body": b"Not Found",
+            })
+
+    logger.info("Servidor escuchando en http://0.0.0.0:4712")
+    logger.info("  - SSE Endpoint: http://localhost:4712/sse")
+    logger.info("  - Messages Endpoint: http://localhost:4712/messages")
+    
+    config = uvicorn.Config(app, host="0.0.0.0", port=4712, log_level="info")
+    server_instance = uvicorn.Server(config)
+    await server_instance.serve()
 
 if __name__ == "__main__":
     asyncio.run(main())
+

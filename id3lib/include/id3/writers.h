@@ -32,7 +32,7 @@
 #include "id3/id3lib_streams.h"
 //#include <string.h>
 
-class ID3_OStreamWriter : public ID3_Writer
+class ID3_CPP_EXPORT ID3_OStreamWriter : public ID3_Writer
 {
   ostream& _stream;
   pos_type _beg;
@@ -69,7 +69,7 @@ class ID3_OStreamWriter : public ID3_Writer
   virtual pos_type getCur() { return _stream.tellp(); }
 };
 
-class ID3_OFStreamWriter : public ID3_OStreamWriter
+class ID3_CPP_EXPORT ID3_OFStreamWriter : public ID3_OStreamWriter
 {
   ofstream& _file;
  public:
@@ -82,7 +82,7 @@ class ID3_OFStreamWriter : public ID3_OStreamWriter
   }
 };
   
-class ID3_IOStreamWriter : public ID3_Writer
+class ID3_CPP_EXPORT ID3_IOStreamWriter : public ID3_Writer
 {
   iostream& _stream;
   pos_type  _beg;
@@ -119,7 +119,7 @@ class ID3_IOStreamWriter : public ID3_Writer
   virtual pos_type getCur() { return _stream.tellp(); }
 };
 
-class ID3_FStreamWriter : public ID3_IOStreamWriter
+class ID3_CPP_EXPORT ID3_FStreamWriter : public ID3_IOStreamWriter
 {
   fstream& _file;
  public:
@@ -132,7 +132,7 @@ class ID3_FStreamWriter : public ID3_IOStreamWriter
   }
 };
   
-class ID3_MemoryWriter : public ID3_Writer
+class ID3_CPP_EXPORT ID3_MemoryWriter : public ID3_Writer
 {
   const char_type* _beg;
   /* */ char_type* _cur;

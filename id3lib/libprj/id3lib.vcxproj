@@ -64,8 +64,8 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>id3_debug_fix.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
@@ -78,8 +78,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>id3_debug_fix.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -98,8 +98,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;ID3LIB_STATIC;ID3LIB_LINKOPTION_STATIC;ID3_WANT_NOTHROW;_CRT_SECURE_NO_WARNINGS;ID3LIB_LINKOPTION=1;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;.;..\include;..\include\id3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>id3_debug_fix.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>

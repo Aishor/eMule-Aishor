@@ -38,7 +38,7 @@ class ID3_Writer;
 class ID3_TagImpl;
 class ID3_Tag;
 
-class ID3_Tag
+class ID3_CPP_EXPORT ID3_Tag
 {
   ID3_TagImpl* _impl;
   char _tmp_filename[ID3_PATH_LENGTH];

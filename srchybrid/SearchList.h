@@ -108,8 +108,10 @@ public:
 		return m_foundFilesCount.Lookup(nSearchID, returnVal) ? returnVal : 0;
 	}
 
-protected:
+    // [AISHOR] Exposed for LLM API
 	SearchList* GetSearchListForID(uint32 nSearchID);
+
+protected:
 	uint32	GetSpamFilenameRatings(const CSearchFile *pSearchFile, bool bMarkAsNoSpam);
 	void	LoadSpamFilter();
 

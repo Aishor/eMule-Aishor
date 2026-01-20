@@ -20,8 +20,13 @@ typedef struct {
 } ApiThreadData;
 
 // Clase principal del servidor API para LLM
+struct ThreadData;
 class CLLMApiServer {
   friend class CWebSocket;
+
+public:
+  // Punto de entrada desde WebServer
+  static bool ProcessRequest(const ThreadData &Data);
 
 public:
   CLLMApiServer();
@@ -67,6 +72,9 @@ private:
 
   // GET /api/v1/search?q=query&type=video|audio&min_sources=N
   static CString _Search(const ApiThreadData &Data);
+
+  // GET /api/v1/search/results?id=ID
+  static CString _GetSearchResults(const ApiThreadData &Data);
 
   // GET /api/v1/library - Archivos compartidos (biblioteca)
   // GET /api/v1/library?category=Movies&min_quality=720p
@@ -132,6 +140,12 @@ private:
   static CString _QualityInfoToJson(const QualityInfo &info);
   static CString _FilterByQuality(const CString &sFileName,
                                   LPCTSTR szMinQuality);
+
+  // Helpers adicionales
+  static CString _ExtractHashFromUrl(const CString &sURL);
+  static class CPartFile* _FindPartFileByHash(const CString &sHash);
+  static CString _ParseJsonField(const CString &sBody, const CString &sField);
+  static void _SplitPath(const CString &sPath, CStringArray &parts);
 
   // Miembros
   uint16 m_nPort;

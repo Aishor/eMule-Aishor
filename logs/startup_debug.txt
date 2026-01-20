@@ -1,0 +1,20 @@
+DialogCreateIndirect Success for uID=136. hWnd=00000000000D0908
+DialogCreateIndirect Success for uID=140. hWnd=0000000000110672
+DialogCreateIndirect Success for uID=165. hWnd=00000000000D06BC
+DialogCreateIndirect Success for uID=2296. hWnd=00000000000D0702
+DialogCreateIndirect Success for uID=2726. hWnd=00000000000F0680
+DialogCreateIndirect Success for uID=2303. hWnd=00000000000208EC
+OnInitDialog Start
+ServerWnd Created: Ptr=0000023F0C406310, hWnd=00000000000D0908
+ActiveDialog set. activewnd=0000023F0C406310
+activewnd->m_hWnd=00000000000D0908
+DialogCreateIndirect Success for uID=136. hWnd=00000000000D07B2
+DialogCreateIndirect Success for uID=140. hWnd=00000000000F0846
+DialogCreateIndirect Success for uID=165. hWnd=00000000000F0732
+DialogCreateIndirect Success for uID=2296. hWnd=00000000000D072A
+DialogCreateIndirect Success for uID=2726. hWnd=00000000000E07C8
+DialogCreateIndirect Success for uID=2303. hWnd=00000000000C07F2
+OnInitDialog Start
+ServerWnd Created: Ptr=000002A98CCA71F0, hWnd=00000000000D07B2
+ActiveDialog set. activewnd=000002A98CCA71F0
+activewnd->m_hWnd=00000000000D07B2

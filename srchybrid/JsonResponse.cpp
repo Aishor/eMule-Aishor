@@ -1,7 +1,7 @@
 // JsonResponse.cpp - Implementación del helper JSON
 // Parte de eMule-Aishor R1.3 - Integración LLM
-#include "JsonResponse.h"
 #include "stdafx.h"
+#include "JsonResponse.h"
 
 
 CJsonResponse::CJsonResponse() : m_nDepth(0), m_bNeedComma(false) {}
@@ -19,14 +19,14 @@ void CJsonResponse::BeginObject() {
 void CJsonResponse::EndObject() {
   m_sJson += _T("}");
   m_nDepth--;
-  if (m_aIsArray.GetSize() \u003e 0)
+  if (m_aIsArray.GetSize() > 0)
     m_aIsArray.RemoveAt(m_aIsArray.GetSize() - 1);
   m_bNeedComma = true;
 }
 
 void CJsonResponse::BeginArray(LPCTSTR szKey) {
   AddCommaIfNeeded();
-  if (szKey != NULL \u0026\u0026 _tcslen(szKey) \u003e 0) {
+  if (szKey != NULL && _tcslen(szKey) > 0) {
     m_sJson += _T("\"");
     m_sJson += szKey;
     m_sJson += _T("\":[");
@@ -41,7 +41,7 @@ void CJsonResponse::BeginArray(LPCTSTR szKey) {
 void CJsonResponse::EndArray() {
   m_sJson += _T("]");
   m_nDepth--;
-  if (m_aIsArray.GetSize() \u003e 0)
+  if (m_aIsArray.GetSize() > 0)
     m_aIsArray.RemoveAt(m_aIsArray.GetSize() - 1);
   m_bNeedComma = true;
 }
@@ -56,7 +56,7 @@ void CJsonResponse::AddString(LPCTSTR szKey, LPCTSTR szValue) {
   m_bNeedComma = true;
 }
 
-void CJsonResponse::AddString(LPCTSTR szKey, const CString\u0026 sValue) {
+void CJsonResponse::AddString(LPCTSTR szKey, const CString& sValue) {
   AddString(szKey, (LPCTSTR)sValue);
 }
 
@@ -152,7 +152,7 @@ CString CJsonResponse::EscapeJson(LPCTSTR szText) {
       sResult += _T("\\t");
       break;
     default:
-      if (c \u003c 32) {
+      if (c < 32) {
         CString sTemp;
         sTemp.Format(_T("\\u%04x"), (int)c);
         sResult += sTemp;
@@ -170,7 +170,7 @@ CString CJsonResponse::Success(LPCTSTR szMessage) {
   CJsonResponse json;
   json.BeginObject();
   json.AddString(_T("status"), _T("success"));
-  if (szMessage != NULL \u0026\u0026 _tcslen(szMessage) \u003e 0)
+  if (szMessage != NULL && _tcslen(szMessage) > 0)
     json.AddString(_T("message"), szMessage);
   json.EndObject();
   return json.GetJson();

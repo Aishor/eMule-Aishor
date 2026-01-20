@@ -66,6 +66,8 @@ namespace Kademlia
 		static void	PreparePacketForTags(CByteIO *byIO, CKnownFile *pFile, uint8 byTargetKadVersion);
 		bool	Stoping() const										{ return m_bStoping; }
 		void	UpdateNodeLoad(uint8 uLoad);
+	void	ExtendLifetime(time_t tAdditionalSeconds = 22);  // Por defecto 22s (SEARCHKEYWORD_LIFETIME/2)
+	void	SetCustomLimits(uint32 uLifetime, uint32 uMaxResults);
 
 		CKadClientSearcher*	GetNodeSpecialSearchRequester() const	{ return pNodeSpecialSearchRequester; }
 		void	SetNodeSpecialSearchRequester(CKadClientSearcher *pNew)	{ pNodeSpecialSearchRequester = pNew; }
@@ -131,6 +133,8 @@ namespace Kademlia
 		uint32 m_uSearchID;
 		uint32 m_uSearchTermsDataSize;
 		bool m_bStoping;
+	uint32 m_uMaxLifetime;   // Tiempo máximo custom (0 = usar SEARCHKEYWORD_LIFETIME)
+	uint32 m_uMaxResults;    // Resultados máximos custom (0 = usar SEARCHKEYWORD_TOTAL)
 	};
 }
 

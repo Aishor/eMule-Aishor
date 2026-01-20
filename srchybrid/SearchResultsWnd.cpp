@@ -37,6 +37,7 @@
 #include "Kademlia/Kademlia/Kademlia.h"
 #include "kademlia/kademlia/SearchManager.h"
 #include "kademlia/kademlia/search.h"
+#include "kademlia/kademlia/Defines.h"
 #include "SearchExpr.h"
 #define USE_FLEX
 #include "Parser.hpp"
@@ -1325,6 +1326,14 @@ bool CSearchResultsWnd::DoNewKadSearch(SSearchParams *pParams)
 		if (!pSearch) {
 			ASSERT(0);
 			return false;
+		}
+
+		// Aplicar límites custom si se especificaron
+		if (pParams->uKadCustomTime > 0 || pParams->uKadCustomLimit > 0) {
+			pSearch->SetCustomLimits(
+				pParams->uKadCustomTime > 0 ? pParams->uKadCustomTime : SEARCHKEYWORD_LIFETIME,
+				pParams->uKadCustomLimit > 0 ? pParams->uKadCustomLimit : SEARCHKEYWORD_TOTAL
+			);
 		}
 	} catch (const CString &strException) {
 		delete[] pSearchTermsData;

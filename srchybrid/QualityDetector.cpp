@@ -1,12 +1,14 @@
 // QualityDetector.cpp - Implementación del detector de calidad
 // Parte de eMule-Aishor R1.3 - Integración LLM
-#include "QualityDetector.h"
 #include "stdafx.h"
+#include "QualityDetector.h"
 
-#include \u003cregex\u003e
+// Eliminamos include de regex si no es soportado o necesario por ahora, 
+// o lo usamos con precaución. MFC CString no siempre amigable.
+// #include <regex> 
 
 // Detectar calidad completa desde nombre de archivo
-QualityInfo CQualityDetector::DetectQuality(const CString\u0026 sFileName) {
+QualityInfo CQualityDetector::DetectQuality(const CString& sFileName) {
   QualityInfo info;
 
   CString sUpper = sFileName;
@@ -25,7 +27,7 @@ QualityInfo CQualityDetector::DetectQuality(const CString\u0026 sFileName) {
 }
 
 // Detectar resolución
-VideoQuality CQualityDetector::DetectResolution(const CString\u0026 sFileName) {
+VideoQuality CQualityDetector::DetectResolution(const CString& sFileName) {
   if (ContainsPattern(sFileName, _T("2160P")) ||
       ContainsPattern(sFileName, _T("4K")) ||
       ContainsPattern(sFileName, _T("UHD")))
@@ -67,7 +69,7 @@ VideoQuality CQualityDetector::DetectResolution(const CString\u0026 sFileName) {
 }
 
 // Detectar fuente
-VideoSource CQualityDetector::DetectSource(const CString\u0026 sFileName) {
+VideoSource CQualityDetector::DetectSource(const CString& sFileName) {
   if (ContainsPattern(sFileName, _T("REMUX")))
     return VS_REMUX;
 
@@ -105,7 +107,7 @@ VideoSource CQualityDetector::DetectSource(const CString\u0026 sFileName) {
 }
 
 // Detectar codec
-VideoCodec CQualityDetector::DetectCodec(const CString\u0026 sFileName) {
+VideoCodec CQualityDetector::DetectCodec(const CString& sFileName) {
   if (ContainsPattern(sFileName, _T("AV1")))
     return VC_AV1;
 
@@ -132,16 +134,16 @@ VideoCodec CQualityDetector::DetectCodec(const CString\u0026 sFileName) {
 }
 
 // Detectar año (busca patrón 19XX o 20XX)
-int CQualityDetector::DetectYear(const CString\u0026 sFileName) {
+int CQualityDetector::DetectYear(const CString& sFileName) {
   // Buscar patrón de año: 1900-2099
-  for (int i = 0; i \u003c sFileName.GetLength() - 3; i++) {
-    if (_istdigit(sFileName[i]) \u0026\u0026 _istdigit(sFileName[i + 1]) \u0026\u0026 _istdigit(
-            sFileName[i + 2]) \u0026\u0026 _istdigit(sFileName[i + 3])) {
+  for (int i = 0; i < sFileName.GetLength() - 3; i++) {
+    if (_istdigit(sFileName[i]) && _istdigit(sFileName[i + 1]) && _istdigit(
+            sFileName[i + 2]) && _istdigit(sFileName[i + 3])) {
 
       CString sYear = sFileName.Mid(i, 4);
       int nYear = _ttoi(sYear);
 
-      if (nYear \u003e= 1900 \u0026\u0026 nYear \u003c= 2099)
+      if (nYear >= 1900 && nYear <= 2099)
         return nYear;
     }
   }
@@ -149,7 +151,7 @@ int CQualityDetector::DetectYear(const CString\u0026 sFileName) {
 }
 
 // Detectar HDR
-bool CQualityDetector::DetectHDR(const CString\u0026 sFileName) {
+bool CQualityDetector::DetectHDR(const CString& sFileName) {
   return ContainsPattern(sFileName, _T("HDR")) ||
          ContainsPattern(sFileName, _T("HDR10")) ||
          ContainsPattern(sFileName, _T("DOLBY VISION")) ||
@@ -157,14 +159,14 @@ bool CQualityDetector::DetectHDR(const CString\u0026 sFileName) {
 }
 
 // Detectar 3D
-bool CQualityDetector::Detect3D(const CString\u0026 sFileName) {
+bool CQualityDetector::Detect3D(const CString& sFileName) {
   return ContainsPattern(sFileName, _T("3D")) ||
          ContainsPattern(sFileName, _T("HSBS")) ||
          ContainsPattern(sFileName, _T("H-SBS"));
 }
 
 // Detectar codec de audio
-CString CQualityDetector::DetectAudioCodec(const CString\u0026 sFileName) {
+CString CQualityDetector::DetectAudioCodec(const CString& sFileName) {
   if (ContainsPattern(sFileName, _T("ATMOS")))
     return _T("Atmos");
   if (ContainsPattern(sFileName, _T("DTS-HD")) ||
@@ -186,7 +188,7 @@ CString CQualityDetector::DetectAudioCodec(const CString\u0026 sFileName) {
 }
 
 // Calcular puntuación de calidad (0-100)
-int CQualityDetector::CalculateScore(const QualityInfo\u0026 info) {
+int CQualityDetector::CalculateScore(const QualityInfo& info) {
   int nScore = 0;
 
   // Resolución (0-40 puntos)
@@ -287,13 +289,13 @@ int CQualityDetector::CalculateScore(const QualityInfo\u0026 info) {
 }
 
 // Comparar calidades
-bool CQualityDetector::IsBetterQuality(const QualityInfo\u0026 q1,
-                                       const QualityInfo\u0026 q2) {
-  return q1.nScore \u003e q2.nScore;
+bool CQualityDetector::IsBetterQuality(const QualityInfo& q1,
+                                       const QualityInfo& q2) {
+  return q1.nScore > q2.nScore;
 }
 
 // Obtener descripción textual
-CString CQualityDetector::GetQualityString(const QualityInfo\u0026 info) {
+CString CQualityDetector::GetQualityString(const QualityInfo& info) {
   CString sResult;
   sResult.Format(_T("%s %s %s"), GetQualityShortString(info.quality),
                  GetSourceString(info.source), GetCodecString(info.codec));
@@ -302,7 +304,7 @@ CString CQualityDetector::GetQualityString(const QualityInfo\u0026 info) {
     sResult += _T(" HDR");
   if (info.b3D)
     sResult += _T(" 3D");
-  if (!info.sAudioCodec.IsEmpty() \u0026\u0026 info.sAudioCodec !=
+  if (!info.sAudioCodec.IsEmpty() && info.sAudioCodec !=
       _T("Unknown"))
     sResult += _T(" ") + info.sAudioCodec;
 
@@ -375,14 +377,14 @@ CString CQualityDetector::GetCodecString(VideoCodec codec) {
 }
 
 // Helper para buscar patrones
-bool CQualityDetector::ContainsPattern(const CString\u0026 sText,
+bool CQualityDetector::ContainsPattern(const CString& sText,
                                        LPCTSTR szPattern) {
   return sText.Find(szPattern) != -1;
 }
 
-bool CQualityDetector::ContainsAnyPattern(const CString\u0026 sText,
-                                          const CStringArray\u0026 patterns) {
-  for (int i = 0; i \u003c patterns.GetSize(); i++) {
+bool CQualityDetector::ContainsAnyPattern(const CString& sText,
+                                          const CStringArray& patterns) {
+  for (int i = 0; i < patterns.GetSize(); i++) {
     if (ContainsPattern(sText, patterns[i]))
       return true;
   }

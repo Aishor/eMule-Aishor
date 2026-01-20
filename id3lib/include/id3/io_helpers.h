@@ -38,7 +38,7 @@ namespace dami
   {
     /**
      **/
-    class ExitTrigger
+    class ID3_CPP_EXPORT ExitTrigger
     {
       ID3_Reader& _reader;
       ID3_Reader::pos_type _pos;

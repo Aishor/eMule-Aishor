@@ -86,9 +86,17 @@ CSearch::CSearch()
 	, m_uSearchID(_UI32_MAX)
 	, m_uSearchTermsDataSize()
 	, m_bStoping()
+	, m_uMaxLifetime(0)
+	, m_uMaxResults(0)
 {
 	m_pLookupHistory = new CLookupHistory();
 	theApp.emuledlg->kademliawnd->searchList->SearchAdd(this);
+}
+
+void CSearch::SetCustomLimits(uint32 uLifetime, uint32 uMaxResults)
+{
+	m_uMaxLifetime = uLifetime;
+	m_uMaxResults = uMaxResults;
 }
 
 CSearch::~CSearch()
@@ -221,7 +229,7 @@ void CSearch::PrepareToStop()
 		uBaseTime = SEARCHFILE_LIFETIME;
 		break;
 	case KEYWORD:
-		uBaseTime = SEARCHKEYWORD_LIFETIME;
+		uBaseTime = (m_uMaxLifetime > 0) ? m_uMaxLifetime : SEARCHKEYWORD_LIFETIME;
 		break;
 	case NOTES:
 		uBaseTime = SEARCHNOTES_LIFETIME;
@@ -257,6 +265,24 @@ void CSearch::PrepareToStop()
 		theApp.emuledlg->kademliawnd->UpdateSearchGraph(m_pLookupHistory);
 	}
 }
+
+void CSearch::ExtendLifetime(time_t tAdditionalSeconds)
+{
+	// Reset stop flag if it was set
+	m_bStoping = false;
+	
+	// Extend the creation time to give it more life
+	// If tAdditionalSeconds is 0, we just reset it to "now" (full restart of timer)
+	// Otherwise we subtract the time to extend the deadline
+	if (tAdditionalSeconds == 0)
+		m_tCreated = time(NULL);
+	else
+		m_tCreated = time(NULL) - ((m_uMaxLifetime > 0 ? m_uMaxLifetime : SEARCHKEYWORD_LIFETIME) - tAdditionalSeconds);
+
+	// Force GUI update
+	theApp.emuledlg->kademliawnd->searchList->SearchRef(this);
+}
+
 
 void CSearch::JumpStart()
 {

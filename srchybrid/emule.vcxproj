@@ -407,6 +407,11 @@
     <ClCompile Include="URLClient.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="WebServer.cpp" />
+    <ClCompile Include="JsonResponse.cpp" />
+    <ClCompile Include="QualityDetector.cpp" />
+    <ClCompile Include="LLMApiServer.cpp" />
+    <ClCompile Include="LLMApiServer_Adapter.cpp" />
+    <ClCompile Include="LLMApiServer_Helpers.cpp" />
     <ClCompile Include="WebSocket.cpp" />
     <ClCompile Include="Wizard.cpp" />
     <ClCompile Include="ZIPFile.cpp" />

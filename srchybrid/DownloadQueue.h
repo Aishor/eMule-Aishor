@@ -15,6 +15,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #pragma once
 #include "ring.h"
+#include "OtherFunctions.h"
 
 class CSafeMemFile;
 class CSearchFile;
@@ -81,6 +82,8 @@ public:
 	INT_PTR	GetFileCount() const							{ return filelist.GetCount(); }
 	UINT	GetDownloadingFileCount() const;
 	UINT	GetPausedFileCount() const;
+
+	POSITION GetFirstItemPosition() const { return filelist.GetHeadPosition(); }
 
 	bool	IsFileExisting(const uchar *fileid, bool bLogWarnings = true) const;
 	bool	IsPartFile(const CKnownFile *file) const;

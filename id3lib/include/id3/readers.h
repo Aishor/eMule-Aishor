@@ -31,7 +31,7 @@
 #include "id3/id3lib_streams.h"
 #include "id3/reader.h"
 
-class ID3_IStreamReader : public ID3_Reader
+class ID3_CPP_EXPORT ID3_IStreamReader : public ID3_Reader
 {
   istream& _stream;
  protected:
@@ -72,7 +72,7 @@ class ID3_IStreamReader : public ID3_Reader
   virtual pos_type setCur(pos_type pos) { _stream.seekg(pos); return pos; }
 };
   
-class ID3_IFStreamReader : public ID3_IStreamReader
+class ID3_CPP_EXPORT ID3_IFStreamReader : public ID3_IStreamReader
 {
   ifstream& _file;
  public:
@@ -85,7 +85,7 @@ class ID3_IFStreamReader : public ID3_IStreamReader
   }
 };
   
-class ID3_MemoryReader : public ID3_Reader
+class ID3_CPP_EXPORT ID3_MemoryReader : public ID3_Reader
 {
   const char_type* _beg;
   const char_type* _cur;

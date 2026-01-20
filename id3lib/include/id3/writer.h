@@ -28,19 +28,18 @@
 #ifndef _ID3LIB_WRITER_H_
 #define _ID3LIB_WRITER_H_
 
-#include <fstream>
-using namespace std;
 #include "id3/globals.h" //has <stdlib.h> "id3/sized_types.h"
 
-class ID3_Writer {
-public:
+class ID3_CPP_EXPORT ID3_Writer
+{
+ public:
   typedef uint32 size_type;
-  typedef uint8 char_type;
-  typedef streamoff pos_type;
-  typedef int32 off_type;
-  typedef int16 int_type;
+  typedef uint8  char_type;
+  typedef uint32 pos_type;
+  typedef  int32 off_type;
+  typedef  int16 int_type;
   static const int_type END_OF_WRITER;
-
+  
   /** Close the writer.  Any further actions on the writer should fail. **/
   virtual void close() = 0;
 
@@ -51,7 +50,7 @@ public:
   virtual pos_type getBeg() { return static_cast<pos_type>(0); }
 
   /** Return the first position that can't be written to.  A return value of
-   ** -1 indicates no (reasonable) limit to the writer.
+   ** -1 indicates no (reasonable) limit to the writer. 
    **/
   virtual pos_type getEnd() { return static_cast<pos_type>(-1); }
 
@@ -69,9 +68,11 @@ public:
    ** character write.  Returns END_OF_WRITER if there isn't a character to
    ** write.
    **/
-  virtual int_type writeChar(char_type ch) {
-    if (this->atEnd()) {
-      return END_OF_WRITER;
+  virtual int_type writeChar(char_type ch) 
+  {
+    if (this->atEnd())
+    { 
+      return END_OF_WRITER; 
     }
     this->writeChars(&ch, 1);
     return ch;
@@ -83,11 +84,16 @@ public:
    ** position advances, due to multi-byte characters.
    **/
   virtual size_type writeChars(const char_type buf[], size_type len) = 0;
-  virtual size_type writeChars(const char buf[], size_type len) {
+  virtual size_type writeChars(const char buf[], size_type len)
+  {
     return this->writeChars(reinterpret_cast<const char_type *>(buf), len);
   }
 
-  virtual bool atEnd() { return this->getCur() >= this->getEnd(); }
+  virtual bool atEnd()
+  {
+    return this->getCur() >= this->getEnd();
+  }
 };
 
 #endif /* _ID3LIB_WRITER_H_ */
+

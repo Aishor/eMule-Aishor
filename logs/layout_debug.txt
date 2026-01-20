@@ -1,0 +1,32 @@
+OnSize: nType=2, cx=1280, cy=649, activewnd=0000023F0C406310
+  serverwnd=0000023F0C406310
+  activewnd->m_hWnd=00000000000D0908
+  serverwnd->m_hWnd=00000000000D0908
+  Client: L=0 T=0 R=1280 B=649
+  ReBar: L=0 T=0 R=1280 B=54
+  StatusBar H=23
+  MoveWindow to: L=0 T=54 R=1280 B=626
+OnSize: nType=0, cx=773, cy=551, activewnd=0000023F0C406310
+  serverwnd=0000023F0C406310
+  activewnd->m_hWnd=00000000000D0908
+  serverwnd->m_hWnd=00000000000D0908
+  Client: L=0 T=0 R=773 B=551
+  ReBar: L=0 T=0 R=773 B=54
+  StatusBar H=23
+  MoveWindow to: L=0 T=54 R=773 B=528
+OnSize: nType=2, cx=1280, cy=649, activewnd=0000023F0C406310
+  serverwnd=0000023F0C406310
+  activewnd->m_hWnd=00000000000D0908
+  serverwnd->m_hWnd=00000000000D0908
+  Client: L=0 T=0 R=1280 B=649
+  ReBar: L=0 T=0 R=1280 B=54
+  StatusBar H=23
+  MoveWindow to: L=0 T=54 R=1280 B=626
+OnSize: nType=2, cx=1280, cy=649, activewnd=000002A98CCA71F0
+  serverwnd=000002A98CCA71F0
+  activewnd->m_hWnd=00000000000D07B2
+  serverwnd->m_hWnd=00000000000D07B2
+  Client: L=0 T=0 R=1280 B=649
+  ReBar: L=0 T=0 R=1280 B=54
+  StatusBar H=23
+  MoveWindow to: L=0 T=54 R=1280 B=626

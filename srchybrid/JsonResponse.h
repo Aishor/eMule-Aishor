@@ -2,7 +2,7 @@
 // Parte de eMule-Aishor R1.3 - Integración LLM
 #pragma once
 
-#include \u003cAfxTempl.h\u003e
+#include <AfxTempl.h>
 
 // Helper class para construir respuestas JSON de forma segura
 class CJsonResponse {

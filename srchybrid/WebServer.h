@@ -237,13 +237,13 @@ typedef struct
 	bool			bUploadSortReverse;
 } GlobalParams;
 
-typedef struct
+struct ThreadData
 {
 	CString			sURL;
 	void			*pThis;
 	CWebSocket		*pSocket;
 	in_addr			inadr;
-} ThreadData;
+};
 
 typedef struct
 {

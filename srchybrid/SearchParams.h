@@ -34,6 +34,8 @@ struct SSearchParams
 		, eType(SearchTypeEd2kServer)
 		, bClientSharedFiles()
 		, bMatchKeywords()
+		, uKadCustomTime()
+		, uKadCustomLimit()
 	{
 	}
 
@@ -87,6 +89,8 @@ struct SSearchParams
 	ESearchType eType;
 	bool bClientSharedFiles;
 	bool bMatchKeywords;
+	uint32 uKadCustomTime;   // Tiempo custom para búsquedas Kad (0 = usar por defecto)
+	uint32 uKadCustomLimit;  // Límite custom de resultados Kad (0 = usar por defecto)
 };
 
 bool GetSearchPacket(CSafeMemFile &data, SSearchParams *pParams, bool bTargetSupports64Bit, bool *pbPacketUsing64Bit);

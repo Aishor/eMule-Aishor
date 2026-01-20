@@ -89,6 +89,8 @@ public:
 	CString	GetPseudoDirName(const CString &strDirectoryName);
 	CString	GetDirNameByPseudo(const CString &strPseudoName) const;
 
+	POSITION GetFirstItemPosition() const { return m_Files_map.GetStartPosition(); }
+
 	uint64	GetDatasize(uint64 &pbytesLargest) const;
 	INT_PTR	GetCount()								{ return m_Files_map.GetCount(); }
 	INT_PTR	GetHashingCount()						{ return waitingforhash_list.GetCount() + currentlyhashing_list.GetCount(); }

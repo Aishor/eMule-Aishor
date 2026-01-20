@@ -40,7 +40,7 @@ namespace dami
 {
   namespace io
   {
-    class StringReader : public ID3_Reader
+    class ID3_CPP_EXPORT StringReader : public ID3_Reader
     {
       const String&  _string;
       pos_type _cur;
@@ -110,7 +110,7 @@ namespace dami
       }
     };
 
-    class BStringReader : public ID3_Reader
+    class ID3_CPP_EXPORT BStringReader : public ID3_Reader
     {
       const BString&  _string;
       pos_type _cur;
@@ -180,7 +180,7 @@ namespace dami
       }
     };
 
-    class StringWriter : public ID3_Writer
+    class ID3_CPP_EXPORT StringWriter : public ID3_Writer
     {
       String& _string;
      public:
@@ -206,7 +206,7 @@ namespace dami
       }
     };
 
-    class BStringWriter : public ID3_Writer
+    class ID3_CPP_EXPORT BStringWriter : public ID3_Writer
     {
       BString& _string;
      public:
