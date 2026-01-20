@@ -2877,6 +2877,25 @@ CString CPreferences::GetDefaultDirectory(EDefaultDirectory eDirectory, bool bCr
 			rkEMuleRegKey.QueryDWORDValue(_T("UsePublicUserDirectories"), nRegistrySetting);
 			rkEMuleRegKey.Close();
 		}
+
+		// -----------------------------------------------------------------------
+		// [TITANIUM FIBERSIGHT] PORTABLE MODE SWITCH
+		// Logic: If "portable.dat" exists next to exe, force local mode.
+		// -----------------------------------------------------------------------
+		TCHAR szAppPath[MAX_PATH];
+		::GetModuleFileName(NULL, szAppPath, MAX_PATH);
+		::PathRemoveFileSpec(szAppPath); 
+		
+		CString strPortableSwitch;
+		strPortableSwitch.Format(_T("%s\\portable.dat"), szAppPath);
+
+		if (::PathFileExists(strPortableSwitch)) 
+		{
+			// Force nRegistrySetting to 2
+			// 2 = Store key paths in executable dir (Portable Mode)
+			nRegistrySetting = 2; 
+		}
+		// -----------------------------------------------------------------------
 		if (nRegistrySetting > 2)
 			nRegistrySetting = _UI32_MAX;
 
