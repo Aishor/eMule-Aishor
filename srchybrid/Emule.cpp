@@ -404,11 +404,25 @@ static BOOL InitWinsock2(WSADATA *lpwsaData)
 #include <shlobj.h>
 
 // [TITANIUM FIBERSIGHT] Helper para Migración Automática
+// [TITANIUM FIBERSIGHT] Helper para Migración Automática
 void AttemptLegacyMigration(const CString& strDestConfigDir)
 {
     // 1. Seguridad: Si ya existe configuración portable, NO hacemos nada.
     if (PathFileExists(strDestConfigDir + _T("preferences.ini"))) {
         return;
+    }
+
+    // [TITANIUM FIBERSIGHT] FIX OT_012: Ensure config dir exists!
+    if (!PathFileExists(strDestConfigDir)) {
+        BOOL bCreated = CreateDirectory(strDestConfigDir, NULL);
+        if (!bCreated) {
+             DWORD dwErr = GetLastError();
+             CString strErr;
+             strErr.Format(_T("Fallo al crear directorio de configuración:\n%s\nError: %d"), strDestConfigDir, dwErr);
+             // Solo error crítico si falla la creación básica
+             // ::MessageBox(NULL, strErr, _T("Error de Migración"), MB_ICONERROR);
+             return; 
+        }
     }
 
     // 2. Obtener la ruta antigua (%AppData%\eMule\config)
@@ -418,34 +432,70 @@ void AttemptLegacyMigration(const CString& strDestConfigDir)
         CString strLegacyConfig;
         strLegacyConfig.Format(_T("%s\\eMule\\config\\"), szAppData);
 
-        // Si la instalación antigua no existe, abortamos
-        if (!PathFileExists(strLegacyConfig + _T("preferences.ini"))) return;
+        // Si la instalación antigua no existe en Roaming, probamos Local AppData
+        if (!PathFileExists(strLegacyConfig + _T("preferences.ini"))) {
+             TCHAR szLocalAppData[MAX_PATH];
+             if (SHGetSpecialFolderPath(NULL, szLocalAppData, CSIDL_LOCAL_APPDATA, FALSE)) {
+                 CString strLocalConfig;
+                 strLocalConfig.Format(_T("%s\\eMule\\config\\"), szLocalAppData);
+                 if (PathFileExists(strLocalConfig + _T("preferences.ini"))) {
+                      strLegacyConfig = strLocalConfig;
+                 }
+             }
+        }
+
+        // Si sigue sin existir, abortamos silenciosamente (usuario nuevo o limpio)
+        if (!PathFileExists(strLegacyConfig + _T("preferences.ini"))) {
+             return;
+        }
 
         // 3. Lista de "Órganos Vitales" a trasplantar
-        // cryptkey.dat = La identidad (CRÍTICO para no perder créditos)
-        // clients.met  = Créditos que otros nos deben
         const TCHAR* arrFiles[] = { 
             _T("preferences.ini"), 
             _T("cryptkey.dat"), 
             _T("clients.met"), 
             _T("server.met"), 
-            _T("known.met"),      // Opcional: Historial de descargas (puede ser grande)
+            _T("known.met"),      
             _T("ipfilter.dat") 
         };
 
         // 4. Ejecutar el robo (Copia silenciosa)
         int nCopied = 0;
+        CString strCopyErrors;
+
         for (int i = 0; i < _countof(arrFiles); i++) {
             CString src = strLegacyConfig + arrFiles[i];
             CString dst = strDestConfigDir + arrFiles[i];
             
-            if (CopyFile(src, dst, TRUE)) { // TRUE = No sobrescribir si existe (doble seguridad)
-                nCopied++;
+            if (PathFileExists(src)) {
+                if (CopyFile(src, dst, TRUE)) { 
+                    nCopied++;
+                } else {
+                    DWORD dwErr = GetLastError();
+                    CString err;
+                    err.Format(_T("- %s (Error %d)\n"), arrFiles[i], dwErr);
+                    strCopyErrors += err;
+                }
             }
         }
 
+        if (!strCopyErrors.IsEmpty()) {
+            CString strErrorMsg = _T("Ocurrieron errores técnicos durante la migración de algunos archivos:\n\n") + strCopyErrors;
+            ::MessageBox(NULL, strErrorMsg, _T("Advertencia de Migración"), MB_ICONWARNING);
+        }
+        
         if (nCopied > 0) {
-            LogWarning(_T("[Portable] Auto-Migration: %d files imported from Legacy AppData."), nCopied);
+            CString strMsg;
+            strMsg.Format(_T("¡Migración a Modo Portable Exitosa!\n\n")
+                          _T("Se han importado %d archivos de configuración importantes.\n\n")
+                          _T("Origen: %s\n")
+                          _T("Destino: %s\n\n")
+                          _T("Su eMule ahora conserva sus créditos, amigos y configuración anterior."), 
+                          nCopied, strLegacyConfig, strDestConfigDir);
+            
+            // Usamos MB_ICONINFORMATION para que se vea distinguido
+            ::MessageBox(NULL, strMsg, _T("Migración Automatizada"), MB_ICONINFORMATION);
+            LogWarning(_T("[Portable] Auto-Migration: %d files imported from Legacy AppData (%s)."), nCopied, strLegacyConfig);
         }
     }
 }

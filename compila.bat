@@ -66,6 +66,9 @@ echo ========================================
 echo   Compilando eMule x64 Release
 echo ========================================
 echo.
+echo.
+taskkill /F /IM mspdbsrv.exe >nul 2>&1
+echo Limpiando procesos de compilación previos...
 powershell -ExecutionPolicy Bypass -File build_x64.ps1
 if %ERRORLEVEL% NEQ 0 (
     echo.
