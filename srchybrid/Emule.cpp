@@ -1865,6 +1865,38 @@ void CemuleApp::CreateAllFonts()
 	// systems.
 	//
 	CreatePointFont(m_fontChatEdit, 11 * 10, lfDefault.lfFaceName);
+
+	///////////////////////////////////////////////////////////////////////////
+	// Appearance Tab Fonts
+	//
+	if (m_fontApp.m_hObject)
+		m_fontApp.DeleteObject();
+	CreatePointFont(m_fontApp, thePrefs.GetAppFontSize(), thePrefs.GetAppFontName());
+
+	if (m_fontList.m_hObject)
+		m_fontList.DeleteObject();
+	CreatePointFont(m_fontList, thePrefs.GetListFontSize(), thePrefs.GetListFontName());
+
+
+
+}
+
+void CemuleApp::ApplyAutoFont(CWnd* pWnd)
+{
+	if (pWnd && pWnd->GetSafeHwnd() && m_fontApp.GetSafeHandle())
+	{
+		pWnd->SetFont(&m_fontApp);
+		pWnd->SendMessageToDescendants(WM_SETFONT, (WPARAM)m_fontApp.GetSafeHandle(), MAKELPARAM(FALSE, 0), TRUE);
+	}
+}
+
+int CemuleApp::GetScaledIconSize() const
+{
+	static const int sizes[] = { 16, 20, 24, 32 };
+	int scale = thePrefs.GetIconScale();
+	if (scale >= 0 && scale < sizeof(sizes)/sizeof(sizes[0]))
+		return sizes[scale];
+	return 16;
 }
 
 const CString& CemuleApp::GetDefaultFontFaceName()

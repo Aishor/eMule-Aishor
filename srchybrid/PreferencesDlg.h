@@ -9,6 +9,7 @@
 #include "PPgIRC.h"
 #include "PPgTweaks.h"
 #include "PPgDisplay.h"
+#include "PPgAppearance.h"
 #include "PPgSecurity.h"
 #include "PPgWebServer.h"
 #include "PPgScheduler.h"
@@ -39,6 +40,7 @@ public:
 	CPPgIRC			m_wndIRC;
 	CPPgTweaks		m_wndTweaks;
 	CPPgDisplay		m_wndDisplay;
+	CPPgAppearance m_wndAppearance;
 	CPPgSecurity	m_wndSecurity;
 	CPPgWebServer	m_wndWebServer;
 	CPPgScheduler	m_wndScheduler;

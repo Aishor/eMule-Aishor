@@ -55,6 +55,7 @@ CPreferencesDlg::CPreferencesDlg()
 
 	CTreePropSheet::SetPageIcon(&m_wndGeneral, _T("Preferences"));
 	CTreePropSheet::SetPageIcon(&m_wndDisplay, _T("DISPLAY"));
+	CTreePropSheet::SetPageIcon(&m_wndAppearance, _T("DISPLAY"));
 	CTreePropSheet::SetPageIcon(&m_wndConnection, _T("CONNECTION"));
 	CTreePropSheet::SetPageIcon(&m_wndProxy, _T("PROXY"));
 	CTreePropSheet::SetPageIcon(&m_wndServer, _T("SERVER"));
@@ -74,6 +75,7 @@ CPreferencesDlg::CPreferencesDlg()
 
 	AddPage(&m_wndGeneral);
 	AddPage(&m_wndDisplay);
+	AddPage(&m_wndAppearance);
 	AddPage(&m_wndConnection);
 	AddPage(&m_wndProxy);
 	AddPage(&m_wndServer);
@@ -114,6 +116,7 @@ BOOL CPreferencesDlg::OnInitDialog()
 {
 	ASSERT(!m_bSaveIniFile);
 	BOOL bResult = CTreePropSheet::OnInitDialog();
+	theApp.ApplyAutoFont(this); // Aplicar fuente de usuario
 	InitWindowStyles(this);
 
 	for (int i = (int)m_pages.GetCount(); --i >= 0;)
@@ -137,6 +140,7 @@ void CPreferencesDlg::Localize()
 
 	m_wndGeneral.Localize();
 	m_wndDisplay.Localize();
+	m_wndAppearance.Localize();
 	m_wndConnection.Localize();
 	m_wndServer.Localize();
 	m_wndDirectories.Localize();
@@ -152,9 +156,9 @@ void CPreferencesDlg::Localize()
 	m_wndMessages.Localize();
 
 	if (GetPageTreeControl()) {
-		static const UINT uids[15] =
+		static const UINT uids[16] =
 		{
-			IDS_PW_GENERAL, IDS_PW_DISPLAY, IDS_CONNECTION, IDS_PW_PROXY, IDS_PW_SERVER,
+			IDS_PW_GENERAL, IDS_PW_DISPLAY, IDS_APPEARANCE, IDS_CONNECTION, IDS_PW_PROXY, IDS_PW_SERVER,
 			IDS_PW_DIR, IDS_PW_FILES, IDS_PW_EKDEV_OPTIONS, IDS_STATSSETUPINFO, IDS_IRC,
 			IDS_MESSAGESCOMMENTS, IDS_SECURITY, IDS_SCHEDULER, IDS_PW_WS, IDS_PW_TWEAK
 		};

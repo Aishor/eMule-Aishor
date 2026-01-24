@@ -363,6 +363,15 @@ CString	CPreferences::m_strDateTimeFormat4Log;
 CString	CPreferences::m_strDateTimeFormat4Lists;
 LOGFONT CPreferences::m_lfHyperText;
 LOGFONT CPreferences::m_lfLogText;
+// Appearance Tab fonts
+CString CPreferences::m_strAppFontName;
+int		CPreferences::m_iAppFontSize;
+CString CPreferences::m_strListFontName;
+int		CPreferences::m_iListFontSize;
+CString CPreferences::m_strLogFontName;
+int		CPreferences::m_iLogFontSize;
+int		CPreferences::m_iIconScale;
+bool	CPreferences::m_bDPIAware;
 COLORREF CPreferences::m_crLogError = RGB(255, 0, 0);
 COLORREF CPreferences::m_crLogWarning = RGB(128, 0, 128);
 COLORREF CPreferences::m_crLogSuccess = RGB(0, 0, 255);
@@ -1716,6 +1725,16 @@ void CPreferences::SavePreferences()
 	ini.WriteBinary(_T("HyperTextFont"), (LPBYTE)&m_lfHyperText, sizeof m_lfHyperText);
 	ini.WriteBinary(_T("LogTextFont"), (LPBYTE)&m_lfLogText, sizeof m_lfLogText);
 
+	// Appearance Tab
+	ini.WriteString(_T("AppFontName"), m_strAppFontName);
+	ini.WriteInt(_T("AppFontSize"), m_iAppFontSize);
+	ini.WriteString(_T("ListFontName"), m_strListFontName);
+	ini.WriteInt(_T("ListFontSize"), m_iListFontSize);
+	ini.WriteString(_T("LogFontName"), m_strLogFontName);
+	ini.WriteInt(_T("LogFontSize"), m_iLogFontSize);
+	ini.WriteInt(_T("IconScale"), m_iIconScale);
+	ini.WriteBool(_T("DPIAware"), m_bDPIAware);
+
 	// ZZ:UploadSpeedSense -->
 	ini.WriteBool(_T("USSEnabled"), m_bDynUpEnabled);
 	ini.WriteBool(_T("USSUseMillisecondPingTolerance"), m_bDynUpUseMillisecondPingTolerance);
@@ -2276,6 +2295,16 @@ void CPreferences::LoadPreferences()
 	m_crLogError = ini.GetColRef(_T("LogErrorColor"), m_crLogError);
 	m_crLogWarning = ini.GetColRef(_T("LogWarningColor"), m_crLogWarning);
 	m_crLogSuccess = ini.GetColRef(_T("LogSuccessColor"), m_crLogSuccess);
+
+	// Appearance Tab
+	m_strAppFontName = ini.GetString(_T("AppFontName"), _T("Segoe UI"));
+	m_iAppFontSize = ini.GetInt(_T("AppFontSize"), 90);
+	m_strListFontName = ini.GetString(_T("ListFontName"), _T("Tahoma"));
+	m_iListFontSize = ini.GetInt(_T("ListFontSize"), 80);
+	m_strLogFontName = ini.GetString(_T("LogFontName"), _T("Consolas"));
+	m_iLogFontSize = ini.GetInt(_T("LogFontSize"), 90);
+	m_iIconScale = ini.GetInt(_T("IconScale"), 0);  // 0 = Auto
+	m_bDPIAware = ini.GetBool(_T("DPIAware"), true);
 
 	if (statsAverageMinutes < 1)
 		statsAverageMinutes = 5;

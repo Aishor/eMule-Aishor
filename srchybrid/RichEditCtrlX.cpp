@@ -16,6 +16,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "stdafx.h"
 #include "resource.h"
+#include "emule.h"
 #include "MenuCmds.h"
 #include "RichEditCtrlX.h"
 #include "OtherFunctions.h"
@@ -70,6 +71,13 @@ void CRichEditCtrlX::SetSyntaxColoring(LPCTSTR *ppszKeywords, LPCTSTR pszSeparat
 
 		ASSERT(GetTextMode() & TM_MULTILEVELUNDO);
 	}
+}
+
+void CRichEditCtrlX::PreSubclassWindow()
+{
+	CRichEditCtrl::PreSubclassWindow();
+	if (theApp.m_fontLog.m_hObject)
+		SetFont(&theApp.m_fontLog);
 }
 
 CRichEditCtrlX& CRichEditCtrlX::operator<<(LPCTSTR psz)

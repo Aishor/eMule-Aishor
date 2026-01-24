@@ -130,7 +130,8 @@ void CUploadListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	const CHeaderCtrl *pHeaderCtrl = GetHeaderCtrl();
 	int iCount = pHeaderCtrl->GetItemCount();
 	LONG itemLeft = rcItem.left;
-	LONG iIconY = max((rcItem.Height() - 15) / 2, 0);
+	int iScaledIconSize = theApp.GetScaledIconSize();
+	LONG iIconY = max((rcItem.Height() - iScaledIconSize) / 2, 0);
 	for (int iCurrent = 0; iCurrent < iCount; ++iCurrent) {
 		int iColumn = pHeaderCtrl->OrderToIndex(iCurrent);
 		if (IsColumnHidden(iColumn))
@@ -152,7 +153,7 @@ void CUploadListCtrl::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 					rcItem.left += sm_iIconOffset;
 					const POINT point{rcItem.left, rcItem.top + iIconY};
 					m_pImageList->Draw(dc, iImage, point, ILD_NORMAL | INDEXTOOVERLAYMASK(uOverlayImage));
-					rcItem.left += 16 + sm_iLabelOffset - sm_iSubItemInset;
+					rcItem.left += iScaledIconSize + sm_iLabelOffset - sm_iSubItemInset;
 				}
 			default: //any text column
 				rcItem.left += sm_iSubItemInset;

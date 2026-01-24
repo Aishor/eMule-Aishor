@@ -663,7 +663,7 @@ BEGIN
     GROUPBOX        "Lower CPU && Memory Usage",IDC_STATIC_CPUMEM,4,145,223,35
     CONTROL         "Disable Known Clients list",IDC_DISABLEKNOWNLIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,156,202,10
     CONTROL         "Disable Queue List",IDC_DISABLEQUEUELIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,166,202,10
-    PUSHBUTTON      "Select Font...",IDC_SELECT_HYPERTEXT_FONT,12,196,86,14
+
     CONTROL         "Font for Server-, Message- and IRC-Window",IDC_HYPERTEXT_FONT_HINT,
                     "Static",SS_LEFTNOWORDWRAP | WS_GROUP,4,186,216,8
     CONTROL         "Reset all autocompletion histories (search name, met-URL,...)",IDC_RESETLABEL,
@@ -671,6 +671,28 @@ BEGIN
     CONTROL         "Check1",IDC_DISABLEHIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,227,86,11
     PUSHBUTTON      "Reset",IDC_RESETHIST,105,226,48,14
     LTEXT           "",IDC_PREVIEW,90,5,26,13
+END
+
+IDD_PPG_APPEARANCE DIALOGEX 0, 0, 231, 238
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Appearance"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Typography",IDC_GRP_TYPOGRAPHY,4,2,223,120
+    LTEXT           "Interface Font:",IDC_LBL_APP_FONT,11,15,80,8
+    PUSHBUTTON      "Change...",IDC_SELECT_APP_FONT,165,12,55,14
+    LTEXT           "Sample Text",IDC_APP_FONT_SAMPLE,11,28,210,18,SS_SUNKEN
+    LTEXT           "Lists Font:",IDC_LBL_LIST_FONT,11,52,80,8
+    PUSHBUTTON      "Change...",IDC_SELECT_LIST_FONT,165,49,55,14
+    LTEXT           "Sample Text",IDC_LIST_FONT_SAMPLE,11,65,210,18,SS_SUNKEN
+    LTEXT           "Logs / IRC Font:",IDC_LBL_LOG_FONT,11,89,80,8
+    PUSHBUTTON      "Change...",IDC_SELECT_LOG_FONT,165,86,55,14
+    LTEXT           "Sample Text",IDC_LOG_FONT_SAMPLE,11,102,210,18,SS_SUNKEN
+    GROUPBOX        "Display",IDC_GRP_DISPLAY,4,126,223,55
+    LTEXT           "Icon Size:",IDC_LBL_ICON_SCALE,11,140,60,8
+    COMBOBOX        IDC_ICON_SCALE,80,138,90,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Respect Windows DPI scaling",IDC_DPI_AWARE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,156,200,10
+    LTEXT           "(Requires restart)",IDC_LBL_DPI_NOTE,11,168,200,8
 END
 
 IDD_PPG_SECURITY DIALOGEX 0, 0, 231, 214
@@ -3732,6 +3754,23 @@ BEGIN
     IDS_IRC_ENABLEUTF8      "Enable UTF-8"
     IDS_ITALIC              "Toggles italicized text"
     IDS_CONTENTDB           "ContentDB (Web)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_APPEARANCE          "Appearance"
+    IDS_TYPOGRAPHY          "Typography"
+    IDS_ICONOGRAPHY         "Display"
+    IDS_APP_FONT            "Interface Font:"
+    IDS_LIST_FONT           "Lists Font:"
+    IDS_LOG_FONT            "Logs / IRC Font:"
+    IDS_ICON_SCALE          "Icon Size:"
+    IDS_DPI_AWARE           "Respect Windows DPI scaling"
+    IDS_NEEDS_RESTART       "(Requires restart)"
+    IDS_ICON_AUTO           "Automatic"
+    IDS_ICON_SMALL          "Small (16px)"
+    IDS_ICON_MEDIUM         "Medium (24px)"
+    IDS_ICON_LARGE          "Large (32px)"
 END
 
 #endif    // English (US) resources

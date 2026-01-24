@@ -168,9 +168,12 @@ void CDownloadListCtrl::OnSysColorChange()
 
 void CDownloadListCtrl::SetAllIcons()
 {
+	// Apply the image list also to the listview control, even if we use our own 'DrawItem'.
+	// This is needed to give the listview control a chance to initialize the row height.
 	ApplyImageList(NULL);
 	m_ImageList.DeleteImageList();
-	m_ImageList.Create(16, 16, theApp.m_iDfltImageListColorFlags | ILC_MASK, 0, 1);
+	int iIconSize = theApp.GetScaledIconSize();
+	m_ImageList.Create(iIconSize, iIconSize, theApp.m_iDfltImageListColorFlags | ILC_MASK, 0, 1);
 	m_ImageList.Add(CTempIconLoader(_T("SrcDownloading")));	//0
 	m_ImageList.Add(CTempIconLoader(_T("SrcOnQueue")));		//1
 	m_ImageList.Add(CTempIconLoader(_T("SrcConnecting")));	//2
@@ -397,8 +400,10 @@ void CDownloadListCtrl::DrawFileItem(CDC &dc, int nColumn, LPCRECT lpRect, UINT 
 			rcDraw.left += theApp.GetSmallSytemIconSize().cx;
 
 			if (thePrefs.ShowRatingIndicator() && (pPartFile->HasComment() || pPartFile->HasRating() || pPartFile->IsKadCommentSearchRunning())) {
-				m_ImageList.Draw(&dc, 14 + pPartFile->UserRating(true), CPoint(rcDraw.left + 2, rcDraw.top + iIconPosY), ILD_NORMAL);
-				rcDraw.left += 2 + RATING_ICON_WIDTH;
+				int iScaledIconSize = theApp.GetScaledIconSize();
+				int iRatingIconPosY = max((rcDraw.Height() - iScaledIconSize) / 2, 0);
+				m_ImageList.Draw(&dc, 14 + pPartFile->UserRating(true), CPoint(rcDraw.left + 2, rcDraw.top + iRatingIconPosY), ILD_NORMAL);
+				rcDraw.left += 2 + iScaledIconSize;
 			}
 
 			rcDraw.left += sm_iLabelOffset;
@@ -554,7 +559,8 @@ void CDownloadListCtrl::DrawSourceItem(CDC &dc, int nColumn, LPCRECT lpRect, UIN
 	case 0: // icon, name, status
 		{
 			CRect rcItem(*lpRect);
-			int iIconPosY = (rcItem.Height() > 16) ? ((rcItem.Height() - 15) / 2) : 0;
+			int iScaledIconSize = theApp.GetScaledIconSize();
+			int iIconPosY = (rcItem.Height() > iScaledIconSize) ? ((rcItem.Height() - iScaledIconSize) / 2) : 0;
 			POINT point{rcItem.left, rcItem.top + iIconPosY};
 			int iImage;
 			if (pCtrlItem->type == AVAILABLE_SOURCE) {
@@ -584,7 +590,7 @@ void CDownloadListCtrl::DrawSourceItem(CDC &dc, int nColumn, LPCRECT lpRect, UIN
 			} else
 				iImage = 3;
 			m_ImageList.Draw(&dc, iImage, point, ILD_NORMAL);
-			rcItem.left += 20;
+			rcItem.left += iScaledIconSize + 4;
 
 			UINT uOvlImg = static_cast<UINT>((pClient->Credits() && pClient->Credits()->GetCurrentIdentState(pClient->GetIP()) == IS_IDENTIFIED));
 			uOvlImg |= (static_cast<UINT>(pClient->IsObfuscatedConnectionEstablished()) << 1);
@@ -616,7 +622,7 @@ void CDownloadListCtrl::DrawSourceItem(CDC &dc, int nColumn, LPCRECT lpRect, UIN
 				}
 			const POINT point2{rcItem.left, rcItem.top + iIconPosY};
 			m_ImageList.Draw(&dc, iImage, point2, ILD_NORMAL | INDEXTOOVERLAYMASK(uOvlImg));
-			rcItem.left += 20;
+			rcItem.left += iScaledIconSize + 4;
 
 			dc.DrawText(sItem, &rcItem, MLC_DT_TEXT | uDrawTextAlignment);
 		}

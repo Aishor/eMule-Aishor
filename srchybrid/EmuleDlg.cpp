@@ -274,7 +274,8 @@ CemuleDlg::CemuleDlg(CWnd *pParent /*=NULL*/)
 
 void CemuleDlg::SetClientIconList()
 {
-	m_IconList.Create(16, 16, theApp.m_iDfltImageListColorFlags | ILC_MASK, 0, 1);
+	int iIconSize = theApp.GetScaledIconSize();
+	m_IconList.Create(iIconSize, iIconSize, theApp.m_iDfltImageListColorFlags | ILC_MASK, 0, 1);
 	m_IconList.Add(CTempIconLoader(_T("ClientEDonkey")));			//0 - eDonkey
 	m_IconList.Add(CTempIconLoader(_T("ClientEDonkeyPlus")));
 	m_IconList.Add(CTempIconLoader(_T("ClientCompatible")));		//2 - Compat
@@ -410,6 +411,8 @@ BOOL CemuleDlg::OnInitDialog()
 	dprintf("TrayDialog Init");
 	CTrayDialog::OnInitDialog();
 	dprintf("TrayDialog Init Done");
+	theApp.ApplyAutoFont(this); // Aplicar fuente de usuario  
+	dprintf("Fonts Applied");
 	InitWindowStyles(this);
 	dprintf("InitWindowStyles Done");
 	CreateToolbarCmdIconMap();
@@ -484,20 +487,36 @@ BOOL CemuleDlg::OnInitDialog()
 	// create main window dialog pages
 	dprintf("Creating ServerWnd");
 	DialogCreateIndirect(serverwnd, IDD_SERVER, this);
+	theApp.ApplyAutoFont(serverwnd); // [NEW]
+
 	dprintf("Creating SharedFilesWnd");
 	DialogCreateIndirect(sharedfileswnd, IDD_FILES, this);
+	theApp.ApplyAutoFont(sharedfileswnd); // [NEW]
+
 	dprintf("Creating SearchWnd");
 	searchwnd->CreateWnd(this); // can not use 'DialogCreateIndirect' for the SearchWnd, grrr...
+	theApp.ApplyAutoFont(searchwnd); // [NEW]
+
 	dprintf("Creating ChatWnd");
 	DialogCreateIndirect(chatwnd, IDD_CHAT, this);
+	theApp.ApplyAutoFont(chatwnd); // [NEW]
+
 	dprintf("Creating TransferWnd");
 	transferwnd->CreateWnd(this);
+	theApp.ApplyAutoFont(transferwnd); // [NEW]
+
 	dprintf("Creating StatisticsWnd");
 	DialogCreateIndirect(statisticswnd, IDD_STATISTICS, this);
+	theApp.ApplyAutoFont(statisticswnd); // [NEW]
+
 	dprintf("Creating KademliaWnd");
 	DialogCreateIndirect(kademliawnd, IDD_KADEMLIAWND, this);
+	theApp.ApplyAutoFont(kademliawnd); // [NEW]
+
 	dprintf("Creating IRCWnd");
 	DialogCreateIndirect(ircwnd, IDD_IRC, this);
+	theApp.ApplyAutoFont(ircwnd); // [NEW]
+
 	dprintf("All Child Dialogs Created");
 
 	// with the top rebar control, some XP themes look better with additional lite borders, some not.

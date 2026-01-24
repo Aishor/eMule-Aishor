@@ -11,6 +11,8 @@ public:
 	void SetDisableSelectOnFocus(bool bDisable = true)		{ m_bDisableSelectOnFocus = bDisable; }
 	void SetSyntaxColoring(LPCTSTR *ppszKeywords = NULL, LPCTSTR pszSeparators = NULL);
 
+	virtual void PreSubclassWindow();
+
 	CRichEditCtrlX& operator<<(LPCTSTR psz);
 	CRichEditCtrlX& operator<<(char *psz);
 	CRichEditCtrlX& operator<<(UINT uVal);

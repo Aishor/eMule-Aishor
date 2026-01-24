@@ -128,7 +128,9 @@ void CMuleListCtrl::PreSubclassWindow()
 	// DEFAULT_GUI_FONT: Vista: "MS Shell Dlg" with 8 pts (regardless of system applet settings !!!)
 	// SYSTEM_FONT:		 Vista: Good old Windows 3.11 System Font
 	// NULL				 Vista: Font ('Symbol') with the face and size which is configured in System applet.
-	if (thePrefs.GetUseSystemFontForMainControls())
+	if (theApp.m_fontList.m_hObject)
+		SetFont(&theApp.m_fontList);
+	else if (thePrefs.GetUseSystemFontForMainControls())
 		SendMessage(WM_SETFONT, NULL, FALSE);
 }
 

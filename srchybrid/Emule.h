@@ -108,6 +108,8 @@ public:
 	CFont		m_fontSymbol;
 	CFont		m_fontLog;
 	CFont		m_fontChatEdit;
+	CFont		m_fontApp;		// Appearance Tab: Interface Font
+	CFont		m_fontList;		// Appearance Tab: Lists Font
 	CBrush		m_brushBackwardDiagonal;
 	DWORD		m_dwProductVersionMS;
 	DWORD		m_dwProductVersionLS;
@@ -153,6 +155,8 @@ public:
 	CSize		GetBigSytemIconSize() const						{ return m_sizBigSystemIcon; }
 	void		CreateBackwardDiagonalBrush();
 	void		CreateAllFonts();
+	void		ApplyAutoFont(CWnd* pWnd); // Appearance Tab Helper
+	int			GetScaledIconSize() const; // Icon scaling helper
 	const CString& GetDefaultFontFaceName();
 	bool		IsPortchangeAllowed();
 	bool		IsConnected(bool bIgnoreEd2k = false, bool bIgnoreKad = false);

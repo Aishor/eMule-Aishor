@@ -514,6 +514,15 @@ public:
 	static CString	m_strDateTimeFormat4Lists;
 	static LOGFONT	m_lfHyperText;
 	static LOGFONT	m_lfLogText;
+	// Appearance Tab
+	static CString m_strAppFontName;
+	static int m_iAppFontSize;
+	static CString m_strListFontName;
+	static int m_iListFontSize;
+	static CString m_strLogFontName;
+	static int m_iLogFontSize;
+	static int m_iIconScale;
+	static bool m_bDPIAware;
 	static COLORREF m_crLogError;
 	static COLORREF m_crLogWarning;
 	static COLORREF m_crLogSuccess;
@@ -1124,6 +1133,15 @@ public:
 	static void		SetHyperTextFont(LPLOGFONT plf)		{ m_lfHyperText = *plf; }
 	static LPLOGFONT GetLogFont()						{ return &m_lfLogText; }
 	static void		SetLogFont(LPLOGFONT plf)			{ m_lfLogText = *plf; }
+	// Appearance Tab getters
+	static const CString& GetAppFontName() { return m_strAppFontName; }
+	static int GetAppFontSize() { return m_iAppFontSize; }
+	static const CString& GetListFontName() { return m_strListFontName; }
+	static int GetListFontSize() { return m_iListFontSize; }
+	static const CString& GetLogFontName() { return m_strLogFontName; }
+	static int GetLogFontSize() { return m_iLogFontSize; }
+	static int GetIconScale() { return m_iIconScale; }
+	static bool IsDPIAware() { return m_bDPIAware; }
 	static COLORREF GetLogErrorColor()					{ return m_crLogError; }
 	static COLORREF GetLogWarningColor()				{ return m_crLogWarning; }
 	static COLORREF GetLogSuccessColor()				{ return m_crLogSuccess; }
@@ -1437,3 +1455,4 @@ protected:
 
 extern CPreferences thePrefs;
 extern bool g_bLowColorDesktop;
+
